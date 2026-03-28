@@ -1,7 +1,11 @@
 ---
 title: REST API Reference
-description: Meshery REST API Documentation and Reference
-aliases:
+description: Meshery OSS REST API documentation and reference
+type: rest-apis
+data: openapi
+display_toc: false
+body_class: rest-api-reference-page
+aliases: 
 - /reference/rest-apis/swagger
 ---
 
