@@ -3,6 +3,7 @@ package core
 import (
 	"net/url"
 	"testing"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEncodeRefUrl(t *testing.T) {
@@ -12,22 +13,22 @@ func TestEncodeRefUrl(t *testing.T) {
 		expected string
 	}{
 		{
-			name:     "Empty URL",
+			name:     "given empty url when EncodeRefUrl then return empty string",
 			input:    url.URL{},
 			expected: "",
 		},
 		{
-			name:     "Root path only",
+			name:     "given root path url when EncodeRefUrl then return empty string",
 			input:    url.URL{Path: "/"},
 			expected: "",
 		},
 		{
-			name:     "Relative URL",
+			name:     "given relative url when EncodeRefUrl then return encoded string",
 			input:    url.URL{Path: "/dashboard"},
 			expected: "L2Rhc2hib2FyZA",
 		},
 		{
-			name: "Absolute URL with query param",
+			name: "given absolute url with query params when EncodeRefUrl then return encoded string",
 			input: url.URL{
 				Scheme:   "http",
 				Host:     "localhost:9081",
@@ -41,9 +42,7 @@ func TestEncodeRefUrl(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			actual := EncodeRefUrl(tc.input)
-			if actual != tc.expected {
-				t.Errorf("Test %s failed: expected %q, but got %q", tc.name, tc.expected, actual)
-			}
+			assert.Equal(t, tc.expected, actual, tc.name)
 		})
 	}
 }
@@ -56,20 +55,20 @@ func TestDecodeRefURL(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name:        "Decode Dashboard path",
+			name:        "given valid base64 encoded string when DecodeRefURL then return decoded url",
 			input:       "L2Rhc2hib2FyZA",
 			expected:    "/dashboard",
 			expectError: false,
 		},
 		{
-			name:        "Decode Empty string",
+			name:        "given empty string when DecodeRefURL then return empty string",
 			input:       "",
 			expected:    "",
 			expectError: false,
 		},
 		{
-			name:        "Invalid base64 input",
-			input:       "!!!not-base64!!!", // Added an actual invalid case
+			name:        "given invalid base64 string when DecodeRefURL then return error",
+			input:       "!!!not-base64!!!", 
 			expected:    "",
 			expectError: true,
 		},
@@ -79,15 +78,43 @@ func TestDecodeRefURL(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			actual, err := DecodeRefURL(tc.input)
 
-			// Verify if the error state matches what we expect
-			if (err != nil) != tc.expectError {
-				t.Fatalf("Test %s: DecodeRefURL() error = %v, wantErr %v", tc.name, err, tc.expectError)
+		if tc.expectError {
+				assert.Error(t, err, tc.name)
+			} else {
+				assert.NoError(t, err, tc.name)
+				assert.Equal(t, tc.expected, actual, tc.name)
 			}
+		})
+	}
+}
 
-			// Only check the result if we didn't expect (and get) an error
-			if !tc.expectError && actual != tc.expected {
-				t.Errorf("Test %s failed: expected %q, but got %q", tc.name, tc.expected, actual)
-			}
+func TestEncodeDecodeRoundtrip(t *testing.T) {
+	testCases := []struct {
+		name  string
+		input url.URL
+	}{
+		{
+			name:  "given relative url when EncodeRefUrl and DecodeRefURL then return original url",
+			input: url.URL{Path: "/settings/system"},
+		},
+		{
+			name: "given absolute url when EncodeRefUrl and DecodeRefURL then return original url",
+			input: url.URL{
+				Scheme:   "https",
+				Host:     "meshery.io",
+				Path:     "/catalog",
+				RawQuery: "type=wasm",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			encoded := EncodeRefUrl(tc.input)
+			decoded, err := DecodeRefURL(encoded)
+			
+			assert.NoError(t, err, tc.name)
+			assert.Equal(t, tc.input.String(), decoded, tc.name)
 		})
 	}
 }
