@@ -14,7 +14,6 @@
 
 package filter
 
-
 import (
 	"errors"
 	"fmt"
@@ -193,7 +192,6 @@ func saveToFile(
 	outputFormatterSaver = outputFormatterSaver.WithFilePath(file)
 	return outputFormatterSaver.Save()
 }
-
 
 func init() {
 	viewCmd.Flags().BoolVarP(&filterViewFlagsProvided.ViewAllFlag, "all", "a", false, "(optional) view all filters available")
