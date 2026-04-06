@@ -24,7 +24,7 @@ import (
 //
 // ```?search={name}``` If search is non empty then a greedy search is performed
 //
-// ```?orgId={orgid}``` orgId is used to retrieve workspaces belonging to a particular org *required*
+// ```?orgID={orgid}``` orgID is used to retrieve workspaces belonging to a particular org *required*
 //
 // ```?filter={condition}```
 // responses:
@@ -39,7 +39,13 @@ func (h *Handler) GetWorkspacesHandler(w http.ResponseWriter, req *http.Request,
 
 	q := req.URL.Query()
 
-	resp, err := provider.GetWorkspaces(token, q.Get("page"), q.Get("pagesize"), q.Get("search"), q.Get("order"), q.Get("filter"), q.Get("orgId"))
+	orgID := q.Get("orgID")
+	if orgID == "" {
+		h.log.Error(models.ErrWorkspaceMissingInput())
+		http.Error(w, models.ErrWorkspaceMissingInput().Error(), http.StatusBadRequest)
+		return
+	}
+	resp, err := provider.GetWorkspaces(token, q.Get("page"), q.Get("pagesize"), q.Get("search"), q.Get("order"), q.Get("filter"), orgID)
 	if err != nil {
 		h.log.Error(ErrGetResult(err))
 		http.Error(w, ErrGetResult(err).Error(), http.StatusNotFound)
@@ -55,7 +61,7 @@ func (h *Handler) GetWorkspacesHandler(w http.ResponseWriter, req *http.Request,
 // swagger:route GET /api/workspaces/{id} WorkspacesAPI idGetWorkspacesByIdHandler
 // Handle GET for Workspace info by ID
 //
-// ```?orgId={orgid}``` orgId is used to retrieve workspaces belonging to a particular org
+// ```?orgID={orgid}``` orgID is used to retrieve workspaces belonging to a particular org
 //
 // Returns Workspace info
 // responses:
@@ -64,7 +70,7 @@ func (h *Handler) GetWorkspacesHandler(w http.ResponseWriter, req *http.Request,
 func (h *Handler) GetWorkspaceByIdHandler(w http.ResponseWriter, r *http.Request, _ *models.Preference, _ *models.User, provider models.Provider) {
 	workspaceID := mux.Vars(r)["id"]
 	q := r.URL.Query()
-	orgID := q.Get("orgId")
+	orgID := q.Get("orgID")
 	if orgID == "" {
 		h.log.Error(models.ErrWorkspaceMissingInput())
 		http.Error(w, models.ErrWorkspaceMissingInput().Error(), http.StatusBadRequest)
@@ -208,7 +214,7 @@ func (h *Handler) UpdateWorkspaceHandler(w http.ResponseWriter, req *http.Reques
 //
 // ```?search={name}``` If search is non empty then a greedy search is performed
 //
-// ```?orgId={orgid}``` orgId is used to retrieve workspaces belonging to a particular org *required*
+// ```?orgID={orgid}``` orgID is used to retrieve workspaces belonging to a particular org *required*
 //
 // ```?filter={{"assigned": true/false, "deleted_at": true/false}}``` defaults to assigned: false, deleted_at: false
 // responses:
