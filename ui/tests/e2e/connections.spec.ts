@@ -13,7 +13,7 @@ interface TransitionTest {
 }
 
 // These tests need to be updated to reflect the latest connection api changes
-function waitForConnectionsApiRepsonse(page: Page): Promise<Response> {
+function waitForConnectionsApiResponse(page: Page): Promise<Response> {
   return page.waitForResponse(
     (response) =>
       response.url().includes('/api/integrations/connections') && response.status() === 200,
@@ -100,7 +100,7 @@ test.describe.serial('Connection Management Tests', () => {
   //   // Search for the newly added cluster
   //   await page.getByTestId('ConnectionTable-search').getByRole('button').click();
 
-  //   const getConnectionsRes = waitForConnectionsApiRepsonse(page);
+  //   const getConnectionsRes = waitForConnectionsApiResponse(page);
 
   //   await page.getByRole('textbox', { name: 'Search Connections...' }).click();
   //   await page.getByRole('textbox', { name: 'Search Connections...' }).fill(clusterMetaData.name);
@@ -127,9 +127,9 @@ test.describe.serial('Connection Management Tests', () => {
           response.status() === 202,
       );
 
-      const getFilteredConnectionsRes = waitForConnectionsApiRepsonse(page);
+      const getFilteredConnectionsRes = waitForConnectionsApiResponse(page);
 
-      const getStatusUpdateConnectionsRes = waitForConnectionsApiRepsonse(page);
+      const getStatusUpdateConnectionsRes = waitForConnectionsApiResponse(page);
 
       await page.getByTestId('ConnectionTable-search').getByRole('button').click();
       await page.getByRole('textbox', { name: 'Search Connections...' }).fill(clusterMetaData.name);
@@ -187,7 +187,7 @@ test.describe.serial('Connection Management Tests', () => {
     // Find the row with the connection to be deleted
     await page.getByTestId('ConnectionTable-search').getByRole('button').click();
 
-    const getFilteredConnectionsRes = waitForConnectionsApiRepsonse(page);
+    const getFilteredConnectionsRes = waitForConnectionsApiResponse(page);
 
     await page.getByRole('textbox', { name: 'Search Connections...' }).click();
     await page.getByRole('textbox', { name: 'Search Connections...' }).fill(clusterMetaData.name);
