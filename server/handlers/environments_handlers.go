@@ -12,28 +12,6 @@ import (
 	"github.com/meshery/schemas/models/v1beta1/environment"
 )
 
-<<<<<<< copilot/remove-swagger-documentation
-=======
-// swagger:route GET /api/environments EnvironmentsAPI idGetEnvironments
-// Handles GET for all Environments
-//
-// # Environments can be further filtered through query parameters
-//
-// ```?order={field}``` orders on the passed field
-//
-// ```?page={page-number}``` Default page number is 0
-//
-// ```?pagesize={pagesize}``` Default pagesize is 20
-//
-// ```?search={environments_name}``` If search is non empty then a greedy search is performed
-//
-// ```?orgID={orgid}``` orgID is used to retrieve environments belonging to a particular org *required*
-//
-// ```?filter={condition}```
-// responses:
-// 	200: environmentsResponseWrapper
-
->>>>>>> master
 func (h *Handler) GetEnvironments(w http.ResponseWriter, req *http.Request, _ *models.Preference, _ *models.User, provider models.Provider) {
 	token, ok := req.Context().Value(models.TokenCtxKey).(string)
 	if !ok {
@@ -61,18 +39,6 @@ func (h *Handler) GetEnvironments(w http.ResponseWriter, req *http.Request, _ *m
 	}
 }
 
-<<<<<<< copilot/remove-swagger-documentation
-=======
-// swagger:route GET /api/environments/{id} EnvironmentAPI idGetEnvironmentByIDHandler
-// Handle GET for Environment info by ID
-//
-// ```?orgID={orgid}``` orgID is used to retrieve environments belonging to a particular org
-//
-// Returns Environment info
-// responses:
-//   200: environmentResponseWrapper
-
->>>>>>> master
 func (h *Handler) GetEnvironmentByIDHandler(w http.ResponseWriter, r *http.Request, _ *models.Preference, _ *models.User, provider models.Provider) {
 	environmentID := mux.Vars(r)["id"]
 	q := r.URL.Query()
