@@ -40,7 +40,12 @@ func (h *Handler) GetEnvironments(w http.ResponseWriter, req *http.Request, _ *m
 
 	q := req.URL.Query()
 
-	resp, err := provider.GetEnvironments(token, q.Get("page"), q.Get("pagesize"), q.Get("search"), q.Get("order"), q.Get("filter"), q.Get("orgID"))
+	orgID := q.Get("orgID")
+	if orgID == "" {
+		http.Error(w, "orgID is required", http.StatusBadRequest)
+		return
+	}
+	resp, err := provider.GetEnvironments(token, q.Get("page"), q.Get("pagesize"), q.Get("search"), q.Get("order"), q.Get("filter"), orgID)
 	if err != nil {
 		h.log.Error(ErrGetResult(err))
 		http.Error(w, ErrGetResult(err).Error(), http.StatusNotFound)
@@ -65,7 +70,12 @@ func (h *Handler) GetEnvironments(w http.ResponseWriter, req *http.Request, _ *m
 func (h *Handler) GetEnvironmentByIDHandler(w http.ResponseWriter, r *http.Request, _ *models.Preference, _ *models.User, provider models.Provider) {
 	environmentID := mux.Vars(r)["id"]
 	q := r.URL.Query()
-	resp, err := provider.GetEnvironmentByID(r, environmentID, q.Get("orgID"))
+	orgID := q.Get("orgID")
+	if orgID == "" {
+		http.Error(w, "orgID is required", http.StatusBadRequest)
+		return
+	}
+	resp, err := provider.GetEnvironmentByID(r, environmentID, orgID)
 	if err != nil {
 		h.log.Error(ErrGetResult(err))
 		http.Error(w, ErrGetResult(err).Error(), http.StatusNotFound)

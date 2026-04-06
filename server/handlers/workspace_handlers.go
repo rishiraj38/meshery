@@ -39,7 +39,13 @@ func (h *Handler) GetWorkspacesHandler(w http.ResponseWriter, req *http.Request,
 
 	q := req.URL.Query()
 
-	resp, err := provider.GetWorkspaces(token, q.Get("page"), q.Get("pagesize"), q.Get("search"), q.Get("order"), q.Get("filter"), q.Get("orgID"))
+	orgID := q.Get("orgID")
+	if orgID == "" {
+		h.log.Error(models.ErrWorkspaceMissingInput())
+		http.Error(w, models.ErrWorkspaceMissingInput().Error(), http.StatusBadRequest)
+		return
+	}
+	resp, err := provider.GetWorkspaces(token, q.Get("page"), q.Get("pagesize"), q.Get("search"), q.Get("order"), q.Get("filter"), orgID)
 	if err != nil {
 		h.log.Error(ErrGetResult(err))
 		http.Error(w, ErrGetResult(err).Error(), http.StatusNotFound)
