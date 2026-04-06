@@ -12,15 +12,17 @@ const AnimatedLightMeshery = (props) => {
   const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
-    setTimeout(() => {
+    const interval = setInterval(() => {
       setIsActive(false);
     }, 100);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    setTimeout(() => {
-      setIsActive(!isActive);
+    const interval = setInterval(() => {
+      setIsActive((prev) => !prev);
     }, 4000);
+    return () => clearInterval(interval);
   }, [isActive]);
 
   return (
