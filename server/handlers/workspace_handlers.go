@@ -12,6 +12,27 @@ import (
 	"github.com/meshery/schemas/models/v1beta1/workspace"
 )
 
+<<<<<<< copilot/remove-swagger-documentation
+=======
+// swagger:route GET /api/workspaces WorkspacesAPI idGetWorkspaces
+// Handles GET for all Workspaces
+//
+//
+// ```?order={field}``` orders on the passed field
+//
+// ```?page={page-number}``` Default page number is 0
+//
+// ```?pagesize={pagesize}``` Default pagesize is 20
+//
+// ```?search={name}``` If search is non empty then a greedy search is performed
+//
+// ```?orgID={orgid}``` orgID is used to retrieve workspaces belonging to a particular org *required*
+//
+// ```?filter={condition}```
+// responses:
+// 	200: workspacesResponseWrapper
+
+>>>>>>> master
 func (h *Handler) GetWorkspacesHandler(w http.ResponseWriter, req *http.Request, _ *models.Preference, _ *models.User, provider models.Provider) {
 	token, ok := req.Context().Value(models.TokenCtxKey).(string)
 	if !ok {
@@ -21,7 +42,13 @@ func (h *Handler) GetWorkspacesHandler(w http.ResponseWriter, req *http.Request,
 
 	q := req.URL.Query()
 
-	resp, err := provider.GetWorkspaces(token, q.Get("page"), q.Get("pagesize"), q.Get("search"), q.Get("order"), q.Get("filter"), q.Get("orgId"))
+	orgID := q.Get("orgID")
+	if orgID == "" {
+		h.log.Error(models.ErrWorkspaceMissingInput())
+		http.Error(w, models.ErrWorkspaceMissingInput().Error(), http.StatusBadRequest)
+		return
+	}
+	resp, err := provider.GetWorkspaces(token, q.Get("page"), q.Get("pagesize"), q.Get("search"), q.Get("order"), q.Get("filter"), orgID)
 	if err != nil {
 		h.log.Error(ErrGetResult(err))
 		http.Error(w, ErrGetResult(err).Error(), http.StatusNotFound)
@@ -34,10 +61,22 @@ func (h *Handler) GetWorkspacesHandler(w http.ResponseWriter, req *http.Request,
 	}
 }
 
+<<<<<<< copilot/remove-swagger-documentation
+=======
+// swagger:route GET /api/workspaces/{id} WorkspacesAPI idGetWorkspacesByIdHandler
+// Handle GET for Workspace info by ID
+//
+// ```?orgID={orgid}``` orgID is used to retrieve workspaces belonging to a particular org
+//
+// Returns Workspace info
+// responses:
+//   200: workspaceResponseWrapper
+
+>>>>>>> master
 func (h *Handler) GetWorkspaceByIdHandler(w http.ResponseWriter, r *http.Request, _ *models.Preference, _ *models.User, provider models.Provider) {
 	workspaceID := mux.Vars(r)["id"]
 	q := r.URL.Query()
-	orgID := q.Get("orgId")
+	orgID := q.Get("orgID")
 	if orgID == "" {
 		h.log.Error(models.ErrWorkspaceMissingInput())
 		http.Error(w, models.ErrWorkspaceMissingInput().Error(), http.StatusBadRequest)
@@ -151,6 +190,26 @@ func (h *Handler) UpdateWorkspaceHandler(w http.ResponseWriter, req *http.Reques
 	}
 }
 
+<<<<<<< copilot/remove-swagger-documentation
+=======
+// swagger:route GET /api/workspaces/{id}/environments WorkspacesAPI idGetWorkspaceEnvironments
+// Handles GET for all Environments in a Workspace
+//
+// ```?order={field}``` orders on the passed field
+//
+// ```?page={page-number}``` Default page number is 0
+//
+// ```?pagesize={pagesize}``` Default pagesize is 20
+//
+// ```?search={name}``` If search is non empty then a greedy search is performed
+//
+// ```?orgID={orgid}``` orgID is used to retrieve workspaces belonging to a particular org *required*
+//
+// ```?filter={{"assigned": true/false, "deleted_at": true/false}}``` defaults to assigned: false, deleted_at: false
+// responses:
+//
+//	200: environmentsResponseWrapper
+>>>>>>> master
 func (h *Handler) GetEnvironmentsOfWorkspaceHandler(w http.ResponseWriter, req *http.Request, _ *models.Preference, _ *models.User, provider models.Provider) {
 	workspaceID := mux.Vars(req)["id"]
 	q := req.URL.Query()
