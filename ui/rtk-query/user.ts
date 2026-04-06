@@ -43,7 +43,7 @@ export const userApi = api
         invalidatesTags: [Tags.LOAD_TEST_PREF],
       }),
       getToken: builder.query({
-        query: () => `/api/token`,
+        query: () => ({ url: `/api/token`, method: 'GET', credentials: 'include' }),
         method: 'GET',
       }),
       getUserPref: builder.query({
