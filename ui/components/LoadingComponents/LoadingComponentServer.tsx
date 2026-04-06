@@ -50,7 +50,7 @@ export const PureHtmlLoadingScreen = (props) => {
         <h1
           id={id + '-text-message'}
           style={{
-            fontFamily: "'Qanelas Soft', sans-serif", // this is important to have consistent font between prereact render
+            fontSize: '1.15rem',
             fontSize: '1.15rem',
             fontWeight: 'normal',
             marginTop: '0rem',
