@@ -22,7 +22,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "relay": "relay-compiler",
-    "prepare": "cd .. && husky ui/.husky",
+    "prepare": "cd .. && { [ -d .git ] && husky ui/.husky 2>/dev/null || true; }",
     "postinstall": "patch-package",
     "clean": "rm -rf .next,out"
   },
