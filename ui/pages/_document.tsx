@@ -75,12 +75,8 @@ class MesheryDocument extends Document<MyDocumentProps> {
             type="font/otf"
             crossOrigin="anonymous"
           />
-          <link
-            href="/static/fonts/qanelas-soft/QanelasSoftRegular.otf"
-            as="font"
-            type="font/otf"
-            crossOrigin="anonymous"
-          />
+          {/* Load font-face CSS early for pre-react loader */}
+          <link rel="stylesheet" href="/static/style/font.css" />
 
           {/* Google Tag Manager */}
           {/* eslint-disable-next-line @next/next/next-script-for-ga */}
