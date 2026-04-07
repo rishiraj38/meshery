@@ -76,6 +76,7 @@ class MesheryDocument extends Document<MyDocumentProps> {
             crossOrigin="anonymous"
           />
           {/* Load font-face CSS early for pre-react loader */}
+          {/* eslint-disable-next-line @next/next/no-css-tags */}
           <link rel="stylesheet" href="/static/style/font.css" />
 
           {/* Google Tag Manager */}

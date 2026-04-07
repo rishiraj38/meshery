@@ -51,7 +51,6 @@ export const PureHtmlLoadingScreen = (props) => {
           id={id + '-text-message'}
           style={{
             fontSize: '1.15rem',
-            fontSize: '1.15rem',
             fontWeight: 'normal',
             marginTop: '0rem',
           }}
