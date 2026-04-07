@@ -35,7 +35,7 @@ func (h *Handler) GetWorkspacesHandler(w http.ResponseWriter, req *http.Request,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+	if _, err := w.Write(resp); err != nil {
 		h.log.Error(err)
 	}
 }
@@ -57,7 +57,7 @@ func (h *Handler) GetWorkspaceByIdHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+	if _, err := w.Write(resp); err != nil {
 		h.log.Error(err)
 	}
 }
@@ -92,7 +92,7 @@ func (h *Handler) SaveWorkspaceHandler(w http.ResponseWriter, req *http.Request,
 	h.log.Info(description)
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := fmt.Fprint(w, string(bf)); err != nil {
+	if _, err := w.Write(bf); err != nil {
 		h.log.Error(err)
 	}
 }
@@ -107,7 +107,7 @@ func (h *Handler) DeleteWorkspaceHandler(w http.ResponseWriter, r *http.Request,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+	if _, err := w.Write(resp); err != nil {
 		h.log.Error(err)
 	}
 }
@@ -144,7 +144,7 @@ func (h *Handler) UpdateWorkspaceHandler(w http.ResponseWriter, req *http.Reques
 		http.Error(w, "Failed to marshal response to JSON", http.StatusInternalServerError)
 		return
 	}
-	description := fmt.Sprintf("Workspace %s updated.", workspacePayload.Name)
+	description := fmt.Sprintf("Workspace %s updated.", resp.Name)
 	h.log.Info(description)
 
 	w.Header().Set("Content-Type", "application/json")
@@ -168,7 +168,7 @@ func (h *Handler) GetEnvironmentsOfWorkspaceHandler(w http.ResponseWriter, req *
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+	if _, err := w.Write(resp); err != nil {
 		h.log.Error(err)
 	}
 }
@@ -184,7 +184,7 @@ func (h *Handler) GetDesignsOfWorkspaceHandler(w http.ResponseWriter, req *http.
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+	if _, err := w.Write(resp); err != nil {
 		h.log.Error(err)
 	}
 }
@@ -199,7 +199,7 @@ func (h *Handler) AddEnvironmentToWorkspaceHandler(w http.ResponseWriter, req *h
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+	if _, err := w.Write(resp); err != nil {
 		h.log.Error(err)
 	}
 }
@@ -214,7 +214,7 @@ func (h *Handler) RemoveEnvironmentFromWorkspaceHandler(w http.ResponseWriter, r
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+	if _, err := w.Write(resp); err != nil {
 		h.log.Error(err)
 	}
 }
@@ -229,7 +229,7 @@ func (h *Handler) AddDesignToWorkspaceHandler(w http.ResponseWriter, req *http.R
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+	if _, err := w.Write(resp); err != nil {
 		h.log.Error(err)
 	}
 }
@@ -244,7 +244,7 @@ func (h *Handler) RemoveDesignFromWorkspaceHandler(w http.ResponseWriter, req *h
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+	if _, err := w.Write(resp); err != nil {
 		h.log.Error(err)
 	}
 }
@@ -259,7 +259,7 @@ func (h *Handler) GetViewsOfWorkspaceHandler(w http.ResponseWriter, req *http.Re
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+	if _, err := w.Write(resp); err != nil {
 		h.log.Error(err)
 	}
 }
@@ -274,7 +274,7 @@ func (h *Handler) AddViewToWorkspaceHandler(w http.ResponseWriter, req *http.Req
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+	if _, err := w.Write(resp); err != nil {
 		h.log.Error(err)
 	}
 }
@@ -289,7 +289,7 @@ func (h *Handler) RemoveViewFromWorkspaceHandler(w http.ResponseWriter, req *htt
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+	if _, err := w.Write(resp); err != nil {
 		h.log.Error(err)
 	}
 }
@@ -304,7 +304,7 @@ func (h *Handler) GetTeamsOfWorkspaceHandler(w http.ResponseWriter, req *http.Re
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+	if _, err := w.Write(resp); err != nil {
 		h.log.Error(err)
 	}
 }
@@ -319,7 +319,7 @@ func (h *Handler) AddTeamToWorkspaceHandler(w http.ResponseWriter, req *http.Req
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+	if _, err := w.Write(resp); err != nil {
 		h.log.Error(err)
 	}
 }
@@ -334,7 +334,7 @@ func (h *Handler) RemoveTeamFromWorkspaceHandler(w http.ResponseWriter, req *htt
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+	if _, err := w.Write(resp); err != nil {
 		h.log.Error(err)
 	}
 }

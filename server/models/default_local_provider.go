@@ -1479,7 +1479,10 @@ func (l *DefaultLocalProvider) SaveWorkspace(_ *http.Request, workspacePayload *
 }
 
 func (l *DefaultLocalProvider) UpdateWorkspace(_ *http.Request, workspacePayload *workspace.WorkspaceUpdatePayload, workspaceID string) (*workspace.Workspace, error) {
-	id, _ := uuid.FromString(workspaceID)
+	id, err := uuid.FromString(workspaceID)
+	if err != nil {
+		return nil, err
+	}
 	return l.WorkspacePersister.UpdateWorkspace(id, workspacePayload)
 }
 

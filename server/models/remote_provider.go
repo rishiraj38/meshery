@@ -5652,7 +5652,7 @@ func (l *RemoteProvider) GetWorkspaceByID(req *http.Request, workspaceID, orgID 
 
 	bdr, err := io.ReadAll(resp.Body)
 	if err != nil {
-		l.Log.Error(ErrDataRead(err, "respone body"))
+		l.Log.Error(ErrDataRead(err, "response body"))
 		return nil, err
 	}
 
@@ -5740,7 +5740,7 @@ func (l *RemoteProvider) DeleteWorkspace(req *http.Request, workspaceID string) 
 
 	bdr, err := io.ReadAll(resp.Body)
 	if err != nil {
-		l.Log.Error(ErrDataRead(err, "respone body"))
+		l.Log.Error(ErrDataRead(err, "response body"))
 		return nil, err
 	}
 
@@ -5829,7 +5829,7 @@ func (l *RemoteProvider) AddEnvironmentToWorkspace(req *http.Request, workspaceI
 
 	bdr, err := io.ReadAll(resp.Body)
 	if err != nil {
-		l.Log.Error(ErrDataRead(err, "respone body"))
+		l.Log.Error(ErrDataRead(err, "response body"))
 		return nil, err
 	}
 
@@ -5869,7 +5869,7 @@ func (l *RemoteProvider) RemoveEnvironmentFromWorkspace(req *http.Request, works
 
 	bdr, err := io.ReadAll(resp.Body)
 	if err != nil {
-		l.Log.Error(ErrDataRead(err, "respone body"))
+		l.Log.Error(ErrDataRead(err, "response body"))
 		return nil, err
 	}
 
@@ -5925,7 +5925,7 @@ func (l *RemoteProvider) GetEnvironmentsOfWorkspace(req *http.Request, workspace
 
 	bdr, err := io.ReadAll(resp.Body)
 	if err != nil {
-		l.Log.Error(ErrDataRead(err, "respone body"))
+		l.Log.Error(ErrDataRead(err, "response body"))
 		return nil, err
 	}
 	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNoContent {
@@ -5958,7 +5958,7 @@ func (l *RemoteProvider) AddDesignToWorkspace(req *http.Request, workspaceID str
 	}()
 	bdr, err := io.ReadAll(resp.Body)
 	if err != nil {
-		l.Log.Error(ErrDataRead(err, "respone body"))
+		l.Log.Error(ErrDataRead(err, "response body"))
 		return nil, err
 	}
 	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNoContent {
@@ -6015,7 +6015,7 @@ func (l *RemoteProvider) GetDesignsOfWorkspace(req *http.Request, workspaceID, p
 	}()
 	bdr, err := io.ReadAll(resp.Body)
 	if err != nil {
-		l.Log.Error(ErrDataRead(err, "respone body"))
+		l.Log.Error(ErrDataRead(err, "response body"))
 		return nil, err
 	}
 	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNoContent {
@@ -6054,7 +6054,7 @@ func (l *RemoteProvider) RemoveDesignFromWorkspace(req *http.Request, workspaceI
 
 	bdr, err := io.ReadAll(resp.Body)
 	if err != nil {
-		l.Log.Error(ErrDataRead(err, "respone body"))
+		l.Log.Error(ErrDataRead(err, "response body"))
 		return nil, err
 	}
 
@@ -6101,6 +6101,9 @@ func (l *RemoteProvider) GetViewsOfWorkspace(req *http.Request, workspaceID, pag
 
 	resp, err := l.DoRequest(cReq, token)
 	if err != nil {
+		if resp == nil {
+			return nil, ErrUnreachableRemoteProvider(err)
+		}
 		return nil, ErrFetch(err, "Workspace", resp.StatusCode)
 	}
 
@@ -6110,7 +6113,7 @@ func (l *RemoteProvider) GetViewsOfWorkspace(req *http.Request, workspaceID, pag
 
 	bdr, err := io.ReadAll(resp.Body)
 	if err != nil {
-		l.Log.Error(ErrDataRead(err, "respone body"))
+		l.Log.Error(ErrDataRead(err, "response body"))
 		return nil, err
 	}
 	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNoContent {
@@ -6149,7 +6152,7 @@ func (l *RemoteProvider) AddViewToWorkspace(req *http.Request, workspaceID strin
 
 	bdr, err := io.ReadAll(resp.Body)
 	if err != nil {
-		l.Log.Error(ErrDataRead(err, "respone body"))
+		l.Log.Error(ErrDataRead(err, "response body"))
 		return nil, err
 	}
 
@@ -6189,7 +6192,7 @@ func (l *RemoteProvider) RemoveViewFromWorkspace(req *http.Request, workspaceID 
 
 	bdr, err := io.ReadAll(resp.Body)
 	if err != nil {
-		l.Log.Error(ErrDataRead(err, "respone body"))
+		l.Log.Error(ErrDataRead(err, "response body"))
 		return nil, err
 	}
 
@@ -6236,6 +6239,9 @@ func (l *RemoteProvider) GetTeamsOfWorkspace(req *http.Request, workspaceID, pag
 
 	resp, err := l.DoRequest(cReq, token)
 	if err != nil {
+		if resp == nil {
+			return nil, ErrUnreachableRemoteProvider(err)
+		}
 		return nil, ErrFetch(err, "Workspace", resp.StatusCode)
 	}
 
@@ -6245,7 +6251,7 @@ func (l *RemoteProvider) GetTeamsOfWorkspace(req *http.Request, workspaceID, pag
 
 	bdr, err := io.ReadAll(resp.Body)
 	if err != nil {
-		l.Log.Error(ErrDataRead(err, "respone body"))
+		l.Log.Error(ErrDataRead(err, "response body"))
 		return nil, err
 	}
 	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNoContent {
@@ -6284,7 +6290,7 @@ func (l *RemoteProvider) AddTeamToWorkspace(req *http.Request, workspaceID strin
 
 	bdr, err := io.ReadAll(resp.Body)
 	if err != nil {
-		l.Log.Error(ErrDataRead(err, "respone body"))
+		l.Log.Error(ErrDataRead(err, "response body"))
 		return nil, err
 	}
 
@@ -6324,7 +6330,7 @@ func (l *RemoteProvider) RemoveTeamFromWorkspace(req *http.Request, workspaceID 
 
 	bdr, err := io.ReadAll(resp.Body)
 	if err != nil {
-		l.Log.Error(ErrDataRead(err, "respone body"))
+		l.Log.Error(ErrDataRead(err, "response body"))
 		return nil, err
 	}
 
