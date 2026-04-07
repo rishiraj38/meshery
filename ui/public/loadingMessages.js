@@ -116,12 +116,17 @@ function show() {
 }
 
 function hide() {
+  if (_hidingTimeout) return; 
   _hidingTimeout = setTimeout(() => {
     const loader = getLoader();
     if (loader) {
       loader.style.display = 'none';
+      stopPreReactAnimation();
       resetMessage();
     }
+    // Cleanup
+    clearTimeout(_hidingTimeout); 
+    _hidingTimeout = null;
   }, 1000);
 }
 
