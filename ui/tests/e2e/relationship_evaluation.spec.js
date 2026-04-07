@@ -48,7 +48,7 @@ test.describe('Relationship Evaluation', { tag: '@relationship' }, () => {
       const responseJson = await designResponse.json();
       const rawPattern = responseJson.patternFile ?? responseJson.pattern_file;
 
-      expect(rawPattern, `Design ${name} returned no pattern file`).toBeDefined();
+      expect(rawPattern, `Design ${name} returned no pattern file`).toBeTruthy();
 
       const design = typeof rawPattern === 'string' ? JSON.parse(rawPattern) : rawPattern;
 
