@@ -145,7 +145,7 @@ class MesheryDocument extends Document<MyDocumentProps> {
                       window.Loader.initializePreReactLoader();
                     }
                   } catch (e) {
-                    console.log("Failed to set loading message",e)
+                    console.log("Failed to initialize pre-react loader", e)
                   }
                 })();
               `,
