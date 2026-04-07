@@ -1,6 +1,6 @@
 ---
-title: REST API Reference
-description: Meshery OSS REST API documentation and reference
+title: REST API
+description: Meshery REST API documentation
 type: rest-apis
 data: openapi
 display_toc: false

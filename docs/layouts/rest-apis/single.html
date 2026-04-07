@@ -9,6 +9,7 @@
 {{ $components := index $spec "components" | default dict }}
 {{ $securitySchemes := index $components "securitySchemes" | default dict }}
 {{ $tagGroups := index $spec "x-tagGroups" | default (slice) }}
+{{ $schemaURL := "https://raw.githubusercontent.com/meshery/meshery/refs/heads/master/docs/data/openapi.yml" }}
 {{ $defaultOssServer := dict
   "url" "http://localhost:9081"
   "description" "Meshery Server default URL"
@@ -20,7 +21,8 @@
 
 {{ $methodOrder := slice "get" "post" "put" "patch" "delete" "options" "head" }}
 {{ $operations := slice }}
-{{ $usedTags := slice }}
+{{ $tagCounts := dict }}
+
 {{ range $path, $route := $spec.paths }}
   {{ range $methodOrder }}
     {{ $method := . }}
@@ -54,62 +56,110 @@
           "servers" $servers
           "data" $operation
         ) }}
-        {{ if not (in $usedTags $tagName) }}
-          {{ $usedTags = $usedTags | append $tagName }}
-        {{ end }}
+        {{ $count := index $tagCounts $tagName | default 0 }}
+        {{ $tagCounts = merge $tagCounts (dict $tagName (add $count 1)) }}
       {{ end }}
     {{ end }}
   {{ end }}
 {{ end }}
 
+{{ $orderedTags := slice }}
+{{ range $tagGroup := $tagGroups }}
+  {{ range $tagName := ($tagGroup.tags | default (slice)) }}
+    {{ if and (gt ((index $tagCounts $tagName) | default 0) 0) (not (in $orderedTags $tagName)) }}
+      {{ $orderedTags = $orderedTags | append $tagName }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+{{ range $spec.tags }}
+  {{ $tagName := .name }}
+  {{ if and (gt ((index $tagCounts $tagName) | default 0) 0) (not (in $orderedTags $tagName)) }}
+    {{ $orderedTags = $orderedTags | append $tagName }}
+  {{ end }}
+{{ end }}
+{{ range $operations }}
+  {{ if not (in $orderedTags .tag) }}
+    {{ $orderedTags = $orderedTags | append .tag }}
+  {{ end }}
+{{ end }}
+
 {{ if gt (len $operations) 0 }}
-  <div class="rest-api-page is-pending" data-rest-api-root>
+  <div class="rest-api-page" data-rest-api-root>
     <section class="rest-api-overview" aria-label="REST API overview">
       <p class="rest-api-overview__eyebrow">Meshery REST API reference</p>
       <p class="rest-api-overview__summary">
-        Browse {{ len $operations }} api endpoints grouped by resource. Review the
-        <a href="https://github.com/meshery/meshery/blob/master/docs/data/openapi.yml">complete REST API schema</a>
-        for the full OpenAPI document.
+        {{ len $operations }} API endpoints across {{ len $orderedTags }} resources.
+        This reference is generated from <a href="{{ $schemaURL }}">OpenAPI schema</a> used by the Meshery docs.
       </p>
       <ul class="rest-api-overview__stats">
-        <li><strong>{{ len $usedTags }}</strong><span>categories</span></li>
+        <li><strong>{{ len $orderedTags }}</strong><span>resources</span></li>
         <li><strong>{{ len $operations }}</strong><span>endpoints</span></li>
-        <li>
-          <strong>Schema</strong>
-          <span><a href="https://github.com/meshery/meshery/blob/master/docs/data/openapi.yml">View complete REST API schema</a></span>
-        </li>
       </ul>
+    </section>
+
+    <section class="rest-api-controls" aria-label="REST API controls">
+      <div class="rest-api-controls__search">
+        <label class="rest-api-search-label" for="rest-api-search">Search endpoints</label>
+        <input
+          id="rest-api-search"
+          class="rest-api-search"
+          type="search"
+          autocomplete="off"
+          placeholder="Search paths, summaries, methods, and resources"
+          data-rest-api-search
+        />
+      </div>
+
+      <div class="rest-api-controls__categories">
+        <p class="rest-api-controls__label">Resources</p>
+        <div class="rest-api-category-bar" data-rest-api-tag-filters>
+          <button
+            type="button"
+            class="rest-api-category-button is-active"
+            data-tag-filter="all"
+            data-tag-label="All resources"
+            aria-pressed="true"
+          >
+            <span>All resources</span>
+            <span class="rest-api-category-button__count">{{ len $operations }}</span>
+          </button>
+          {{ range $tagName := $orderedTags }}
+            {{ $tagMeta := partial "rest-apis/tag-meta.html" (dict "name" $tagName "tags" $tagIndex) }}
+            <button
+              type="button"
+              class="rest-api-category-button"
+              data-tag-filter="{{ $tagName }}"
+              data-tag-label="{{ index $tagMeta "label" }}"
+              aria-pressed="false"
+            >
+              <span>{{ index $tagMeta "label" }}</span>
+              <span class="rest-api-category-button__count">{{ index $tagCounts $tagName }}</span>
+            </button>
+          {{ end }}
+        </div>
+      </div>
+
+      <div class="rest-api-results">
+        <p class="rest-api-results__text" data-rest-api-results-text>Showing all {{ len $operations }} endpoints.</p>
+      </div>
     </section>
 
     <div class="rest-api-layout">
       <aside class="rest-api-sidebar" aria-label="REST endpoint navigation">
         <div class="rest-api-sidebar__inner">
-          <label class="rest-api-search-label" for="rest-api-search">Filter endpoints</label>
-          <input
-            id="rest-api-search"
-            class="rest-api-search"
-            type="search"
-            autocomplete="off"
-            placeholder="Search paths, summaries, and methods"
-            data-rest-api-search
-          />
-          <p class="rest-api-sidebar__hint">
-            Choose a category or search to narrow the endpoint list.
-          </p>
-
           <div class="rest-api-nav-toolbar">
             <button
               type="button"
               class="rest-api-nav-control"
               data-toggle-all-groups
-              data-toggle-mode="collapse"
-              aria-label="Collapse all categories"
+              data-toggle-mode="expand"
+              aria-label="Expand all resources"
             >
               <span class="rest-api-nav-control__icon" aria-hidden="true">
                 <span></span>
                 <span></span>
               </span>
-              <span class="rest-api-nav-control__text">Collapse all</span>
+              <span class="rest-api-nav-control__text">Expand all</span>
             </button>
           </div>
 
@@ -117,11 +167,10 @@
             {{ $renderedTags := slice }}
             {{ range $tagGroup := $tagGroups }}
               {{ $groupTags := slice }}
-              {{ $groupCount := 0 }}
               {{ range $tagName := ($tagGroup.tags | default (slice)) }}
-                {{ if in $usedTags $tagName }}
+                {{ $tagCount := index $tagCounts $tagName | default 0 }}
+                {{ if gt $tagCount 0 }}
                   {{ $groupTags = $groupTags | append $tagName }}
-                  {{ $groupCount = add $groupCount (len (where $operations "tag" $tagName)) }}
                 {{ end }}
               {{ end }}
 
@@ -130,48 +179,60 @@
                 {{ if eq $groupLabel (lower $groupLabel) }}
                   {{ $groupLabel = $groupLabel | title }}
                 {{ end }}
+                {{ $showHeading := gt (len $groupTags) 1 }}
+                {{ if and (not $showHeading) (gt (len $groupTags) 0) }}
+                  {{ $onlyTag := index $groupTags 0 }}
+                  {{ $onlyMeta := partial "rest-apis/tag-subsection-meta.html" (dict "name" $onlyTag "tags" $tagIndex) }}
+                  {{ $normalizedGroup := replaceRE "[^a-z0-9]+" "" (lower $groupLabel) }}
+                  {{ $normalizedOnly := replaceRE "[^a-z0-9]+" "" (lower (index $onlyMeta "label")) }}
+                  {{ $showHeading = ne $normalizedGroup $normalizedOnly }}
+                {{ end }}
                 <section class="rest-api-nav-group" data-rest-api-group>
-                  <button
-                    type="button"
-                    class="rest-api-nav-group__toggle"
-                    data-group-toggle
-                    aria-expanded="false"
-                  >
-                    <span class="rest-api-nav-group__toggle-main">
-                      <span class="rest-api-nav-group__title">{{ $groupLabel }}</span>
-                    </span>
-                    <span class="rest-api-nav-group__toggle-meta">
-                      <span class="rest-api-nav-group__count" data-group-count data-total-count="{{ $groupCount }}">{{ $groupCount }}</span>
-                      <span class="rest-api-nav-group__chevron" aria-hidden="true"></span>
-                    </span>
-                  </button>
-                  <div class="rest-api-nav-group__panel" data-group-panel hidden>
+                  {{ if $showHeading }}
+                    <p class="rest-api-nav-group__heading">{{ $groupLabel }}</p>
+                  {{ end }}
+                  <div class="rest-api-nav-group__items">
                     {{ range $tagName := $groupTags }}
-                        {{ $subsectionMeta := partial "rest-apis/tag-subsection-meta.html" (dict "name" $tagName "tags" $tagIndex) }}
-                        {{ $groupOperations := where $operations "tag" $tagName }}
-                        {{ if gt (len $groupOperations) 0 }}
-                          <section class="rest-api-nav-subsection" data-group-subsection>
-                            <p class="rest-api-nav-subsection__title">{{ index $subsectionMeta "label" }}</p>
-                          <ul class="rest-api-nav-list rest-api-nav-list--subsection">
-                            {{ range $groupOperations }}
-                              <li class="rest-api-nav-item">
-                                <a
-                                  href="#{{ .id }}"
-                                  class="rest-api-nav-link"
-                                  data-operation-link
-                                  data-operation-id="{{ .id }}"
-                                  data-path-id="{{ .pathId }}"
-                                  data-search="{{ lower (printf "%s %s %s %s %s" .method .path .summary $groupLabel (index $subsectionMeta "label")) }}"
-                                >
-                                  <span class="rest-api-nav-link__top">
-                                    <span class="rest-api-method-badge rest-api-method-badge--{{ .method }}">{{ upper .method }}</span>
-                                    <span class="rest-api-nav-link__path">{{ .path }}</span>
-                                  </span>
-                                  <span class="rest-api-nav-link__summary">{{ .summary }}</span>
-                                </a>
-                              </li>
-                            {{ end }}
-                          </ul>
+                      {{ $subsectionMeta := partial "rest-apis/tag-subsection-meta.html" (dict "name" $tagName "tags" $tagIndex) }}
+                      {{ $groupOperations := where $operations "tag" $tagName }}
+                      {{ if gt (len $groupOperations) 0 }}
+                        <section class="rest-api-nav-subgroup" data-rest-api-subgroup data-tag-name="{{ $tagName }}">
+                          <button
+                            type="button"
+                            class="rest-api-nav-subgroup__toggle"
+                            data-subgroup-toggle
+                            aria-expanded="false"
+                          >
+                            <span class="rest-api-nav-subgroup__title">{{ index $subsectionMeta "label" }}</span>
+                            <span class="rest-api-nav-subgroup__toggle-meta">
+                              <span class="rest-api-nav-subgroup__count" data-subgroup-count data-total-count="{{ len $groupOperations }}">{{ len $groupOperations }}</span>
+                              <span class="rest-api-nav-subgroup__chevron" aria-hidden="true"></span>
+                            </span>
+                          </button>
+                          <div class="rest-api-nav-subgroup__panel" data-subgroup-panel hidden>
+                            <ul class="rest-api-nav-list rest-api-nav-list--endpoints">
+                              {{ range $groupOperations }}
+                                <li class="rest-api-nav-item">
+                                  <a
+                                    href="#{{ .id }}"
+                                    class="rest-api-nav-link"
+                                    data-operation-link
+                                    data-operation-id="{{ .id }}"
+                                    data-path-id="{{ .pathId }}"
+                                    data-tag-name="{{ .tag }}"
+                                    data-tag-label="{{ .tagLabel }}"
+                                    data-search="{{ lower (printf "%s %s %s %s %s" .method .path .summary $groupLabel (index $subsectionMeta "label")) }}"
+                                  >
+                                    <span class="rest-api-nav-link__top">
+                                      <span class="rest-api-method-badge rest-api-method-badge--{{ .method }}">{{ upper .method }}</span>
+                                      <span class="rest-api-nav-link__path">{{ .path }}</span>
+                                    </span>
+                                    <span class="rest-api-nav-link__summary">{{ .summary }}</span>
+                                  </a>
+                                </li>
+                              {{ end }}
+                            </ul>
+                          </div>
                         </section>
                       {{ end }}
                       {{ $renderedTags = $renderedTags | append $tagName }}
@@ -181,53 +242,67 @@
               {{ end }}
             {{ end }}
 
-            {{ range $tagName := $usedTags }}
+            {{ $remainingTags := slice }}
+            {{ range $tagName := $orderedTags }}
               {{ if not (in $renderedTags $tagName) }}
-                {{ $groupMeta := partial "rest-apis/tag-meta.html" (dict "name" $tagName "tags" $tagIndex) }}
-                {{ $groupOperations := where $operations "tag" $tagName }}
-                <section class="rest-api-nav-group" data-rest-api-group>
-                  <button
-                    type="button"
-                    class="rest-api-nav-group__toggle"
-                    data-group-toggle
-                    aria-expanded="false"
-                  >
-                    <span class="rest-api-nav-group__toggle-main">
-                      <span class="rest-api-nav-group__title">{{ index $groupMeta "label" }}</span>
-                    </span>
-                    <span class="rest-api-nav-group__toggle-meta">
-                      <span class="rest-api-nav-group__count" data-group-count data-total-count="{{ len $groupOperations }}">{{ len $groupOperations }}</span>
-                      <span class="rest-api-nav-group__chevron" aria-hidden="true"></span>
-                    </span>
-                  </button>
-                  <div class="rest-api-nav-group__panel" data-group-panel hidden>
-                    <ul class="rest-api-nav-list">
-                      {{ range $groupOperations }}
-                        <li class="rest-api-nav-item">
-                          <a
-                            href="#{{ .id }}"
-                            class="rest-api-nav-link"
-                            data-operation-link
-                            data-operation-id="{{ .id }}"
-                            data-path-id="{{ .pathId }}"
-                            data-search="{{ lower (printf "%s %s %s %s" .method .path .summary .tagLabel) }}"
-                          >
-                            <span class="rest-api-nav-link__top">
-                              <span class="rest-api-method-badge rest-api-method-badge--{{ .method }}">{{ upper .method }}</span>
-                              <span class="rest-api-nav-link__path">{{ .path }}</span>
-                            </span>
-                            <span class="rest-api-nav-link__summary">{{ .summary }}</span>
-                          </a>
-                        </li>
-                      {{ end }}
-                    </ul>
-                  </div>
-                </section>
+                {{ $remainingTags = $remainingTags | append $tagName }}
               {{ end }}
+            {{ end }}
+
+            {{ if gt (len $remainingTags) 0 }}
+              <section class="rest-api-nav-group" data-rest-api-group>
+                {{ if gt (len $tagGroups) 0 }}
+                  <p class="rest-api-nav-group__heading">Additional resources</p>
+                {{ end }}
+                <div class="rest-api-nav-group__items">
+                  {{ range $tagName := $remainingTags }}
+                    {{ $tagMeta := partial "rest-apis/tag-subsection-meta.html" (dict "name" $tagName "tags" $tagIndex) }}
+                    {{ $groupOperations := where $operations "tag" $tagName }}
+                    <section class="rest-api-nav-subgroup" data-rest-api-subgroup data-tag-name="{{ $tagName }}">
+                      <button
+                        type="button"
+                        class="rest-api-nav-subgroup__toggle"
+                        data-subgroup-toggle
+                        aria-expanded="false"
+                      >
+                        <span class="rest-api-nav-subgroup__title">{{ index $tagMeta "label" }}</span>
+                        <span class="rest-api-nav-subgroup__toggle-meta">
+                          <span class="rest-api-nav-subgroup__count" data-subgroup-count data-total-count="{{ len $groupOperations }}">{{ len $groupOperations }}</span>
+                          <span class="rest-api-nav-subgroup__chevron" aria-hidden="true"></span>
+                        </span>
+                      </button>
+                      <div class="rest-api-nav-subgroup__panel" data-subgroup-panel hidden>
+                        <ul class="rest-api-nav-list rest-api-nav-list--endpoints">
+                          {{ range $groupOperations }}
+                            <li class="rest-api-nav-item">
+                              <a
+                                href="#{{ .id }}"
+                                class="rest-api-nav-link"
+                                data-operation-link
+                                data-operation-id="{{ .id }}"
+                                data-path-id="{{ .pathId }}"
+                                data-tag-name="{{ .tag }}"
+                                data-tag-label="{{ .tagLabel }}"
+                                data-search="{{ lower (printf "%s %s %s %s" .method .path .summary .tagLabel) }}"
+                              >
+                                <span class="rest-api-nav-link__top">
+                                  <span class="rest-api-method-badge rest-api-method-badge--{{ .method }}">{{ upper .method }}</span>
+                                  <span class="rest-api-nav-link__path">{{ .path }}</span>
+                                </span>
+                                <span class="rest-api-nav-link__summary">{{ .summary }}</span>
+                              </a>
+                            </li>
+                          {{ end }}
+                        </ul>
+                      </div>
+                    </section>
+                  {{ end }}
+                </div>
+              </section>
             {{ end }}
           </div>
 
-          <p class="rest-api-nav__empty" data-rest-api-empty hidden>No endpoints match this filter.</p>
+          <p class="rest-api-nav__empty" data-rest-api-empty hidden>No endpoints match the current search or resource filter.</p>
         </div>
       </aside>
 
@@ -236,7 +311,7 @@
           {{ $operationId := .id }}
           {{ $operation := .data }}
           {{ $operationPath := .path }}
-          {{ $authSummary := partial "rest-apis/auth-summary.html" (dict "operation" $operation "schemes" $securitySchemes) }}
+          {{ $authSummary := partial "rest-apis/auth-summary.html" (dict "operation" $operation "schemes" $securitySchemes) | strings.TrimSpace }}
           {{ $parameters := $operation.parameters | default (slice) }}
           {{ $servers := .servers | default (slice) }}
 
@@ -254,12 +329,10 @@
             </div>
 
             {{ if $authSummary }}
-              <dl class="rest-api-meta">
-                <div class="rest-api-meta__item">
-                  <dt>Authentication</dt>
-                  <dd>{{ $authSummary }}</dd>
-                </div>
-              </dl>
+              <div class="rest-api-auth" id="authentication-{{ $operationId }}">
+                <p class="rest-api-auth__label">Authentication</p>
+                <span class="rest-api-auth__value">{{ $authSummary }}</span>
+              </div>
             {{ end }}
 
             {{ $ossServers := slice }}
@@ -274,8 +347,10 @@
             {{ end }}
             <section class="rest-api-section rest-api-section--try">
               <div class="rest-api-section-heading rest-api-section-heading--try">
-                <p class="rest-api-section-heading__eyebrow">Try This Endpoint</p>
-                <h3 id="server-urls-{{ $operationId }}">Server URLs</h3>
+                <h3 id="server-urls-{{ $operationId }}">Try this endpoint</h3>
+                <p class="rest-api-section-heading__summary">
+                  Use your Meshery hostname or local server URL when calling this endpoint.
+                </p>
               </div>
               <div class="rest-api-try-list">
                 {{ range $server := $ossServers }}
@@ -290,7 +365,7 @@
             </section>
 
             {{ if gt (len $parameters) 0 }}
-              <section class="rest-api-section">
+              <section class="rest-api-section rest-api-section--parameters">
                 <h3 id="parameters-{{ $operationId }}">Parameters</h3>
                 {{ $locations := slice
                   (dict "key" "path" "label" "Path parameters")
@@ -341,27 +416,45 @@
 
             {{ with $operation.requestBody }}
               {{ $requestBody := . }}
-              <section class="rest-api-section">
-                <h3 id="request-body-{{ $operationId }}">Request body</h3>
-                {{ with $requestBody.description }}
-                  <div class="rest-api-prose">{{ . | markdownify }}</div>
+              {{ $requestContentCount := len $requestBody.content }}
+              {{ $singleRequestContentType := "" }}
+              {{ if eq $requestContentCount 1 }}
+                {{ range $contentType, $_ := $requestBody.content }}
+                  {{ $singleRequestContentType = $contentType }}
                 {{ end }}
+              {{ end }}
+              <section class="rest-api-section">
+                <div class="rest-api-section-heading rest-api-section-heading--request">
+                  <div class="rest-api-section-header">
+                    <h3 id="request-body-{{ $operationId }}">Request body</h3>
+                    {{ if eq $requestContentCount 1 }}
+                      <div class="rest-api-section-header__meta">
+                        <span class="rest-api-section-header__type">{{ $singleRequestContentType }}</span>
+                        <span class="rest-api-chip rest-api-chip--subtle">{{ if $requestBody.required }}Required{{ else }}Optional{{ end }}</span>
+                      </div>
+                    {{ end }}
+                  </div>
+                  {{ with $requestBody.description }}
+                    <div class="rest-api-section-heading__summary rest-api-prose">{{ . | markdownify }}</div>
+                  {{ end }}
+                </div>
                 {{ range $contentType, $content := $requestBody.content }}
                   {{ $schema := index $content "schema" | default dict }}
                   {{ $schemaType := partial "rest-apis/schema-type.html" $schema }}
                   {{ $fields := partial "rest-apis/schema-properties.html" $schema }}
                   {{ $example := partial "rest-apis/content-example.html" $content }}
                   <article class="rest-api-media-block">
-                    <div class="rest-api-media-block__header">
-                      <div>
+                    {{ if ne $requestContentCount 1 }}
+                      <div class="rest-api-media-block__header rest-api-media-block__header--request">
                         <p class="rest-api-media-block__title">{{ $contentType }}</p>
-                        <p class="rest-api-media-block__summary">Schema: <code>{{ $schemaType }}</code></p>
+                        <span class="rest-api-chip rest-api-chip--subtle">{{ if $requestBody.required }}Required{{ else }}Optional{{ end }}</span>
                       </div>
-                      <span class="rest-api-chip rest-api-chip--subtle">{{ if $requestBody.required }}Required{{ else }}Optional{{ end }}</span>
-                    </div>
+                    {{ end }}
 
                     {{ with index $schema "description" }}
                       <div class="rest-api-prose">{{ . | markdownify }}</div>
+                    {{ else }}
+                      <p class="rest-api-media-block__summary">Schema: <code>{{ $schemaType }}</code></p>
                     {{ end }}
 
                     {{ if gt (len (index $fields "rows")) 0 }}
@@ -455,7 +548,7 @@
             {{ with $operation.responses }}
               <section class="rest-api-section rest-api-section--responses">
                 <div class="rest-api-section-heading rest-api-section-heading--responses">
-                  <p class="rest-api-section-heading__eyebrow">Returned Data</p>
+                  <p class="rest-api-section-heading__eyebrow">Returned data</p>
                   <h3 id="responses-{{ $operationId }}">Responses</h3>
                   <p class="rest-api-section-heading__summary">
                     Status codes, content types, and response schemas returned by this endpoint.
@@ -474,6 +567,11 @@
                     {{ $responseTone = "danger" }}
                   {{ end }}
 
+                  {{ $responseContentCount := 0 }}
+                  {{ with $response.content }}
+                    {{ $responseContentCount = len . }}
+                  {{ end }}
+
                   <article class="rest-api-response rest-api-response--{{ $responseTone }}">
                     <div class="rest-api-response__header">
                       <span class="rest-api-status">{{ $statusCode }}</span>
@@ -484,6 +582,13 @@
                           <p>No description provided.</p>
                         {{ end }}
                       </div>
+                      {{ if eq $responseContentCount 1 }}
+                        {{ with $response.content }}
+                          {{ range $contentType, $_ := . }}
+                            <p class="rest-api-response__content-type">{{ $contentType }}</p>
+                          {{ end }}
+                        {{ end }}
+                      {{ end }}
                     </div>
 
                     {{ with $response.content }}
@@ -493,15 +598,16 @@
                         {{ $fields := partial "rest-apis/schema-properties.html" $schema }}
                         {{ $example := partial "rest-apis/content-example.html" $content }}
                         <article class="rest-api-media-block rest-api-media-block--response">
-                          <div class="rest-api-media-block__header">
-                            <div>
+                          {{ if gt $responseContentCount 1 }}
+                            <div class="rest-api-media-block__header">
                               <p class="rest-api-media-block__title">{{ $contentType }}</p>
-                              <p class="rest-api-media-block__summary">Schema: <code>{{ $schemaType }}</code></p>
                             </div>
-                          </div>
+                          {{ end }}
 
                           {{ with index $schema "description" }}
                             <div class="rest-api-prose">{{ . | markdownify }}</div>
+                          {{ else }}
+                            <p class="rest-api-media-block__summary">Schema: <code>{{ $schemaType }}</code></p>
                           {{ end }}
 
                           {{ if gt (len (index $fields "rows")) 0 }}
@@ -610,20 +716,19 @@ document.addEventListener("DOMContentLoaded", function () {
     return;
   }
 
-  if ("scrollRestoration" in window.history) {
-    window.history.scrollRestoration = "manual";
-  }
-
-  document.documentElement.style.scrollBehavior = "auto";
-
   var links = Array.prototype.slice.call(root.querySelectorAll("[data-operation-link]"));
   var panels = Array.prototype.slice.call(root.querySelectorAll("[data-operation-panel]"));
   var groups = Array.prototype.slice.call(root.querySelectorAll("[data-rest-api-group]"));
-  var groupToggles = Array.prototype.slice.call(root.querySelectorAll("[data-group-toggle]"));
-  var subsections = Array.prototype.slice.call(root.querySelectorAll("[data-group-subsection]"));
+  var subgroups = Array.prototype.slice.call(root.querySelectorAll("[data-rest-api-subgroup]"));
+  var subgroupToggles = Array.prototype.slice.call(root.querySelectorAll("[data-subgroup-toggle]"));
   var toggleAllGroups = root.querySelector("[data-toggle-all-groups]");
+  var tagButtons = Array.prototype.slice.call(root.querySelectorAll("[data-tag-filter]"));
   var searchInput = root.querySelector("[data-rest-api-search]");
   var emptyState = root.querySelector("[data-rest-api-empty]");
+  var contentArea = root.querySelector("[data-rest-api-content]");
+  var resultsText = root.querySelector("[data-rest-api-results-text]");
+  var activeTag = "all";
+
   function findLink(targetId) {
     return links.find(function (link) {
       return link.dataset.operationId === targetId || link.dataset.pathId === targetId;
@@ -666,15 +771,19 @@ document.addEventListener("DOMContentLoaded", function () {
     return Boolean(findLink(targetId) && findPanel(targetId));
   }
 
-  function setGroupOpen(group, isOpen) {
-    if (!group) {
+  function getTargetFromHash() {
+    return window.location.hash.replace(/^#/, "");
+  }
+
+  function setSubgroupOpen(subgroup, isOpen) {
+    if (!subgroup) {
       return;
     }
 
-    var toggle = group.querySelector("[data-group-toggle]");
-    var panel = group.querySelector("[data-group-panel]");
+    var toggle = subgroup.querySelector("[data-subgroup-toggle]");
+    var panel = subgroup.querySelector("[data-subgroup-panel]");
 
-    group.classList.toggle("is-open", isOpen);
+    subgroup.classList.toggle("is-open", isOpen);
 
     if (toggle) {
       toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
@@ -687,17 +796,19 @@ document.addEventListener("DOMContentLoaded", function () {
     syncToggleAllControl();
   }
 
-  function visibleItemsInGroup(group) {
-    return group.querySelectorAll(".rest-api-nav-item:not([hidden])").length;
+  function visibleItemsInSubgroup(subgroup) {
+    return subgroup.querySelectorAll(".rest-api-nav-item:not([hidden])").length;
   }
 
-  function visibleItemsInSubsection(subsection) {
-    return subsection.querySelectorAll(".rest-api-nav-item:not([hidden])").length;
+  function visibleSubgroups() {
+    return subgroups.filter(function (subgroup) {
+      return !subgroup.hidden;
+    });
   }
 
-  function visibleGroups() {
-    return groups.filter(function (group) {
-      return !group.hidden;
+  function openSubgroups() {
+    return visibleSubgroups().filter(function (subgroup) {
+      return subgroup.classList.contains("is-open");
     });
   }
 
@@ -706,16 +817,16 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    var visible = visibleGroups();
-    var anyOpen = visible.some(function (group) {
-      return group.classList.contains("is-open");
+    var visible = visibleSubgroups();
+    var anyOpen = visible.some(function (subgroup) {
+      return subgroup.classList.contains("is-open");
     });
     var mode = anyOpen ? "collapse" : "expand";
 
     toggleAllGroups.dataset.toggleMode = mode;
     toggleAllGroups.setAttribute(
       "aria-label",
-      anyOpen ? "Collapse all categories" : "Expand all categories"
+      anyOpen ? "Collapse all resources" : "Expand all resources"
     );
     toggleAllGroups.disabled = visible.length === 0;
 
@@ -725,18 +836,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function getTargetFromHash() {
-    var hash = window.location.hash.replace(/^#/, "");
-    return hash;
+  function visibleLinks() {
+    return links.filter(function (link) {
+      var item = link.closest(".rest-api-nav-item");
+      return item && !item.hidden;
+    });
   }
 
-  function getNavbarOffset() {
-    var navbar = document.querySelector(".navbar");
-    if (navbar) {
-      return navbar.getBoundingClientRect().height;
+  function setContentVisibility(isVisible) {
+    if (!contentArea) {
+      return;
     }
 
-    return 0;
+    contentArea.hidden = !isVisible;
   }
 
   function scrollToElement(element) {
@@ -744,51 +856,51 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    var navbarHeight = getNavbarOffset();
-    var top = window.pageYOffset + element.getBoundingClientRect().top - navbarHeight - 16;
-    window.scrollTo({
-      top: Math.max(top, 0),
-      left: 0,
-      behavior: "auto"
-    });
-  }
+    var rootStyles = window.getComputedStyle(document.documentElement);
+    var scrollPaddingTop = parseFloat(rootStyles.scrollPaddingTop) || 0;
+    var navbar = document.querySelector(".navbar");
+    var navbarHeight = navbar ? navbar.offsetHeight : 0;
+    var topOffset = scrollPaddingTop || navbarHeight || 0;
+    var top = Math.max(window.pageYOffset + element.getBoundingClientRect().top - topOffset - 4, 0);
+    var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  function activateHashTarget(targetId, options) {
-    options = options || {};
-
-    if (isOperationTarget(targetId)) {
-      setActive(targetId, options);
-      return true;
+    if (prefersReducedMotion) {
+      window.scrollTo({
+        top: top,
+        left: 0,
+        behavior: "auto"
+      });
+      return;
     }
 
-    var nestedTarget = findNestedTarget(targetId);
-    if (nestedTarget && nestedTarget.link) {
-      setActive(nestedTarget.panel.dataset.operationId, { scroll: false });
+    var startTop = window.pageYOffset;
+    var distance = top - startTop;
+    var duration = 320;
+    var startTime = null;
 
-      if (options.scroll) {
-        window.requestAnimationFrame(function () {
-          scrollToElement(nestedTarget.element);
-        });
+    function easeInOutCubic(progress) {
+      return progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+    }
+
+    function step(timestamp) {
+      if (startTime === null) {
+        startTime = timestamp;
       }
 
-      return true;
+      var elapsed = timestamp - startTime;
+      var progress = Math.min(elapsed / duration, 1);
+      var eased = easeInOutCubic(progress);
+
+      window.scrollTo(0, startTop + distance * eased);
+
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
     }
 
-    return false;
-  }
-
-  function activateHashTargetWhenReady(targetId, options, attemptsRemaining) {
-    if (!targetId || attemptsRemaining <= 0) {
-      return;
-    }
-
-    if (activateHashTarget(targetId, options)) {
-      return;
-    }
-
-    window.setTimeout(function () {
-      activateHashTargetWhenReady(targetId, options, attemptsRemaining - 1);
-    }, 120);
+    window.requestAnimationFrame(step);
   }
 
   function clearActive(options) {
@@ -803,6 +915,8 @@ document.addEventListener("DOMContentLoaded", function () {
       item.classList.remove("is-active");
       item.hidden = root.classList.contains("is-enhanced");
     });
+
+    setContentVisibility(false);
 
     if (options.clearHash && window.location.hash) {
       window.history.replaceState(null, "", window.location.pathname + window.location.search);
@@ -826,9 +940,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     var activeId = panel.dataset.operationId;
-    var activeGroup = link.closest(".rest-api-nav-group");
+    var activeSubgroup = link.closest(".rest-api-nav-subgroup");
 
-    setGroupOpen(activeGroup, true);
+    setSubgroupOpen(activeSubgroup, true);
 
     links.forEach(function (item) {
       var isActive = item.dataset.operationId === activeId;
@@ -842,6 +956,8 @@ document.addEventListener("DOMContentLoaded", function () {
       item.hidden = root.classList.contains("is-enhanced") && !isActive;
     });
 
+    setContentVisibility(true);
+
     if (options.updateHash && window.location.hash !== "#" + activeId) {
       window.history.replaceState(null, "", "#" + activeId);
     }
@@ -851,116 +967,207 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function applyFilter() {
+  function setActiveTag(tagName, options) {
+    options = options || {};
+    activeTag = tagName || "all";
+
+    tagButtons.forEach(function (button) {
+      var isActive = button.dataset.tagFilter === activeTag;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-pressed", isActive ? "true" : "false");
+    });
+
+    applyFilter(options);
+  }
+
+  function updateResultsText(visibleCount, query) {
+    if (!resultsText) {
+      return;
+    }
+
+    var categoryButton = tagButtons.find(function (button) {
+      return button.dataset.tagFilter === activeTag;
+    });
+    var label = categoryButton ? categoryButton.dataset.tagLabel : "All resources";
+
+    if (!visibleCount) {
+      resultsText.textContent = "No endpoints match the current filters.";
+      return;
+    }
+
+    if (query) {
+      resultsText.textContent = "Showing " + visibleCount + " endpoint" + (visibleCount === 1 ? "" : "s") + " in " + label + " for \"" + query + "\".";
+      return;
+    }
+
+    if (activeTag === "all") {
+      resultsText.textContent = "Showing all " + visibleCount + " endpoints.";
+      return;
+    }
+
+    resultsText.textContent = "Showing " + visibleCount + " endpoint" + (visibleCount === 1 ? "" : "s") + " in " + label + ".";
+  }
+
+  function applyFilter(options) {
+    options = options || {};
+
     var query = (searchInput && searchInput.value || "").trim().toLowerCase();
-    var hasQuery = query.length > 0;
     var visibleCount = 0;
 
     links.forEach(function (link) {
       var item = link.closest(".rest-api-nav-item");
       var haystack = (link.dataset.search || "").toLowerCase();
-      var visible = !query || haystack.indexOf(query) !== -1;
+      var matchesTag = activeTag === "all" || link.dataset.tagName === activeTag;
+      var matchesQuery = !query || haystack.indexOf(query) !== -1;
+      var visible = matchesTag && matchesQuery;
+
       item.hidden = !visible;
       if (visible) {
         visibleCount += 1;
       }
     });
 
-    subsections.forEach(function (subsection) {
-      subsection.hidden = visibleItemsInSubsection(subsection) === 0;
+    subgroups.forEach(function (subgroup) {
+      var count = visibleItemsInSubgroup(subgroup);
+      subgroup.hidden = count === 0;
+
+      var countNode = subgroup.querySelector("[data-subgroup-count]");
+      if (countNode) {
+        countNode.textContent = query || activeTag !== "all"
+          ? String(count)
+          : String(countNode.dataset.totalCount || count);
+      }
+
+      if (!subgroup.hidden && query) {
+        setSubgroupOpen(subgroup, true);
+      } else if (subgroup.hidden) {
+        setSubgroupOpen(subgroup, false);
+      }
     });
 
     groups.forEach(function (group) {
-      var visibleItems = visibleItemsInGroup(group);
-      var count = group.querySelector("[data-group-count]");
-      group.hidden = visibleItems === 0;
-
-      if (count) {
-        count.textContent = hasQuery ? visibleItems : count.dataset.totalCount;
-      }
-
-      if (!group.hidden && hasQuery) {
-        setGroupOpen(group, true);
-      }
+      group.hidden = group.querySelectorAll("[data-rest-api-subgroup]:not([hidden])").length === 0;
     });
 
     if (emptyState) {
-      emptyState.hidden = visibleCount !== 0;
+      emptyState.hidden = visibleCount > 0;
     }
 
-    var activeLink = root.querySelector("[data-operation-link].is-active");
-    if (activeLink && activeLink.closest(".rest-api-nav-item").hidden) {
-      clearActive({ clearHash: true });
+    updateResultsText(visibleCount, query);
+
+    var activeLink = links.find(function (link) {
+      return link.classList.contains("is-active");
+    });
+    var activeItem = activeLink ? activeLink.closest(".rest-api-nav-item") : null;
+
+    if (!activeLink || !activeItem || activeItem.hidden) {
+      if (options.autoSelect === false) {
+        clearActive();
+        return;
+      }
+
+      var firstVisible = visibleLinks()[0];
+      if (firstVisible) {
+        setActive(firstVisible.dataset.operationId, {
+          updateHash: options.updateHash !== false,
+          scroll: false
+        });
+      } else {
+        clearActive();
+      }
+    }
+  }
+
+  function activateHashTarget(targetId, options) {
+    options = options || {};
+
+    if (isOperationTarget(targetId)) {
+      var link = findLink(targetId);
+      if (link) {
+        setActiveTag(link.dataset.tagName, { updateHash: false, autoSelect: false });
+      }
+      setActive(targetId, options);
+      return true;
     }
 
-    syncToggleAllControl();
-  }
+    var nestedTarget = findNestedTarget(targetId);
+    if (nestedTarget && nestedTarget.link) {
+      setActiveTag(nestedTarget.link.dataset.tagName, { updateHash: false, autoSelect: false });
+      setActive(nestedTarget.panel.dataset.operationId, { scroll: false, updateHash: false });
 
-  root.classList.add("is-enhanced");
-  groups.forEach(function (group) {
-    setGroupOpen(group, false);
-  });
-  applyFilter();
+      if (options.scroll) {
+        window.requestAnimationFrame(function () {
+          scrollToElement(nestedTarget.element);
+        });
+      }
 
-  var initialTarget = getTargetFromHash();
-  if (activateHashTarget(initialTarget, { scroll: false })) {
-    // Hash target handled.
-  } else {
-    clearActive();
-  }
+      return true;
+    }
 
-  root.classList.remove("is-pending");
-
-  if (initialTarget) {
-    activateHashTargetWhenReady(initialTarget, { scroll: true }, 10);
-  }
-
-  groupToggles.forEach(function (toggle) {
-    toggle.addEventListener("click", function () {
-      var group = toggle.closest(".rest-api-nav-group");
-      var isOpen = group.classList.contains("is-open");
-      setGroupOpen(group, !isOpen);
-    });
-  });
-
-  if (toggleAllGroups) {
-    toggleAllGroups.addEventListener("click", function () {
-      var visible = visibleGroups();
-      var anyOpen = visible.some(function (group) {
-        return group.classList.contains("is-open");
-      });
-
-      visible.forEach(function (group) {
-        setGroupOpen(group, !anyOpen);
-      });
-
-      syncToggleAllControl();
-    });
+    return false;
   }
 
   links.forEach(function (link) {
     link.addEventListener("click", function (event) {
       event.preventDefault();
-      event.stopPropagation();
-      setActive(link.dataset.operationId, { updateHash: true, scroll: true });
+      setActive(link.dataset.operationId, {
+        updateHash: true,
+        scroll: true
+      });
+    });
+  });
+
+  subgroupToggles.forEach(function (toggle) {
+    toggle.addEventListener("click", function () {
+      var subgroup = toggle.closest(".rest-api-nav-subgroup");
+      setSubgroupOpen(subgroup, !subgroup.classList.contains("is-open"));
+    });
+  });
+
+  if (toggleAllGroups) {
+    toggleAllGroups.addEventListener("click", function () {
+      var shouldOpen = toggleAllGroups.dataset.toggleMode === "expand";
+      visibleSubgroups().forEach(function (subgroup) {
+        setSubgroupOpen(subgroup, shouldOpen);
+      });
+      if (!shouldOpen) {
+        clearActive({ clearHash: true });
+      } else if (openSubgroups().length === 0) {
+        setContentVisibility(false);
+      }
+      syncToggleAllControl();
+    });
+  }
+
+  tagButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
+      setActiveTag(button.dataset.tagFilter, { updateHash: false });
     });
   });
 
   if (searchInput) {
     searchInput.addEventListener("input", function () {
-      applyFilter();
+      applyFilter({ updateHash: false });
     });
   }
 
   window.addEventListener("hashchange", function () {
-    var targetId = getTargetFromHash();
-
-    if (activateHashTarget(targetId, { scroll: true })) {
-      return;
-    } else if (!targetId) {
-      clearActive();
+    var hashTarget = getTargetFromHash();
+    if (!activateHashTarget(hashTarget, { scroll: true, updateHash: false })) {
+      applyFilter({ updateHash: false });
     }
   });
+
+  root.classList.add("is-enhanced");
+  subgroups.forEach(function (subgroup) {
+    setSubgroupOpen(subgroup, false);
+  });
+  setContentVisibility(false);
+
+  var initialTarget = getTargetFromHash();
+  if (!activateHashTarget(initialTarget, { scroll: false, updateHash: false })) {
+    setActiveTag("all", { updateHash: false, autoSelect: false });
+  }
 });
 </script>
 {{ end }}
