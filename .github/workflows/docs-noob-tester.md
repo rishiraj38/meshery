@@ -63,7 +63,7 @@ Follow the shared **Documentation Server Lifecycle Management** instructions:
 
 Using Playwright, navigate through the documentation site as if you're a complete beginner:
 
-1. **Visit the home page** at http://localhost:4321/gh-aw/
+1. **Visit the home page** at http://localhost:1313
    - Take a screenshot
    - Note: Is it immediately clear what this tool does?
    - Note: Can you quickly find the "Get Started" or "Quick Start" link?
