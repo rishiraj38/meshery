@@ -34,7 +34,7 @@ import ConnectionIcon from '@/assets/icons/Connection';
 export const ConnectionChip = ({ handlePing, onDelete, iconSrc, status, title, width }) => {
   const chipStyle = { width };
   const theme = useTheme();
-  const normalizedIconSrc = normalizeStaticImagePath(iconSrc);
+  const normalizedIconSrc = normalizeStaticImagePath(iconSrc) || undefined;
 
   const STATUS_LEVEL_MAP = Object.fromEntries([
     ...[CONNECTION_STATES.CONNECTED, CONTROLLER_STATES.DEPLOYED].map((status) => [

@@ -420,19 +420,22 @@ const Description = ({ description }: { description?: string }) => {
   );
 };
 
-const TitleWithImg = ({ displayName, iconSrc }: { displayName?: string; iconSrc?: string }) => (
-  <div style={{ display: 'flex', alignItems: 'center' }}>
-    {normalizeStaticImagePath(iconSrc) && (
-      <img
-        src={normalizeStaticImagePath(iconSrc)}
-        height="32px"
-        width="32px"
-        style={{ objectFit: 'contain', marginRight: '0.6rem' }}
-      />
-    )}
-    <StyledTitle>{displayName}</StyledTitle>
-  </div>
-);
+const TitleWithImg = ({ displayName, iconSrc }: { displayName?: string; iconSrc?: string }) => {
+  const normalizedIconSrc = normalizeStaticImagePath(iconSrc);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      {normalizedIconSrc && (
+        <img
+          src={normalizedIconSrc}
+          height="32px"
+          width="32px"
+          style={{ objectFit: 'contain', marginRight: '0.6rem' }}
+        />
+      )}
+      <StyledTitle>{displayName}</StyledTitle>
+    </div>
+  );
+};
 
 const StatusChip = ({ entityData, entityType }: { entityData: any; entityType: string }) => {
   const nextStatus = Object.values(REGISTRY_ITEM_STATES);
