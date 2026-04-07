@@ -123,9 +123,6 @@ function hide() {
       stopPreReactAnimation();
       resetMessage();
     }
-    // Cleanup
-    clearTimeout(_hidingTimeout); 
-    _hidingTimeout = null;
   }, 1000);
 }
 
