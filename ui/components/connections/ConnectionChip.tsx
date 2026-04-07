@@ -77,7 +77,7 @@ export const ConnectionChip = ({ handlePing, onDelete, iconSrc, status, title, w
       avatar={
         status ? (
           <BadgeAvatars color={getStatusColor(getStatusLevel(status))}>
-            <Avatar src={normalizedIconSrc} style={(status ? {} : { opacity: 0.2 }, iconMedium)}>
+            <Avatar src={normalizedIconSrc} style={{ ...(status ? {} : { opacity: 0.2 }), ...iconMedium }}>
               <ConnectionIcon {...iconSmall} />
             </Avatar>
           </BadgeAvatars>
