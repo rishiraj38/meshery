@@ -116,7 +116,6 @@ function show() {
 }
 
 function hide() {
-  if (_hidingTimeout) return; 
   _hidingTimeout = setTimeout(() => {
     const loader = getLoader();
     if (loader) {
