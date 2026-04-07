@@ -40,7 +40,7 @@ test.describe('Relationship Evaluation', { tag: '@relationship' }, () => {
         `${ENV.REMOTE_PROVIDER_URL}/api/content/patterns/${id}`,
       );
       const responseJson = await designResponse.json();
-      const design = JSON.parse(responseJson.pattern_file);
+      const design = JSON.parse(responseJson.patternFile);
 
       const designToTest = { ...design, relationships: [] };
 
