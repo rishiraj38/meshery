@@ -186,11 +186,8 @@ export default function DesignConfigurator() {
             variant="standard"
           />
 
-          <CustomTooltip
-            title="Save Design as New File"
-            data-testid="design-configurator-save-design-btn"
-          >
-            <div>
+          <CustomTooltip title="Save Design as New File">
+            <div data-testid="design-configurator-save-design-btn">
               <IconButton
                 aria-label="Save"
                 onClick={designSave}
@@ -202,11 +199,8 @@ export default function DesignConfigurator() {
           </CustomTooltip>
           {designId && (
             <>
-              <CustomTooltip
-                title="Update Design"
-                data-testid="design-configurator-update-design-btn"
-              >
-                <div>
+              <CustomTooltip title="Update Design">
+                <div data-testid="design-configurator-update-design-btn">
                   <IconButton
                     aria-label="Update"
                     onClick={designUpdate}
@@ -216,11 +210,8 @@ export default function DesignConfigurator() {
                   </IconButton>
                 </div>
               </CustomTooltip>
-              <CustomTooltip
-                title="Delete Design"
-                data-testid="design-configurator-delete-design-btn"
-              >
-                <div>
+              <CustomTooltip title="Delete Design">
+                <div data-testid="design-configurator-delete-design-btn">
                   <IconButton
                     aria-label="Delete"
                     onClick={designDelete}
