@@ -12,6 +12,7 @@ import {
 } from '@sistent/sistent';
 import DownloadIcon from '@mui/icons-material/Download';
 import { REGISTRY_ITEM_STATES } from '@/utils/Enum';
+import { normalizeStaticImagePath } from '@/utils/fallback';
 // import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 // import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import {
@@ -421,9 +422,9 @@ const Description = ({ description }: { description?: string }) => {
 
 const TitleWithImg = ({ displayName, iconSrc }: { displayName?: string; iconSrc?: string }) => (
   <div style={{ display: 'flex', alignItems: 'center' }}>
-    {iconSrc && (
+    {normalizeStaticImagePath(iconSrc) && (
       <img
-        src={iconSrc}
+        src={normalizeStaticImagePath(iconSrc)}
         height="32px"
         width="32px"
         style={{ objectFit: 'contain', marginRight: '0.6rem' }}

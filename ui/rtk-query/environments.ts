@@ -75,7 +75,7 @@ export const useGetEnvironmentsQuery = (queryArg, options) =>
       order: queryArg?.order,
       page: queryArg?.page?.toString(),
       pagesize: queryArg?.pagesize?.toString(),
-      orgId: queryArg?.orgId,
+      orgID: queryArg?.orgId,
     },
     options,
   );
