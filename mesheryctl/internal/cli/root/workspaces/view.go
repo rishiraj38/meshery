@@ -21,7 +21,7 @@ type workspaceViewFlags struct {
 
 var workspaceViewFlagsProvided workspaceViewFlags
 
-func formatWorkspaceLabel(rows []workspace.Workspace) []string {
+func formatWorkspaceLabel(rows []workspace.AvailableWorkspace) []string {
 	labels := []string{}
 	for _, w := range rows {
 		labels = append(labels, fmt.Sprintf("%s (ID: %s)", w.Name, w.ID.String()))
@@ -64,7 +64,7 @@ mesheryctl workspace view [workspace-id] --output-format json --save
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		workspaceNameOrID := args[0]
-		selectedWorkspace := new(workspace.Workspace)
+		selectedWorkspace := new(workspace.AvailableWorkspace)
 
 		var urlPath string
 		var displayData display.DisplayDataAsync
@@ -76,8 +76,8 @@ mesheryctl workspace view [workspace-id] --output-format json --save
 			err := display.PromptAsyncPagination(
 				displayData,
 				formatWorkspaceLabel,
-				func(data *workspace.Workspace) ([]workspace.Workspace, int64) {
-					return []workspace.Workspace{*data}, 1
+				func(data *workspace.AvailableWorkspace) ([]workspace.AvailableWorkspace, int64) {
+					return []workspace.AvailableWorkspace{*data}, 1
 				},
 				selectedWorkspace,
 			)
@@ -98,7 +98,7 @@ mesheryctl workspace view [workspace-id] --output-format json --save
 			err := display.PromptAsyncPagination(
 				displayData,
 				formatWorkspaceLabel,
-				func(data *workspace.WorkspacePage) ([]workspace.Workspace, int64) {
+				func(data *workspace.WorkspacePage) ([]workspace.AvailableWorkspace, int64) {
 					return data.Workspaces, int64(data.TotalCount)
 				},
 				selectedWorkspace,
@@ -108,7 +108,7 @@ mesheryctl workspace view [workspace-id] --output-format json --save
 			}
 		}
 
-		outputFormatterFactory := display.OutputFormatterFactory[workspace.Workspace]{}
+		outputFormatterFactory := display.OutputFormatterFactory[workspace.AvailableWorkspace]{}
 		outputFormatter, err := outputFormatterFactory.New(workspaceViewFlagsProvided.OutputFormat, *selectedWorkspace)
 		if err != nil {
 			return err
@@ -127,7 +127,7 @@ mesheryctl workspace view [workspace-id] --output-format json --save
 				workspaceString = selectedWorkspace.ID.String()
 			}
 			fileName := filepath.Join(utils.MesheryFolder, fmt.Sprintf("workspace_%s.%s", workspaceString, workspaceViewFlagsProvided.OutputFormat))
-			outputFormatterSaverFactory := display.OutputFormatterSaverFactory[workspace.Workspace]{}
+			outputFormatterSaverFactory := display.OutputFormatterSaverFactory[workspace.AvailableWorkspace]{}
 			outputFormatterSaver, err := outputFormatterSaverFactory.New(workspaceViewFlagsProvided.OutputFormat, outputFormatter)
 			if err != nil {
 				return err

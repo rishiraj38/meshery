@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"github.com/gofrs/uuid"
+	googleUUID "github.com/google/uuid"
 	"github.com/meshery/meshery/mesheryctl/internal/cli/pkg/api"
 	mesheryctlflags "github.com/meshery/meshery/mesheryctl/internal/cli/pkg/flags"
 	"github.com/meshery/meshery/mesheryctl/pkg/utils"
@@ -56,7 +57,7 @@ mesheryctl workspace create --orgId [orgId] --name [name] --description [descrip
 		}
 
 		workspaceCreatePayload := workspace.WorkspacePayload{
-			OrganizationID: organizationID,
+			OrganizationID: googleUUID.UUID(organizationID),
 			Name:           workspaceCreateFlags.Name,
 			Description:    workspaceCreateFlags.Description,
 		}

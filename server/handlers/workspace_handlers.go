@@ -121,8 +121,8 @@ func (h *Handler) UpdateWorkspaceHandler(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	workspace := workspace.WorkspacePayload{}
-	err = json.Unmarshal(bd, &workspace)
+	workspacePayload := workspace.WorkspaceUpdatePayload{}
+	err = json.Unmarshal(bd, &workspacePayload)
 	obj := "workspace"
 
 	if err != nil {
@@ -131,7 +131,7 @@ func (h *Handler) UpdateWorkspaceHandler(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	resp, err := provider.UpdateWorkspace(req, &workspace, workspaceID)
+	resp, err := provider.UpdateWorkspace(req, &workspacePayload, workspaceID)
 	if err != nil {
 		h.log.Error(ErrGetResult(err))
 		http.Error(w, ErrGetResult(err).Error(), http.StatusNotFound)
@@ -144,7 +144,7 @@ func (h *Handler) UpdateWorkspaceHandler(w http.ResponseWriter, req *http.Reques
 		http.Error(w, "Failed to marshal response to JSON", http.StatusInternalServerError)
 		return
 	}
-	description := fmt.Sprintf("Workspace %s updated.", workspace.Name)
+	description := fmt.Sprintf("Workspace %s updated.", workspacePayload.Name)
 	h.log.Info(description)
 
 	w.Header().Set("Content-Type", "application/json")
@@ -223,6 +223,111 @@ func (h *Handler) AddDesignToWorkspaceHandler(w http.ResponseWriter, req *http.R
 	workspaceID := mux.Vars(req)["id"]
 	designID := mux.Vars(req)["designID"]
 	resp, err := provider.AddDesignToWorkspace(req, workspaceID, designID)
+	if err != nil {
+		h.log.Error(ErrGetResult(err))
+		http.Error(w, ErrGetResult(err).Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+		h.log.Error(err)
+	}
+}
+
+func (h *Handler) RemoveDesignFromWorkspaceHandler(w http.ResponseWriter, req *http.Request, _ *models.Preference, _ *models.User, provider models.Provider) {
+	workspaceID := mux.Vars(req)["id"]
+	designID := mux.Vars(req)["designID"]
+	resp, err := provider.RemoveDesignFromWorkspace(req, workspaceID, designID)
+	if err != nil {
+		h.log.Error(ErrGetResult(err))
+		http.Error(w, ErrGetResult(err).Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+		h.log.Error(err)
+	}
+}
+
+func (h *Handler) GetViewsOfWorkspaceHandler(w http.ResponseWriter, req *http.Request, _ *models.Preference, _ *models.User, provider models.Provider) {
+	workspaceID := mux.Vars(req)["id"]
+	q := req.URL.Query()
+	resp, err := provider.GetViewsOfWorkspace(req, workspaceID, q.Get("page"), q.Get("pagesize"), q.Get("search"), q.Get("order"), q.Get("filter"))
+	if err != nil {
+		h.log.Error(ErrGetResult(err))
+		http.Error(w, ErrGetResult(err).Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+		h.log.Error(err)
+	}
+}
+
+func (h *Handler) AddViewToWorkspaceHandler(w http.ResponseWriter, req *http.Request, _ *models.Preference, _ *models.User, provider models.Provider) {
+	workspaceID := mux.Vars(req)["id"]
+	viewID := mux.Vars(req)["viewID"]
+	resp, err := provider.AddViewToWorkspace(req, workspaceID, viewID)
+	if err != nil {
+		h.log.Error(ErrGetResult(err))
+		http.Error(w, ErrGetResult(err).Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+		h.log.Error(err)
+	}
+}
+
+func (h *Handler) RemoveViewFromWorkspaceHandler(w http.ResponseWriter, req *http.Request, _ *models.Preference, _ *models.User, provider models.Provider) {
+	workspaceID := mux.Vars(req)["id"]
+	viewID := mux.Vars(req)["viewID"]
+	resp, err := provider.RemoveViewFromWorkspace(req, workspaceID, viewID)
+	if err != nil {
+		h.log.Error(ErrGetResult(err))
+		http.Error(w, ErrGetResult(err).Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+		h.log.Error(err)
+	}
+}
+
+func (h *Handler) GetTeamsOfWorkspaceHandler(w http.ResponseWriter, req *http.Request, _ *models.Preference, _ *models.User, provider models.Provider) {
+	workspaceID := mux.Vars(req)["id"]
+	q := req.URL.Query()
+	resp, err := provider.GetTeamsOfWorkspace(req, workspaceID, q.Get("page"), q.Get("pagesize"), q.Get("search"), q.Get("order"), q.Get("filter"))
+	if err != nil {
+		h.log.Error(ErrGetResult(err))
+		http.Error(w, ErrGetResult(err).Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+		h.log.Error(err)
+	}
+}
+
+func (h *Handler) AddTeamToWorkspaceHandler(w http.ResponseWriter, req *http.Request, _ *models.Preference, _ *models.User, provider models.Provider) {
+	workspaceID := mux.Vars(req)["id"]
+	teamID := mux.Vars(req)["teamID"]
+	resp, err := provider.AddTeamToWorkspace(req, workspaceID, teamID)
+	if err != nil {
+		h.log.Error(ErrGetResult(err))
+		http.Error(w, ErrGetResult(err).Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := fmt.Fprint(w, string(resp)); err != nil {
+		h.log.Error(err)
+	}
+}
+
+func (h *Handler) RemoveTeamFromWorkspaceHandler(w http.ResponseWriter, req *http.Request, _ *models.Preference, _ *models.User, provider models.Provider) {
+	workspaceID := mux.Vars(req)["id"]
+	teamID := mux.Vars(req)["teamID"]
+	resp, err := provider.RemoveTeamFromWorkspace(req, workspaceID, teamID)
 	if err != nil {
 		h.log.Error(ErrGetResult(err))
 		http.Error(w, ErrGetResult(err).Error(), http.StatusInternalServerError)
