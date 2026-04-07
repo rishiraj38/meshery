@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/gofrs/uuid"
 	googleUUID "github.com/google/uuid"
 	"github.com/meshery/meshery/mesheryctl/internal/cli/pkg/api"
 	mesheryctlflags "github.com/meshery/meshery/mesheryctl/internal/cli/pkg/flags"
@@ -51,13 +50,13 @@ mesheryctl workspace create --orgId [orgId] --name [name] --description [descrip
 		return mesheryctlflags.ValidateCmdFlags(cmd, &workspaceCreateFlags)
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		organizationID, err := uuid.FromString(workspaceCreateFlags.OrganizationID)
+		organizationID, err := googleUUID.Parse(workspaceCreateFlags.OrganizationID)
 		if err != nil {
 			return err
 		}
 
 		workspaceCreatePayload := workspace.WorkspacePayload{
-			OrganizationID: googleUUID.UUID(organizationID),
+			OrganizationID: organizationID,
 			Name:           workspaceCreateFlags.Name,
 			Description:    workspaceCreateFlags.Description,
 		}

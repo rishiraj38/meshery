@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/meshery/meshery/mesheryctl/internal/cli/pkg/api"
 	"github.com/meshery/meshery/mesheryctl/internal/cli/pkg/display"
 	mesheryctlflags "github.com/meshery/meshery/mesheryctl/internal/cli/pkg/flags"
 	"github.com/meshery/meshery/mesheryctl/pkg/utils"
@@ -64,27 +65,20 @@ mesheryctl workspace view [workspace-id] --output-format json --save
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		workspaceNameOrID := args[0]
-		selectedWorkspace := new(workspace.AvailableWorkspace)
+		selectedWorkspace := new(workspace.Workspace)
 
 		var urlPath string
 		var displayData display.DisplayDataAsync
 
 		if utils.IsUUID(workspaceNameOrID) {
 			urlPath = fmt.Sprintf("%s/%s", workspacesApiPath, url.PathEscape(workspaceNameOrID))
-			displayData = display.DisplayDataAsync{UrlPath: urlPath}
-
-			err := display.PromptAsyncPagination(
-				displayData,
-				formatWorkspaceLabel,
-				func(data *workspace.AvailableWorkspace) ([]workspace.AvailableWorkspace, int64) {
-					return []workspace.AvailableWorkspace{*data}, 1
-				},
-				selectedWorkspace,
-			)
+			fetchedWorkspace, err := api.Fetch[workspace.Workspace](urlPath)
 			if err != nil {
 				return err
 			}
+			*selectedWorkspace = *fetchedWorkspace
 		} else {
+			selectedAvailableWorkspace := new(workspace.AvailableWorkspace)
 			viewUrlValue := url.Values{}
 			viewUrlValue.Add("orgID", workspaceViewFlagsProvided.OrgID)
 			viewUrlValue.Add("search", workspaceNameOrID)
@@ -101,14 +95,21 @@ mesheryctl workspace view [workspace-id] --output-format json --save
 				func(data *workspace.WorkspacePage) ([]workspace.AvailableWorkspace, int64) {
 					return data.Workspaces, int64(data.TotalCount)
 				},
-				selectedWorkspace,
+				selectedAvailableWorkspace,
 			)
 			if err != nil {
 				return err
 			}
+
+			urlPath = fmt.Sprintf("%s/%s", workspacesApiPath, url.PathEscape(selectedAvailableWorkspace.ID.String()))
+			fetchedWorkspace, err := api.Fetch[workspace.Workspace](urlPath)
+			if err != nil {
+				return err
+			}
+			*selectedWorkspace = *fetchedWorkspace
 		}
 
-		outputFormatterFactory := display.OutputFormatterFactory[workspace.AvailableWorkspace]{}
+		outputFormatterFactory := display.OutputFormatterFactory[workspace.Workspace]{}
 		outputFormatter, err := outputFormatterFactory.New(workspaceViewFlagsProvided.OutputFormat, *selectedWorkspace)
 		if err != nil {
 			return err
@@ -127,7 +128,7 @@ mesheryctl workspace view [workspace-id] --output-format json --save
 				workspaceString = selectedWorkspace.ID.String()
 			}
 			fileName := filepath.Join(utils.MesheryFolder, fmt.Sprintf("workspace_%s.%s", workspaceString, workspaceViewFlagsProvided.OutputFormat))
-			outputFormatterSaverFactory := display.OutputFormatterSaverFactory[workspace.AvailableWorkspace]{}
+			outputFormatterSaverFactory := display.OutputFormatterSaverFactory[workspace.Workspace]{}
 			outputFormatterSaver, err := outputFormatterSaverFactory.New(workspaceViewFlagsProvided.OutputFormat, outputFormatter)
 			if err != nil {
 				return err
