@@ -14,6 +14,7 @@ import {
   Modal,
   createAndEditWorkspaceSchema,
   createAndEditWorkspaceUiSchema,
+  editWorkspaceSchema,
   Button,
   Typography,
   SearchBar,
@@ -240,8 +241,12 @@ const Workspaces = ({ onSelectWorkspace }) => {
   };
 
   const fetchSchema = () => {
+    const baseSchema =
+      actionType === WORKSPACE_ACTION_TYPES.EDIT
+        ? editWorkspaceSchema
+        : createAndEditWorkspaceSchema;
     const updatedSchema = {
-      schema: createAndEditWorkspaceSchema,
+      schema: baseSchema,
       uiSchema: createAndEditWorkspaceUiSchema,
     };
     updatedSchema.schema?.properties?.organization &&
