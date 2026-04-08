@@ -16,9 +16,9 @@ import (
 	mcore "github.com/meshery/meshery/server/models/meshmodel/core"
 
 	// for GKE kube API authentication
-	"github.com/meshery/schemas/models/core"
 	"github.com/meshery/meshery/server/helpers"
 	"github.com/meshery/meshery/server/models"
+	"github.com/meshery/schemas/models/core"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
 	"github.com/meshery/meshkit/models/events"

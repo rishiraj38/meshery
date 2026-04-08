@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/meshery/schemas/models/core"
 	"context"
 	"crypto/md5"
 	"encoding/base64"
@@ -12,6 +11,8 @@ import (
 	"net"
 	"os"
 	"time"
+
+	"github.com/meshery/schemas/models/core"
 
 	"github.com/gofrs/uuid"
 	"github.com/meshery/meshery/server/helpers/utils"

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/meshery/schemas/models/core"
 	"github.com/meshery/meshery/server/models"
+	"github.com/meshery/schemas/models/core"
 
 	"github.com/meshery/meshkit/encoding"
 	meshkitRegistryUtils "github.com/meshery/meshkit/registry"

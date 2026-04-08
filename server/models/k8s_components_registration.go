@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/meshery/schemas/models/core"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+
+	"github.com/meshery/schemas/models/core"
 
 	"github.com/gofrs/uuid"
 	"github.com/meshery/schemas/models/v1beta1/capability"

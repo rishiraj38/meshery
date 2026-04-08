@@ -1,8 +1,9 @@
 package models
 
 import (
-	"github.com/meshery/schemas/models/core"
 	"time"
+
+	"github.com/meshery/schemas/models/core"
 )
 
 type CatalogRequest struct {

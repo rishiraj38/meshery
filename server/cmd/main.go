@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/meshery/schemas/models/core"
 	"context"
 	"fmt"
 	"net/http"
@@ -10,6 +9,8 @@ import (
 	"os/signal"
 	"path"
 	"time"
+
+	"github.com/meshery/schemas/models/core"
 
 	"github.com/fsnotify/fsnotify"
 

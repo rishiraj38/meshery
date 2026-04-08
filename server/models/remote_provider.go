@@ -1,7 +1,6 @@
 package models
 
 import (
-	schemacore "github.com/meshery/schemas/models/core"
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
@@ -22,6 +21,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	schemacore "github.com/meshery/schemas/models/core"
 
 	"github.com/gofrs/uuid"
 	SMP "github.com/layer5io/service-mesh-performance/spec"
@@ -78,7 +79,7 @@ type RemoteProvider struct {
 	MeshsyncDefaultDeploymentMode schemasConnection.MeshsyncDeploymentMode
 }
 type AnonymousFlowResponse struct {
-	AccessToken string    `json:"access_token"`
+	AccessToken string          `json:"access_token"`
 	UserID      schemacore.Uuid `json:"user_id,omitempty"`
 }
 

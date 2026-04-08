@@ -1,8 +1,8 @@
 package models
 
 import (
-	"github.com/meshery/schemas/models/core"
 	"github.com/meshery/meshkit/models/events"
+	"github.com/meshery/schemas/models/core"
 )
 
 const (

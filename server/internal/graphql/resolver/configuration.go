@@ -3,9 +3,9 @@ package resolver
 import (
 	"context"
 
-	"github.com/meshery/schemas/models/core"
 	"github.com/meshery/meshery/server/internal/graphql/model"
 	"github.com/meshery/meshery/server/models"
+	"github.com/meshery/schemas/models/core"
 )
 
 func (r *Resolver) subscribeConfiguration(ctx context.Context, provider models.Provider, user models.User, patternSelector model.PageFilter, filterSelector model.PageFilter) (<-chan *model.ConfigurationPage, error) {

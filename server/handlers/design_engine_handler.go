@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	schemacore "github.com/meshery/schemas/models/core"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	schemacore "github.com/meshery/schemas/models/core"
 
 	"github.com/gofrs/uuid"
 	"github.com/meshery/meshery/server/meshes"

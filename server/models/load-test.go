@@ -8,8 +8,8 @@ import (
 
 	"fortio.org/fortio/fhttp"
 	"fortio.org/fortio/periodic"
-	"github.com/meshery/schemas/models/core"
 	"github.com/meshery/meshkit/logger"
+	"github.com/meshery/schemas/models/core"
 )
 
 // LoadGenerator - represents the load generator type

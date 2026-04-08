@@ -3,12 +3,12 @@ package models
 import (
 	"sync"
 
-	"github.com/meshery/schemas/models/core"
 	"github.com/meshery/meshkit/broker"
 	"github.com/meshery/meshkit/database"
 	"github.com/meshery/meshkit/encoding"
 	"github.com/meshery/meshkit/logger"
 	"github.com/meshery/meshkit/utils"
+	"github.com/meshery/schemas/models/core"
 
 	meshsyncmodel "github.com/meshery/meshsync/pkg/model"
 	"github.com/meshery/schemas/models/v1beta1/component"

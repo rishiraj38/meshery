@@ -1,12 +1,13 @@
 package core
 
 import (
-	schemacore "github.com/meshery/schemas/models/core"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
+
+	schemacore "github.com/meshery/schemas/models/core"
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/cuecontext"

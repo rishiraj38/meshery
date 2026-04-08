@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/meshery/schemas/models/core"
 	SMP "github.com/layer5io/service-mesh-performance/spec"
 	"github.com/meshery/meshkit/database"
+	"github.com/meshery/schemas/models/core"
 )
 
 // TestProfilesPersister assists with persisting session in store

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/meshery/schemas/models/core"
 	"github.com/meshery/meshery/server/models"
 	"github.com/meshery/meshery/server/models/connections"
 	"github.com/meshery/meshkit/logger"
 	"github.com/meshery/meshkit/models/events"
+	"github.com/meshery/schemas/models/core"
 )
 
 const (

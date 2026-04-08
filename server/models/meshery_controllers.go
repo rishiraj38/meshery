@@ -1,12 +1,13 @@
 package models
 
 import (
-	"github.com/meshery/schemas/models/core"
 	"context"
 	"fmt"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/meshery/schemas/models/core"
 
 	"maps"
 

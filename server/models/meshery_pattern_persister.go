@@ -1,11 +1,12 @@
 package models
 
 import (
-	"github.com/meshery/schemas/models/core"
 	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/meshery/schemas/models/core"
 
 	"github.com/gofrs/uuid"
 	"gopkg.in/yaml.v2"

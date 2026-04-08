@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/meshery/schemas/models/core"
 	"github.com/meshery/meshery/server/machines"
 	"github.com/meshery/meshery/server/models"
 	"github.com/meshery/meshkit/models/events"
+	"github.com/meshery/schemas/models/core"
 )
 
 type DisconnectAction struct{}

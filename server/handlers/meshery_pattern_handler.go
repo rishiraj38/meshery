@@ -66,7 +66,7 @@ type MesheryPatternUPDATERequestBody struct {
 }
 
 type DesignPostPayload struct {
-	ID         *coreV1.Uuid                 `json:"id,omitempty"`
+	ID         *coreV1.Uuid               `json:"id,omitempty"`
 	Name       string                     `json:"name,omitempty"`
 	DesignFile patternV1beta1.PatternFile `json:"design_file"`
 	// Meshery doesn't have the user id fields

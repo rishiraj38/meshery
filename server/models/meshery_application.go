@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/meshery/schemas/models/core"
 	isql "github.com/meshery/meshery/server/internal/sql"
+	"github.com/meshery/schemas/models/core"
 )
 
 type ApplicationType string

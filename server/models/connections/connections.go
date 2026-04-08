@@ -6,8 +6,8 @@ import (
 	"github.com/meshery/meshkit/models/events"
 	"github.com/spf13/viper"
 
-	"github.com/meshery/schemas/models/core"
 	"github.com/meshery/meshkit/logger"
+	"github.com/meshery/schemas/models/core"
 	schemasConnection "github.com/meshery/schemas/models/v1beta1/connection"
 )
 

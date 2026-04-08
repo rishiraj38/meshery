@@ -1,8 +1,9 @@
 package kubernetes
 
 import (
-	"github.com/meshery/schemas/models/core"
 	"fmt"
+
+	"github.com/meshery/schemas/models/core"
 
 	"github.com/gofrs/uuid"
 	"github.com/meshery/meshery/server/helpers"

@@ -1,9 +1,10 @@
 package kubernetes
 
 import (
-	schemacore "github.com/meshery/schemas/models/core"
 	"context"
 	"fmt"
+
+	schemacore "github.com/meshery/schemas/models/core"
 
 	"github.com/gofrs/uuid"
 	"github.com/meshery/meshery/server/machines"

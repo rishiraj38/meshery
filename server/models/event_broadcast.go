@@ -3,8 +3,8 @@ package models
 import (
 	"sync"
 
-	"github.com/meshery/schemas/models/core"
 	"github.com/meshery/meshery/server/helpers/utils"
+	"github.com/meshery/schemas/models/core"
 	"github.com/sirupsen/logrus"
 )
 

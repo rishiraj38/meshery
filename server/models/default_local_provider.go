@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/meshery/schemas/models/core"
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
@@ -18,6 +17,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/meshery/schemas/models/core"
 
 	"github.com/gofrs/uuid"
 	SMP "github.com/layer5io/service-mesh-performance/spec"

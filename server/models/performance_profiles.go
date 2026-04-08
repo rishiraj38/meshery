@@ -1,9 +1,9 @@
 package models
 
 import (
-	"github.com/meshery/schemas/models/core"
 	"github.com/lib/pq"
 	"github.com/meshery/meshery/server/internal/sql"
+	"github.com/meshery/schemas/models/core"
 
 	SMP "github.com/layer5io/service-mesh-performance/spec"
 )

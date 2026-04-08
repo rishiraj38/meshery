@@ -1,11 +1,12 @@
 package helpers
 
 import (
-	"github.com/meshery/schemas/models/core"
 	"fmt"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/meshery/schemas/models/core"
 
 	gofrs "github.com/gofrs/uuid"
 	"github.com/meshery/meshery/server/models"

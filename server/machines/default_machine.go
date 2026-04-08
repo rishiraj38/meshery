@@ -1,9 +1,9 @@
 package machines
 
 import (
-	"github.com/meshery/schemas/models/core"
 	"github.com/gofrs/uuid"
 	"github.com/meshery/meshkit/logger"
+	"github.com/meshery/schemas/models/core"
 )
 
 func Discovered() State {

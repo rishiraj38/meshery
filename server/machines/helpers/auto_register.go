@@ -1,13 +1,14 @@
 package helpers
 
 import (
-	"github.com/meshery/schemas/models/core"
 	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
 	"strings"
 	"sync"
+
+	"github.com/meshery/schemas/models/core"
 
 	"github.com/gofrs/uuid"
 	helpers "github.com/meshery/meshery/server/helpers/utils"

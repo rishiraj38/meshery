@@ -2,7 +2,6 @@
 package handlers
 
 import (
-	"github.com/meshery/schemas/models/core"
 	"github.com/meshery/meshery/server/machines"
 	"github.com/meshery/meshery/server/models"
 	"github.com/meshery/meshkit/broker"
@@ -11,6 +10,7 @@ import (
 	"github.com/meshery/meshkit/models/meshmodel/core/policies"
 	meshmodel "github.com/meshery/meshkit/models/meshmodel/registry"
 	"github.com/meshery/meshkit/utils/events"
+	"github.com/meshery/schemas/models/core"
 	schemasConnection "github.com/meshery/schemas/models/v1beta1/connection"
 	"github.com/spf13/viper"
 	"github.com/vmihailenco/taskq/v3"

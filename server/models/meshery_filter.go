@@ -3,8 +3,8 @@ package models
 import (
 	"time"
 
-	"github.com/meshery/schemas/models/core"
 	"github.com/meshery/meshery/server/internal/sql"
+	"github.com/meshery/schemas/models/core"
 	"gopkg.in/yaml.v2"
 )
 

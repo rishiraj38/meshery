@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/meshery/schemas/models/core"
 	"github.com/meshery/meshery/server/internal/graphql/model"
 	"github.com/meshery/meshery/server/models"
 	"github.com/meshery/meshkit/models/events"
+	"github.com/meshery/schemas/models/core"
 )
 
 func (r *Resolver) eventsResolver(ctx context.Context, provider models.Provider, user models.User) (<-chan *model.Event, error) {
@@ -35,7 +35,6 @@ func (r *Resolver) eventsResolver(ctx context.Context, provider models.Provider,
 					Metadata:    event.Metadata,
 					Status:      string(event.Status),
 					SystemID:    event.SystemID.String(),
-
 				}
 
 				if event.UserID != nil {

@@ -1,10 +1,10 @@
 package stages
 
 import (
-	schemacore "github.com/meshery/schemas/models/core"
 	"github.com/meshery/meshery/server/models/pattern/core"
 	"github.com/meshery/meshery/server/models/pattern/patterns"
 	"github.com/meshery/meshkit/models/meshmodel/registry"
+	schemacore "github.com/meshery/schemas/models/core"
 	"github.com/meshery/schemas/models/v1beta1/component"
 	"github.com/meshery/schemas/models/v1beta1/pattern"
 )

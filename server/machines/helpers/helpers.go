@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/meshery/schemas/models/core"
 	"github.com/meshery/meshery/server/machines"
 	"github.com/meshery/meshery/server/machines/grafana"
 	"github.com/meshery/meshery/server/machines/kubernetes"
@@ -13,6 +12,7 @@ import (
 	"github.com/meshery/meshery/server/models/connections"
 	"github.com/meshery/meshkit/database"
 	"github.com/meshery/meshkit/logger"
+	"github.com/meshery/schemas/models/core"
 )
 
 func StatusToEvent(status connections.ConnectionStatus) machines.EventType {

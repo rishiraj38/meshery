@@ -6,9 +6,9 @@ import (
 
 	"database/sql"
 
-	"github.com/meshery/schemas/models/core"
 	isql "github.com/meshery/meshery/server/internal/sql"
 	"github.com/meshery/meshkit/models/catalog/v1alpha1"
+	"github.com/meshery/schemas/models/core"
 	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
