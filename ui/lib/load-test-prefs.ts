@@ -29,10 +29,14 @@ const toNonNegativeNumber = (value: unknown, fallback: number) => {
 };
 
 const toDuration = (value: unknown) =>
-  typeof value === 'string' && value.trim() ? value.trim() : DEFAULT_LOAD_TEST_PREFS.t;
+  typeof value === 'string' && /^\d+[hms]$/i.test(value.trim())
+    ? value.trim()
+    : DEFAULT_LOAD_TEST_PREFS.t;
 
 const toLoadGenerator = (value: unknown) =>
-  typeof value === 'string' && validLoadGenerators.has(value) ? value : DEFAULT_LOAD_TEST_PREFS.gen;
+  typeof value === 'string' && validLoadGenerators.has(value.trim())
+    ? value.trim()
+    : DEFAULT_LOAD_TEST_PREFS.gen;
 
 export const normalizeLoadTestPrefs = (loadTestPrefs: LoadTestPrefsInput = {}) => ({
   c: toNonNegativeNumber(loadTestPrefs?.c, DEFAULT_LOAD_TEST_PREFS.c),

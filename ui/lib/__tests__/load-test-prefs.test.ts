@@ -33,4 +33,18 @@ describe('normalizeLoadTestPrefs', () => {
       }),
     ).toEqual(DEFAULT_LOAD_TEST_PREFS);
   });
+
+  it('falls back for durations missing a unit', () => {
+    expect(normalizeLoadTestPrefs({ t: '30' })).toEqual({
+      ...DEFAULT_LOAD_TEST_PREFS,
+      t: DEFAULT_LOAD_TEST_PREFS.t,
+    });
+  });
+
+  it('trims whitespace on generator values', () => {
+    expect(normalizeLoadTestPrefs({ gen: ' fortio ' })).toEqual({
+      ...DEFAULT_LOAD_TEST_PREFS,
+      gen: 'fortio',
+    });
+  });
 });

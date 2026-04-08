@@ -570,6 +570,7 @@ const MesheryPerformanceComponent_ = (props) => {
 
   const getLoadTestPrefs = () => {
     if (!isUserDataFetched || !userData) return;
+    if (props.performanceProfileID) return;
 
     const loadTestPrefs = normalizeLoadTestPrefs(userData.loadTestPrefs);
 
