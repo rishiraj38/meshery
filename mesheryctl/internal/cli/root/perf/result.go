@@ -268,7 +268,7 @@ func performanceResultsToStringArrays(results []models.PerformanceResult) ([][]s
 
 		a := resultStruct{
 			Name:     name,
-			UserID:   (*core.Uuid)(userid.Bytes()),
+			UserID:   &userid,
 			URL:      url,
 			QPS:      int(result.RunnerResults.QPS),
 			Duration: result.RunnerResults.RequestedDuration,
@@ -281,7 +281,7 @@ func performanceResultsToStringArrays(results []models.PerformanceResult) ([][]s
 				P99:     P99,
 			},
 			StartTime:     result.TestStartTime,
-			MesheryID:     (*core.Uuid)(mesheryid.Bytes()),
+			MesheryID:     &mesheryid,
 			LoadGenerator: loadGenerator,
 		}
 
