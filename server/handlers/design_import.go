@@ -11,8 +11,6 @@ import (
 	"path"
 	"strings"
 	"time"
-
-	"github.com/gofrs/uuid"
 	"github.com/meshery/meshery/server/models"
 	pCore "github.com/meshery/meshery/server/models/pattern/core"
 	"github.com/meshery/meshkit/encoding"
@@ -172,7 +170,7 @@ func ConvertFileToDesign(fileToImport FileToImport, registry *registry.RegistryM
 	return design, identifiedFile.Type, err
 }
 
-func (h *Handler) logErrorGettingUserToken(rw http.ResponseWriter, provider models.Provider, err error, userID uuid.UUID, eventBuilder *events.EventBuilder) {
+func (h *Handler) logErrorGettingUserToken(rw http.ResponseWriter, provider models.Provider, err error, userID coreV1.Uuid, eventBuilder *events.EventBuilder) {
 
 	h.log.Error(ErrRetrieveUserToken(err))
 	http.Error(rw, ErrRetrieveUserToken(err).Error(), http.StatusInternalServerError)
@@ -188,7 +186,7 @@ func (h *Handler) logErrorGettingUserToken(rw http.ResponseWriter, provider mode
 
 }
 
-func (h *Handler) logErrorParsingRequestBody(rw http.ResponseWriter, provider models.Provider, err error, userID uuid.UUID, eventBuilder *events.EventBuilder) {
+func (h *Handler) logErrorParsingRequestBody(rw http.ResponseWriter, provider models.Provider, err error, userID coreV1.Uuid, eventBuilder *events.EventBuilder) {
 
 	h.log.Error(ErrRequestBody(err))
 	http.Error(rw, ErrRequestBody(err).Error(), http.StatusBadRequest)

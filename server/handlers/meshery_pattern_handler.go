@@ -66,7 +66,7 @@ type MesheryPatternUPDATERequestBody struct {
 }
 
 type DesignPostPayload struct {
-	ID         *uuid.UUID                 `json:"id,omitempty"`
+	ID         *coreV1.Uuid                 `json:"id,omitempty"`
 	Name       string                     `json:"name,omitempty"`
 	DesignFile patternV1beta1.PatternFile `json:"design_file"`
 	// Meshery doesn't have the user id fields
@@ -96,7 +96,7 @@ func (h *Handler) PatternFileRequestHandler(
 	}
 }
 
-func (h *Handler) handleProviderPatternSaveError(rw http.ResponseWriter, eventBuilder *events.EventBuilder, userID uuid.UUID, body []byte, err error, provider models.Provider, token string) {
+func (h *Handler) handleProviderPatternSaveError(rw http.ResponseWriter, eventBuilder *events.EventBuilder, userID coreV1.Uuid, body []byte, err error, provider models.Provider, token string) {
 
 	var meshkitErr errors.Error
 	var event *events.Event
@@ -129,7 +129,7 @@ func (h *Handler) handleProviderPatternSaveError(rw http.ResponseWriter, eventBu
 	go h.config.EventBroadcaster.Publish(userID, event)
 }
 
-func (h *Handler) handleProviderPatternGetError(rw http.ResponseWriter, eventBuilder *events.EventBuilder, userID uuid.UUID, body []byte, err error, provider models.Provider, token string) {
+func (h *Handler) handleProviderPatternGetError(rw http.ResponseWriter, eventBuilder *events.EventBuilder, userID coreV1.Uuid, body []byte, err error, provider models.Provider, token string) {
 
 	var meshkitErr errors.Error
 	var event *events.Event

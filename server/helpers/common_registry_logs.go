@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"github.com/meshery/schemas/models/core"
 	"fmt"
 	"strconv"
 	"strings"
@@ -29,8 +30,8 @@ type EntityErrorCount struct {
 type EntityTypeCountWithErrors struct {
 	Model        map[string]EntityErrorCount
 	Component    map[string]EntityErrorCount
-	Relationship map[gofrs.UUID]EntityErrorCount
-	Policy       map[gofrs.UUID]EntityErrorCount
+	Relationship map[core.Uuid]EntityErrorCount
+	Policy       map[core.Uuid]EntityErrorCount
 	Registry     map[string]EntityErrorCount
 	mu           sync.Mutex
 }
@@ -58,8 +59,8 @@ func HandleError(c connection.Connection, en entity.Entity, err error, isModelEr
 		LogHandler.RegisterAttempts[meshmodel.HostnameToPascalCase(c.Kind)] = &EntityTypeCountWithErrors{
 			Model:        make(map[string]EntityErrorCount),
 			Component:    make(map[string]EntityErrorCount),
-			Relationship: make(map[gofrs.UUID]EntityErrorCount),
-			Policy:       make(map[gofrs.UUID]EntityErrorCount),
+			Relationship: make(map[core.Uuid]EntityErrorCount),
+			Policy:       make(map[core.Uuid]EntityErrorCount),
 			Registry:     make(map[string]EntityErrorCount),
 		}
 	}
@@ -172,7 +173,7 @@ func FailedMsgCompute(failedMsg string, hostName string) (string, error) {
 	return failedMsg, nil
 }
 
-func FailedEventCompute(hostname string, mesheryInstanceID gofrs.UUID, provider *models.Provider, userID string, ec *models.Broadcast) (string, error) {
+func FailedEventCompute(hostname string, mesheryInstanceID core.Uuid, provider *models.Provider, userID string, ec *models.Broadcast) (string, error) {
 
 	failedMsg, err := FailedMsgCompute("", hostname)
 	if err != nil {
@@ -248,8 +249,8 @@ func filterEmpty(m map[string]EntityErrorCount) map[string]EntityErrorCount {
 }
 
 // filterUUIDEmpty removes empty entries from a map with UUID keys
-func filterUUIDEmpty(m map[gofrs.UUID]EntityErrorCount) map[gofrs.UUID]EntityErrorCount {
-	result := make(map[gofrs.UUID]EntityErrorCount)
+func filterUUIDEmpty(m map[core.Uuid]EntityErrorCount) map[core.Uuid]EntityErrorCount {
+	result := make(map[core.Uuid]EntityErrorCount)
 	for k, v := range m {
 		if v.Attempt > 0 || v.Error != nil {
 			result[k] = v

@@ -3,7 +3,7 @@ package resolver
 import (
 	"context"
 
-	"github.com/gofrs/uuid"
+	"github.com/meshery/schemas/models/core"
 	"github.com/meshery/meshery/server/internal/graphql/model"
 	"github.com/meshery/meshery/server/models"
 )
@@ -19,7 +19,7 @@ func (r *Resolver) subscribeConfiguration(ctx context.Context, provider models.P
 	// r.Config.FilterChannel.Publish(userID, struct{}{})
 	configuration := make(chan *model.ConfigurationPage, 1)
 
-	go func(userID uuid.UUID) {
+	go func(userID core.Uuid) {
 		defer close(configuration)
 
 		r.Log.Info("Configuration subscription started")

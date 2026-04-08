@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/meshery/schemas/models/core"
 	"context"
 	"fmt"
 	"strings"
@@ -64,7 +65,7 @@ type MesheryControllersHelper struct {
 	// event broadcasting dependencies
 	eventBroadcaster *Broadcast
 	provider         Provider
-	systemID         *uuid.UUID
+	systemID         *core.Uuid
 }
 
 func (mch *MesheryControllersHelper) GetControllerHandlersForEachContext() map[MesheryController]controllers.IMesheryController {
@@ -85,7 +86,7 @@ func NewMesheryControllersHelper(
 	dbHandler *database.Handler,
 	eventBroadcaster *Broadcast,
 	provider Provider,
-	systemID *uuid.UUID,
+	systemID *core.Uuid,
 ) *MesheryControllersHelper {
 	return &MesheryControllersHelper{
 		ctxControllerHandlers: make(map[MesheryController]controllers.IMesheryController),
@@ -113,7 +114,7 @@ func (mch *MesheryControllersHelper) SetMeshsyncDeploymentMode(value schemasConn
 // initialized yet. Apart from updating the map, it also runs the handler after
 // updating the map. The presence of a handler for a context in a map indicate that
 // the meshsync data for that context is properly being handled
-func (mch *MesheryControllersHelper) AddMeshsynDataHandlers(ctx context.Context, k8scontext K8sContext, userID, mesheryInstanceID uuid.UUID, provider Provider) *MesheryControllersHelper {
+func (mch *MesheryControllersHelper) AddMeshsynDataHandlers(ctx context.Context, k8scontext K8sContext, userID, mesheryInstanceID core.Uuid, provider Provider) *MesheryControllersHelper {
 	// only checking those contexts whose MesheryConrollers are active
 	// go func(mch *MesheryControllersHelper) {
 
@@ -208,7 +209,7 @@ func (mch *MesheryControllersHelper) AddMeshsynDataHandlers(ctx context.Context,
 
 func (mch *MesheryControllersHelper) meshsynDataHandlersNatsBroker(
 	k8scontext K8sContext,
-	userID uuid.UUID,
+	userID core.Uuid,
 ) broker.Handler {
 	ctxID := k8scontext.ID
 	controllerHandlers := mch.ctxControllerHandlers
@@ -266,7 +267,7 @@ func (mch *MesheryControllersHelper) meshsynDataHandlersStartLibMeshsyncRun(
 	ctx context.Context,
 	brokerHandler broker.Handler,
 	k8sContext K8sContext,
-	userID uuid.UUID,
+	userID core.Uuid,
 ) (func(), error) {
 	kubeConfig, err := k8sContext.GenerateKubeConfig()
 	if err != nil {
@@ -646,7 +647,7 @@ func SetOverrideValuesForMesheryDeploy(adapters []Adapter, adapter Adapter, inst
 }
 
 // General helper method to emit events for system-level operations
-func (mch *MesheryControllersHelper) emitEvent(description string, severity events.EventSeverity, metadata map[string]any, userID uuid.UUID) {
+func (mch *MesheryControllersHelper) emitEvent(description string, severity events.EventSeverity, metadata map[string]any, userID core.Uuid) {
 	if mch.eventBroadcaster != nil && mch.systemID != nil {
 		actedUpon := controllerEventActedUpon(userID, metadata)
 
@@ -681,18 +682,18 @@ func (mch *MesheryControllersHelper) emitEvent(description string, severity even
 	}
 }
 
-func controllerEventActedUpon(userID uuid.UUID, metadata map[string]any) uuid.UUID {
+func controllerEventActedUpon(userID core.Uuid, metadata map[string]any) core.Uuid {
 	if metadata != nil {
 		switch connectionID := metadata["connectionID"].(type) {
 		case string:
 			if parsedID := uuid.FromStringOrNil(connectionID); parsedID != uuid.Nil {
 				return parsedID
 			}
-		case uuid.UUID:
+		case core.Uuid:
 			if connectionID != uuid.Nil {
 				return connectionID
 			}
-		case *uuid.UUID:
+		case *core.Uuid:
 			if connectionID != nil && *connectionID != uuid.Nil {
 				return *connectionID
 			}
@@ -706,12 +707,12 @@ func controllerEventActedUpon(userID uuid.UUID, metadata map[string]any) uuid.UU
 	return uuid.Nil
 }
 
-func shouldPersistControllerEvent(userID, actedUpon uuid.UUID) bool {
+func shouldPersistControllerEvent(userID, actedUpon core.Uuid) bool {
 	return userID != uuid.Nil && actedUpon != uuid.Nil
 }
 
 // Common helper for both error and warning events with error information
-func (mch *MesheryControllersHelper) emitEventWithError(description string, severity events.EventSeverity, err error, metadata map[string]any, userID uuid.UUID) {
+func (mch *MesheryControllersHelper) emitEventWithError(description string, severity events.EventSeverity, err error, metadata map[string]any, userID core.Uuid) {
 	eventMetadata := make(map[string]any)
 
 	if metadata != nil {
@@ -726,11 +727,11 @@ func (mch *MesheryControllersHelper) emitEventWithError(description string, seve
 }
 
 // Helper method to emit error events
-func (mch *MesheryControllersHelper) emitErrorEvent(description string, err error, metadata map[string]any, userID uuid.UUID) {
+func (mch *MesheryControllersHelper) emitErrorEvent(description string, err error, metadata map[string]any, userID core.Uuid) {
 	mch.emitEventWithError(description, events.Error, err, metadata, userID)
 }
 
 // Helper method to emit warning events
-func (mch *MesheryControllersHelper) emitWarningEvent(description string, err error, metadata map[string]any, userID uuid.UUID) {
+func (mch *MesheryControllersHelper) emitWarningEvent(description string, err error, metadata map[string]any, userID core.Uuid) {
 	mch.emitEventWithError(description, events.Warning, err, metadata, userID)
 }

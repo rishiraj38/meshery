@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/meshery/schemas/models/core"
 	"context"
 	"fmt"
 	"net/http"
@@ -392,7 +393,7 @@ func main() {
 		&instanceID,
 	)
 	connToInstanceTracker := machines.ConnectionToStateMachineInstanceTracker{
-		ConnectToInstanceMap: make(map[uuid.UUID]*machines.StateMachine, 0),
+		ConnectToInstanceMap: make(map[core.Uuid]*machines.StateMachine, 0),
 	}
 
 	k8sComponentsRegistrationHelper := models.NewComponentsRegistrationHelper(log)

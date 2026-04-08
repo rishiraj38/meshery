@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/meshery/schemas/models/core"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -457,7 +458,7 @@ func (h *Handler) UpdateConnectionById(w http.ResponseWriter, req *http.Request,
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *Handler) NotifySmOfConnectionStatusChange(context context.Context, userID uuid.UUID, provider models.Provider, token string, connection *connections.ConnectionPayload) (events.Event, error) {
+func (h *Handler) NotifySmOfConnectionStatusChange(context context.Context, userID core.Uuid, provider models.Provider, token string, connection *connections.ConnectionPayload) (events.Event, error) {
 	connectionID := connection.ID
 
 	eventBuilder := events.NewEvent().ActedUpon(connectionID).FromUser(userID).FromSystem(*h.SystemID).WithCategory("connection").WithAction("update")
@@ -579,10 +580,10 @@ func (h *Handler) DeleteConnection(w http.ResponseWriter, req *http.Request, _ *
 // Returns: oldMode, newMode, changed, error
 func (h *Handler) handleMeshSyncDeploymentModeChange(
 	ctx context.Context,
-	connectionID uuid.UUID,
+	connectionID core.Uuid,
 	newConnection *connections.ConnectionPayload,
 	token string,
-	userID uuid.UUID,
+	userID core.Uuid,
 	provider models.Provider,
 ) (schemasConnection.MeshsyncDeploymentMode, schemasConnection.MeshsyncDeploymentMode, bool, error) {
 	if newConnection == nil {

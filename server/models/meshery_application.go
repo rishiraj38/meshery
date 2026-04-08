@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/gofrs/uuid"
+	"github.com/meshery/schemas/models/core"
 	isql "github.com/meshery/meshery/server/internal/sql"
 )
 
@@ -33,7 +33,7 @@ func GetApplicationTypes() (r []DesignTypeResponse) {
 
 // MesheryApplication represents the applications that needs to be saved
 type MesheryApplication struct {
-	ID *uuid.UUID `json:"id,omitempty"`
+	ID *core.Uuid `json:"id,omitempty"`
 
 	Name            string `json:"name,omitempty"`
 	ApplicationFile string `json:"application_file"`

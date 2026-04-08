@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"github.com/meshery/schemas/models/core"
 	"context"
 	"crypto/md5"
 	"encoding/hex"
@@ -56,7 +57,7 @@ func (arh *AutoRegistrationHelper) processRegistration() {
 	if arh == nil {
 		return
 	}
-	sysID := viper.Get("INSTANCE_ID").(*uuid.UUID)
+	sysID := viper.Get("INSTANCE_ID").(*core.Uuid)
 	regChan := models.GetMeshSyncRegistrationQueue().RegChan
 
 	for regData := range regChan {
@@ -136,7 +137,7 @@ func (arh *AutoRegistrationHelper) processRegistration() {
 	}
 }
 
-func getConnectionPayload(connType, objName, objID string, identifier interface{}, userID uuid.UUID, connectionDef *component.ComponentDefinition, connMetadata map[string]interface{}) (connections.ConnectionPayload, uuid.UUID) {
+func getConnectionPayload(connType, objName, objID string, identifier interface{}, userID core.Uuid, connectionDef *component.ComponentDefinition, connMetadata map[string]interface{}) (connections.ConnectionPayload, core.Uuid) {
 
 	id, _ := generateUUID(map[string]interface{}{
 		"name":       objName,
@@ -184,7 +185,7 @@ func getTypeOfConnection(obj *meshsyncmodel.KubernetesResource) string {
 	return ""
 }
 
-func generateUUID(data map[string]interface{}) (uuid.UUID, error) {
+func generateUUID(data map[string]interface{}) (core.Uuid, error) {
 	marshalledData, _ := utils.Marshal(data)
 	hash := md5.Sum([]byte(marshalledData))
 	return uuid.FromString(hex.EncodeToString(hash[:]))

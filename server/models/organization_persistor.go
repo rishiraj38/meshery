@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/meshery/schemas/models/core"
 	"encoding/json"
 	"strings"
 
@@ -60,7 +61,7 @@ func (op *OrganizationPersister) SaveOrganization(org *organization.Organization
 	return marshalOrganizations([]organization.Organization{*org}), op.DB.Save(org).Error
 }
 
-func (op *OrganizationPersister) GetOrganzation(id uuid.UUID) ([]byte, error) {
+func (op *OrganizationPersister) GetOrganzation(id core.Uuid) ([]byte, error) {
 	var organization organization.Organization
 	err := op.DB.First(&organization, id).Error
 	return marshalOrganization(&organization), err
