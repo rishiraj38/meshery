@@ -1549,20 +1549,25 @@ func (l *RemoteProvider) PublishSmiResults(result *SmiResult) (string, error) {
 	return "", ErrPost(err, string(bdr), resp.StatusCode)
 }
 
-// IF the remote provider supports persisting events, this function will persist the event
-// The token is used to authenticate the request to the remote provider. if the token is nil, it uses the GlobalTokenForAnonymousResults
+// PersistEvent persists an event to the remote provider if a valid token is provided,
+// otherwise falls back to local database persistence via the embedded EventsPersister.
+// When a token is provided but the remote request fails, it also falls back to local persistence.
 func (l *RemoteProvider) PersistEvent(event events.Event, token *string) error {
-
-	var tokenString string
-	if token == nil {
-		l.Log.Debug("No token provided, using GlobalTokenForAnonymousResults")
-		tokenString = GlobalTokenForAnonymousResults
-	} else {
-		tokenString = *token
+	if token != nil && strings.TrimSpace(*token) != "" {
+		if err := l.persistEventRemote(event, *token); err != nil {
+			l.Log.Warn(fmt.Errorf("remote event persistence failed, falling back to local DB: %w", err))
+			return l.EventsPersister.PersistEvent(event, nil)
+		}
+		return nil
 	}
 
+	l.Log.Debug("No token provided for event persistence, using local DB")
+	return l.EventsPersister.PersistEvent(event, nil)
+}
+
+// persistEventRemote sends an event to the remote provider for persistence.
+func (l *RemoteProvider) persistEventRemote(event events.Event, tokenString string) error {
 	if !l.Capabilities.IsSupported(PersistEvents) {
-		l.Log.Error(ErrInvalidCapability("PersistEvents", l.ProviderName))
 		return ErrInvalidCapability("PersistEvents", l.ProviderName)
 	}
 	ep, _ := l.Capabilities.GetEndpointForFeature(PersistEvents)
@@ -1584,7 +1589,6 @@ func (l *RemoteProvider) PersistEvent(event events.Event, token *string) error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		l.Log.Error(ErrPost(fmt.Errorf("error persisting event with the remote provider"), "event", resp.StatusCode))
 		return ErrPost(fmt.Errorf("error persisting event with the remote provider"), "event", resp.StatusCode)
 	}
 	return nil

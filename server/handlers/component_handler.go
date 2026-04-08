@@ -850,13 +850,19 @@ func (h *Handler) GetMeshmodelRegistrants(rw http.ResponseWriter, r *http.Reques
 func (h *Handler) UpdateEntityStatus(rw http.ResponseWriter, r *http.Request, _ *models.Preference, user *models.User, provider models.Provider) {
 	dec := json.NewDecoder(r.Body)
 	userID := user.ID
+	token, err := provider.GetProviderToken(r)
+	if err != nil {
+		h.log.Error(ErrRetrieveUserToken(err))
+		http.Error(rw, ErrRetrieveUserToken(err).Error(), http.StatusInternalServerError)
+		return
+	}
 	entityType := mux.Vars(r)["entityType"]
 	var updateData struct {
 		ID          string `json:"id"`
 		Status      string `json:"status"`
 		DisplayName string `json:"displayname"`
 	}
-	err := dec.Decode(&updateData)
+	err = dec.Decode(&updateData)
 	if err != nil {
 		h.log.Error(ErrRequestBody(err))
 		http.Error(rw, ErrRequestBody(err).Error(), http.StatusInternalServerError)
@@ -870,7 +876,7 @@ func (h *Handler) UpdateEntityStatus(rw http.ResponseWriter, r *http.Request, _ 
 			"error": err,
 		})
 		_event := eventBuilder.Build()
-		_ = provider.PersistEvent(*_event, nil)
+		_ = provider.PersistEvent(*_event, &token)
 		go h.config.EventBroadcaster.Publish(userID, _event)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -879,7 +885,7 @@ func (h *Handler) UpdateEntityStatus(rw http.ResponseWriter, r *http.Request, _ 
 	description := fmt.Sprintf("Status of '%s' updated to %s.", updateData.DisplayName, updateData.Status)
 
 	event := eventBuilder.WithSeverity(events.Informational).WithDescription(description).Build()
-	_ = provider.PersistEvent(*event, nil)
+	_ = provider.PersistEvent(*event, &token)
 	go h.config.EventBroadcaster.Publish(userID, event)
 
 	// Respond with success status
