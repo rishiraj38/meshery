@@ -1591,6 +1591,7 @@ func (l *RemoteProvider) persistEventRemote(event events.Event, tokenString stri
 		return ErrUnreachableRemoteProvider(err)
 	}
 	defer func() {
+		_, _ = io.Copy(io.Discard, resp.Body)
 		_ = resp.Body.Close()
 	}()
 
