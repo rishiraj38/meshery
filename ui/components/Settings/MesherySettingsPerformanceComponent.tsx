@@ -23,6 +23,7 @@ import { useGetLoadTestPrefsQuery, useUpdateLoadTestPrefsMutation } from '@/rtk-
 import { useSelector, useDispatch } from 'react-redux';
 import { updateProgress } from '@/store/slices/mesheryUi';
 import { updateLoadTestPref } from '@/store/slices/prefTest';
+import { normalizeLoadTestPrefs } from '../../lib/load-test-prefs';
 
 const loadGenerators = ['fortio', 'wrk2', 'nighthawk'];
 
@@ -34,7 +35,12 @@ const FormControlWrapper = styled(FormControl)({
 const MesherySettingsPerformanceComponent = () => {
   const { notify } = useNotification();
   const { loadTestPref } = useSelector((state) => state.prefTest);
-  const { qps: initialQps, c: initialC, t: initialT, gen: initialGen } = loadTestPref;
+  const {
+    qps: initialQps,
+    c: initialC,
+    t: initialT,
+    gen: initialGen,
+  } = normalizeLoadTestPrefs(loadTestPref);
   const { selectedK8sContexts } = useSelector((state) => state.ui);
 
   const { data: loadTestPrefs } = useGetLoadTestPrefsQuery(selectedK8sContexts);
@@ -48,13 +54,15 @@ const MesherySettingsPerformanceComponent = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (loadTestPrefs) {
-      setQps(loadTestPrefs.qps);
-      setC(loadTestPrefs.c);
-      setT(loadTestPrefs.t);
-      setGen(loadTestPrefs.gen);
-      setTValue(loadTestPrefs.t);
-    }
+    if (typeof loadTestPrefs === 'undefined') return;
+
+    const normalizedLoadTestPrefs = normalizeLoadTestPrefs(loadTestPrefs);
+
+    setQps(normalizedLoadTestPrefs.qps);
+    setC(normalizedLoadTestPrefs.c);
+    setT(normalizedLoadTestPrefs.t);
+    setGen(normalizedLoadTestPrefs.gen);
+    setTValue(normalizedLoadTestPrefs.t);
   }, [loadTestPrefs]);
 
   const handleChange = (name: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,8 +95,8 @@ const MesherySettingsPerformanceComponent = () => {
         setTError('error-autocomplete-value');
         return;
       }
-    } catch(e) {
-      console.error("[MesherySettingsPerformance] autocomplete error:", e);
+    } catch (e) {
+      console.error('[MesherySettingsPerformance] autocomplete error:', e);
       setTError('error-autocomplete-value');
       return;
     }
