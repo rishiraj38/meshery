@@ -351,12 +351,7 @@ func (h *Handler) EvaluateRelationshipPolicy(
 	provider models.Provider,
 ) {
 	evalCtx := r.Context()
-	token, ok := evalCtx.Value(models.TokenCtxKey).(string)
-	if !ok {
-		h.log.Error(ErrRetrieveUserToken(fmt.Errorf("failed to retrieve user token")))
-		http.Error(rw, ErrRetrieveUserToken(fmt.Errorf("failed to retrieve user token")).Error(), http.StatusInternalServerError)
-		return
-	}
+	token, _ := evalCtx.Value(models.TokenCtxKey).(string)
 
 	userUUID := user.ID
 	defer func() {
@@ -417,7 +412,7 @@ func (h *Handler) EvaluateRelationshipPolicy(
 				"evaluation_response": evaluationResponse,
 				"evaluated_at":        *evaluationResponse.Timestamp,
 			}).WithSeverity(events.Informational).Build()
-		_ = provider.PersistEvent(*event, &token)
+		_ = provider.PersistEvent(*event, token)
 
 		// write the response
 		ec := json.NewEncoder(rw)

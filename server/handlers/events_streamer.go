@@ -421,7 +421,7 @@ func listenForAdapterEvents(ctx context.Context, mClient *meshes.MeshClient, res
 		}
 
 		_event := eventBuilder.Build()
-		_ = p.PersistEvent(*_event, &token)
+		_ = p.PersistEvent(*_event, token)
 		ec.Publish(userUUID, _event)
 
 		data, err := json.Marshal(event)
@@ -482,7 +482,7 @@ func (h *Handler) ClientEventHandler(w http.ResponseWriter, req *http.Request, p
 		WithDescription(evt.Description).WithMetadata(evt.Metadata).ActedUpon(evt.ActedUpon)
 
 	event := eventBuilder.Build()
-	err = provider.PersistEvent(*event, &token)
+	err = provider.PersistEvent(*event, token)
 	if err != nil {
 		h.log.Error(models.ErrPersistEvent(err))
 		http.Error(w, models.ErrPersistEvent(err).Error(), http.StatusInternalServerError)

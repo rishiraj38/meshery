@@ -67,7 +67,7 @@ func (h *Handler) ProcessConnectionRegistration(w http.ResponseWriter, req *http
 				"error": err,
 			}).Build()
 			if event != nil {
-				_ = provider.PersistEvent(*event, &token)
+				_ = provider.PersistEvent(*event, token)
 				go h.config.EventBroadcaster.Publish(userUUID, event)
 			}
 			h.log.Error(err)
@@ -80,7 +80,7 @@ func (h *Handler) ProcessConnectionRegistration(w http.ResponseWriter, req *http
 			h.log.Error(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			if event != nil {
-				_ = provider.PersistEvent(*event, &token)
+				_ = provider.PersistEvent(*event, token)
 				go h.config.EventBroadcaster.Publish(userUUID, event)
 			}
 			return
@@ -172,7 +172,7 @@ func (h *Handler) SaveConnection(w http.ResponseWriter, req *http.Request, _ *mo
 			"error": _err,
 		}
 		event := eventBuilder.WithSeverity(events.Error).WithDescription(fmt.Sprintf("Error creating connection %s", connection.Name)).WithMetadata(metadata).Build()
-		_ = provider.PersistEvent(*event, &token)
+		_ = provider.PersistEvent(*event, token)
 		go h.config.EventBroadcaster.Publish(userID, event)
 
 		h.log.Error(_err)
@@ -183,7 +183,7 @@ func (h *Handler) SaveConnection(w http.ResponseWriter, req *http.Request, _ *mo
 	description := fmt.Sprintf("Connection %s created.", connection.Name)
 
 	event := eventBuilder.WithSeverity(events.Informational).WithDescription(description).Build()
-	_ = provider.PersistEvent(*event, &token)
+	_ = provider.PersistEvent(*event, token)
 	go h.config.EventBroadcaster.Publish(userID, event)
 
 	h.log.Info(description)
@@ -391,7 +391,7 @@ func (h *Handler) UpdateConnectionById(w http.ResponseWriter, req *http.Request,
 				"connection_id": connectionID.String(),
 			}
 			event := eventBuilder.WithSeverity(events.Error).WithDescription("Failed to handle meshsync deployment mode change").WithMetadata(metadata).Build()
-			_ = provider.PersistEvent(*event, &token)
+			_ = provider.PersistEvent(*event, token)
 			go h.config.EventBroadcaster.Publish(userID, event)
 
 			h.log.Error(meshSyncErr)
@@ -408,7 +408,7 @@ func (h *Handler) UpdateConnectionById(w http.ResponseWriter, req *http.Request,
 				"connection_id":                connectionID.String(),
 			}
 			event := eventBuilder.WithSeverity(events.Informational).WithDescription(description).WithMetadata(metadata).Build()
-			_ = provider.PersistEvent(*event, &token)
+			_ = provider.PersistEvent(*event, token)
 			go h.config.EventBroadcaster.Publish(userID, event)
 
 			h.log.Info(description)
@@ -421,7 +421,7 @@ func (h *Handler) UpdateConnectionById(w http.ResponseWriter, req *http.Request,
 			"error": ErrRetrieveUserToken(err),
 		}).WithDescription("No auth token provided in the request.").Build()
 
-		_ = provider.PersistEvent(*event, &token)
+		_ = provider.PersistEvent(*event, token)
 		go h.config.EventBroadcaster.Publish(userID, event)
 		http.Error(w, ErrRetrieveUserToken(err).Error(), http.StatusInternalServerError)
 		return
@@ -433,7 +433,7 @@ func (h *Handler) UpdateConnectionById(w http.ResponseWriter, req *http.Request,
 			"error": _err,
 		}
 		event := eventBuilder.WithSeverity(events.Error).WithDescription("Error updating connection").WithMetadata(metadata).Build()
-		_ = provider.PersistEvent(*event, &token)
+		_ = provider.PersistEvent(*event, token)
 		go h.config.EventBroadcaster.Publish(userID, event)
 
 		h.log.Error(_err)
@@ -447,11 +447,11 @@ func (h *Handler) UpdateConnectionById(w http.ResponseWriter, req *http.Request,
 
 	if connection.Status != "" {
 		event, _ := h.NotifySmOfConnectionStatusChange(req.Context(), userID, provider, token, connection)
-		_ = provider.PersistEvent(event, &token)
+		_ = provider.PersistEvent(event, token)
 	}
 
 	event := eventBuilder.WithSeverity(events.Informational).Build()
-	_ = provider.PersistEvent(*event, &token)
+	_ = provider.PersistEvent(*event, token)
 	go h.config.EventBroadcaster.Publish(userID, event)
 	h.log.Info(description)
 	w.WriteHeader(http.StatusOK)
@@ -515,7 +515,7 @@ func (h *Handler) NotifySmOfConnectionStatusChange(context context.Context, user
 			event, err := inst.SendEvent(context, machines.EventType(helpers.StatusToEvent(status)), nil)
 			if err != nil {
 				h.log.Error(err)
-				_ = provider.PersistEvent(*event, &token)
+				_ = provider.PersistEvent(*event, token)
 				h.config.EventBroadcaster.Publish(userID, event)
 				return
 			}
@@ -524,7 +524,7 @@ func (h *Handler) NotifySmOfConnectionStatusChange(context context.Context, user
 				smInstanceTracker.Remove(inst.ID)
 			}
 
-			_ = provider.PersistEvent(*event, &token)
+			_ = provider.PersistEvent(*event, token)
 			h.config.EventBroadcaster.Publish(userID, event)
 		}(inst, connection.Status)
 	}
@@ -551,7 +551,7 @@ func (h *Handler) DeleteConnection(w http.ResponseWriter, req *http.Request, _ *
 			"error": _err,
 		}
 		event := eventBuilder.WithSeverity(events.Error).WithDescription("Error deleting connection").WithMetadata(metadata).Build()
-		_ = provider.PersistEvent(*event, &token)
+		_ = provider.PersistEvent(*event, token)
 		go h.config.EventBroadcaster.Publish(userID, event)
 
 		if errors.GetCode(err) == models.ErrResultNotFoundCode {
@@ -567,7 +567,7 @@ func (h *Handler) DeleteConnection(w http.ResponseWriter, req *http.Request, _ *
 	description := fmt.Sprintf("Connection %s deleted.", deletedConnection.Name)
 	event := eventBuilder.WithSeverity(events.Informational).WithDescription(description).Build()
 
-	_ = provider.PersistEvent(*event, &token)
+	_ = provider.PersistEvent(*event, token)
 	go h.config.EventBroadcaster.Publish(userID, event)
 
 	h.log.Info("connection deleted.")

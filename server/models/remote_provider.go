@@ -1549,20 +1549,23 @@ func (l *RemoteProvider) PublishSmiResults(result *SmiResult) (string, error) {
 	return "", ErrPost(err, string(bdr), resp.StatusCode)
 }
 
-// PersistEvent persists an event to the remote provider if a valid token is provided,
-// otherwise falls back to local database persistence via the embedded EventsPersister.
-// When a token is provided but the remote request fails, it also falls back to local persistence.
-func (l *RemoteProvider) PersistEvent(event events.Event, token *string) error {
-	if token != nil && strings.TrimSpace(*token) != "" {
-		if err := l.persistEventRemote(event, *token); err != nil {
-			l.Log.Warn(fmt.Errorf("remote event persistence failed, falling back to local DB: %w", err))
-			return l.EventsPersister.PersistEvent(event, nil)
-		}
-		return nil
+// PersistEvent persists a user-initiated event to the remote provider.
+// When the token is empty or remote persistence fails, it falls back to local persistence.
+func (l *RemoteProvider) PersistEvent(event events.Event, token string) error {
+	if strings.TrimSpace(token) == "" {
+		return l.EventsPersister.PersistEvent(event, "")
 	}
+	if err := l.persistEventRemote(event, token); err != nil {
+		l.Log.Warn(fmt.Errorf("remote event persistence failed, falling back to local DB: %w", err))
+		return l.EventsPersister.PersistEvent(event, "")
+	}
+	return nil
+}
 
-	l.Log.Debug("No token provided for event persistence, using local DB")
-	return l.EventsPersister.PersistEvent(event, nil)
+// PersistSystemEvent persists a system-initiated event (MeshSync, registry seeding,
+// auto-registration) to the local database. These events have no user request context.
+func (l *RemoteProvider) PersistSystemEvent(event events.Event) error {
+	return l.EventsPersister.PersistEvent(event, "")
 }
 
 // persistEventRemote sends an event to the remote provider for persistence.
@@ -1587,6 +1590,9 @@ func (l *RemoteProvider) persistEventRemote(event events.Event, tokenString stri
 	if err != nil {
 		return ErrUnreachableRemoteProvider(err)
 	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return ErrPost(fmt.Errorf("error persisting event with the remote provider"), "event", resp.StatusCode)
