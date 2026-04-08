@@ -1,15 +1,15 @@
 ### END-TO-END TESTS
 
-- Testing started at: April 8th 2026, 11:37:55 pm
+- Testing started at: April 8th 2026, 11:43:09 pm
 
 **📦 Test Result Summary**
 
-- ✅ 67 passed
-- ❌ 2 failed
+- ✅ 66 passed
+- ❌ 3 failed
 - ⚠️ 0 flaked
 - ⏩ 3 skipped
 
-⌛ _Duration: 6 minutes and 35 seconds_
+⌛ _Duration: 6 minutes and 41 seconds_
 
 **Overall Result**: 👎 Some tests failed.
 
@@ -30,7 +30,7 @@
 | 7 | Meshery | chromium-meshery-provider | Create a Model |  | ✅ |
 | 8 | Meshery | chromium-meshery-provider | Delete Kubernetes cluster connections |  | ✅ |
 | 9 | Meshery | chromium-meshery-provider | Grafana elements on metrics tab |  | ✅ |
-| 10 | Meshery | chromium-meshery-provider | Import a Model via CSV Import |  | ✅ |
+| 10 | Meshery | chromium-meshery-provider | Import a Model via CSV Import |  | ❌ |
 | 11 | Meshery | chromium-meshery-provider | Import a Model via File Import |  | ✅ |
 | 12 | Meshery | chromium-meshery-provider | Import a Model via Url Import |  | ✅ |
 | 13 | Meshery | chromium-meshery-provider | Logout from current user session |  | ✅ |
@@ -111,6 +111,20 @@ The following tests failed. Click on each to see the failure reason:
 
 <details>
 <summary>❌ should edit design in Design Configurator (Meshery - chromium-meshery-provider)</summary>
+
+**File Location:** `Not Found`
+
+**Error Message:**
+```
+[31mTest timeout of 60000ms exceeded.[39m
+```
+
+
+
+</details>
+
+<details>
+<summary>❌ Import a Model via CSV Import (Meshery - chromium-meshery-provider)</summary>
 
 **File Location:** `Not Found`
 
