@@ -1208,7 +1208,10 @@ func (l *DefaultLocalProvider) GetKubeClient() *mesherykube.Client {
 }
 
 func (l *DefaultLocalProvider) SeedContent(log logger.Handler) {
-	seededUUIDs := make([]core.Uuid, 0)
+	var (
+		seededUUIDs   []core.Uuid
+		seededUUIDsMu sync.Mutex
+	)
 	seedContents := []string{"Pattern", "Filter"}
 	nilUserID := ""
 
@@ -1216,7 +1219,7 @@ func (l *DefaultLocalProvider) SeedContent(log logger.Handler) {
 	catalogDir := filepath.Join("..", "..", "docs", "catalog")
 
 	for _, seedContent := range seedContents {
-		go func(comp string, log logger.Handler, seededUUIDs *[]core.Uuid) {
+		go func(comp string, log logger.Handler) {
 			switch comp {
 			case "Pattern":
 				files, err := walker.WalkLocalDirectory(catalogDir)
@@ -1257,7 +1260,9 @@ func (l *DefaultLocalProvider) SeedContent(log logger.Handler) {
 							if _, err := l.MesheryPatternPersister.SaveMesheryPattern(pattern); err != nil {
 								log.Error(ErrGettingSeededComponents(err, comp+"s"))
 							}
-							*seededUUIDs = append(*seededUUIDs, id)
+							seededUUIDsMu.Lock()
+							seededUUIDs = append(seededUUIDs, id)
+							seededUUIDsMu.Unlock()
 						}(file, i)
 					}
 				}
@@ -1289,11 +1294,13 @@ func (l *DefaultLocalProvider) SeedContent(log logger.Handler) {
 						if err != nil {
 							log.Error(ErrGettingSeededComponents(err, comp+"s"))
 						}
-						*seededUUIDs = append(*seededUUIDs, id)
+						seededUUIDsMu.Lock()
+						seededUUIDs = append(seededUUIDs, id)
+						seededUUIDsMu.Unlock()
 					}
 				}
 			}
-		}(seedContent, log, &seededUUIDs)
+		}(seedContent, log)
 	}
 
 	// Seed default organization before the UI requests organizations.

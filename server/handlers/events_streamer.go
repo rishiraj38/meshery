@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/meshery/schemas/models/core"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"encoding/json"
+	"github.com/meshery/schemas/models/core"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"

@@ -1,10 +1,10 @@
 package models
 
 import (
-	"github.com/meshery/schemas/models/core"
 	"fmt"
-
 	"strings"
+
+	"github.com/meshery/schemas/models/core"
 
 	gofrs "github.com/gofrs/uuid"
 	"github.com/meshery/meshkit/logger"
