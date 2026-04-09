@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useNotificationHandlers } from '../../utils/hooks/useNotification';
 import { ResourcesConfig } from './resources/config';
@@ -30,6 +30,7 @@ import _ from 'lodash';
 import { AddWidgetsToLayoutPanel, LayoutActionButton, LayoutWidget } from './components';
 import { Responsive, WidthProvider } from 'react-grid-layout/legacy';
 import { DEFAULT_LAYOUT, LOCAL_PROVIDER_LAYOUT, OVERVIEW_LAYOUT } from './defaultLayout';
+import { applyMinSizeConstraints } from './layoutConstraints';
 import Popup from '../General/Popup';
 import { useGetUserPrefQuery, useUpdateUserPrefMutation } from '@/rtk-query/user';
 import getWidgets from './widgets/getWidgets';
@@ -189,7 +190,8 @@ const Dashboard = () => {
   const { handleError, handleSuccess } = useNotificationHandlers();
 
   const updateLayout = async (dashboardLayout) => {
-    const res = await updateUserPref({ dashboardPreferences: dashboardLayout });
+    const constrainedLayoutToSave = applyMinSizeConstraints(dashboardLayout, cols, WIDGETS);
+    const res = await updateUserPref({ dashboardPreferences: constrainedLayoutToSave });
     if (res.error) {
       handleError('failed to save layout');
       return false;
@@ -299,6 +301,11 @@ const Dashboard = () => {
     });
   };
 
+  const constrainedLayouts = useMemo(
+    () => applyMinSizeConstraints(dashboardLayout, cols, WIDGETS),
+    [dashboardLayout, WIDGETS, cols],
+  );
+
   return (
     <>
       <>
@@ -362,7 +369,7 @@ const Dashboard = () => {
               </Stack>
 
               <ResponsiveReactGridLayout
-                layouts={dashboardLayout}
+                layouts={constrainedLayouts}
                 resizeHandles={availableHandles}
                 isResizable={isEditMode}
                 isDraggable={isEditMode}

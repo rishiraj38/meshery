@@ -27,6 +27,8 @@ const getWidgets = ({ iconsProps, isEditMode }) => {
       defaultSizing: {
         w: 12,
         h: 2.565,
+        minW: 12,
+        minH: 2.565,
       },
     },
     GETTING_STARTED: {
@@ -37,6 +39,8 @@ const getWidgets = ({ iconsProps, isEditMode }) => {
       defaultSizing: {
         w: 3,
         h: 2,
+        minW: 3,
+        minH: 2,
       },
     },
     HELP_CENTER: {
@@ -48,6 +52,8 @@ const getWidgets = ({ iconsProps, isEditMode }) => {
       defaultSizing: {
         w: 3,
         h: 2,
+        minW: 3,
+        minH: 2,
       },
       thumbnail: HelpCenterThumbnail?.src,
     },
@@ -59,6 +65,8 @@ const getWidgets = ({ iconsProps, isEditMode }) => {
       defaultSizing: {
         w: 3,
         h: 2,
+        minW: 3,
+        minH: 2,
       },
     },
     WORKSPACE_ACTIVITY: {
@@ -69,6 +77,8 @@ const getWidgets = ({ iconsProps, isEditMode }) => {
       defaultSizing: {
         w: 6,
         h: 2,
+        minW: 6,
+        minH: 2,
       },
     },
     CONNECTIONS_STATUS_CHART: {
@@ -79,6 +89,8 @@ const getWidgets = ({ iconsProps, isEditMode }) => {
       defaultSizing: {
         w: 6,
         h: 2,
+        minW: 6,
+        minH: 2,
       },
     },
     LATEST_BLOGS: {
@@ -88,6 +100,8 @@ const getWidgets = ({ iconsProps, isEditMode }) => {
       defaultSizing: {
         w: 3,
         h: 2,
+        minW: 3,
+        minH: 2,
       },
       thumbnail: LatestBlogsThumbnail?.src,
     },
