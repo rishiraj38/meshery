@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/meshery/schemas/models/core"
-
 	gofrs "github.com/gofrs/uuid"
 	"github.com/meshery/meshkit/logger"
 	"github.com/meshery/meshkit/models/events"
@@ -13,6 +11,7 @@ import (
 	"github.com/meshery/meshkit/models/meshmodel/entity"
 	meshmodel "github.com/meshery/meshkit/models/meshmodel/registry"
 	mutils "github.com/meshery/meshkit/utils"
+	"github.com/meshery/schemas/models/core"
 	"github.com/spf13/viper"
 )
 

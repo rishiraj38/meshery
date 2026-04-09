@@ -10,8 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/meshery/schemas/models/core"
-
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
 	"github.com/meshery/meshery/server/meshes"
@@ -20,6 +18,7 @@ import (
 	"github.com/meshery/meshkit/logger"
 	"github.com/meshery/meshkit/models/events"
 	_events "github.com/meshery/meshkit/utils/events"
+	"github.com/meshery/schemas/models/core"
 )
 
 var (

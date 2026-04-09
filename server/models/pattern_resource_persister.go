@@ -3,10 +3,9 @@ package models
 import (
 	"strings"
 
-	"github.com/meshery/schemas/models/core"
-
 	"github.com/gofrs/uuid"
 	"github.com/meshery/meshkit/database"
+	"github.com/meshery/schemas/models/core"
 )
 
 type PatternResourcePersister struct {
