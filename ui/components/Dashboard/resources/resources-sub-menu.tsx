@@ -36,10 +36,10 @@ const ResourcesSubMenu = (props) => {
   const CRDsModelName = isCRDS && CRDsKeys.map((key) => key.model);
   const CRDsKind = isCRDS && CRDsKeys.map((key) => key.name);
 
-  // Call tableConfig() exactly once to keep hook count stable across renders.
+  // Call tableConfig() unconditionally to keep hook count stable across renders.
   // Config functions (e.g. WorkloadTableConfig) contain React hooks internally,
-  // so calling them a variable number of times violates the Rules of Hooks.
-  const tableConfigResult = isCRDS ? null : resource.tableConfig();
+  // so they must always be called regardless of whether the result is used.
+  const tableConfigResult = resource.tableConfig();
   const TABS = isCRDS ? CRDsKind : Object.keys(tableConfigResult);
 
   if (!selectedResource && TABS.length > 0) {
