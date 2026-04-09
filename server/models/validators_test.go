@@ -50,19 +50,19 @@ func TestSMPPerformanceTestConfigValidator(t *testing.T) {
 		},
 	}
 
-		for _, tc := range cases {
-			t.Run(tc.name, func(t *testing.T) {
-				err := SMPPerformanceTestConfigValidator(tc.config)
-				if tc.wantError != nil {
-					if !errors.Is(err, tc.wantError) {
-						t.Errorf("expected error %v, got %v", tc.wantError, err)
-					}
-					return
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := SMPPerformanceTestConfigValidator(tc.config)
+			if tc.wantError != nil {
+				if !errors.Is(err, tc.wantError) {
+					t.Errorf("expected error %v, got %v", tc.wantError, err)
 				}
+				return
+			}
 
-				if err != nil {
-					t.Errorf("expected no error, got %v", err)
-				}
-			})
-		}
+			if err != nil {
+				t.Errorf("expected no error, got %v", err)
+			}
+		})
+	}
 }
