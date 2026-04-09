@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	schemacore "github.com/meshery/schemas/models/core"
+
 	"github.com/gofrs/uuid"
 	"github.com/meshery/meshery/server/meshes"
 	"github.com/meshery/meshery/server/models"
@@ -303,7 +305,7 @@ func _processPattern(opts *core.ProcessPatternOptions) (map[string]interface{}, 
 			Process(&stages.Data{
 				Pattern:                       &opts.Pattern,
 				Other:                         map[string]interface{}{},
-				DeclartionToDefinitionMapping: make(map[uuid.UUID]component.ComponentDefinition),
+				DeclartionToDefinitionMapping: make(map[schemacore.Uuid]component.ComponentDefinition),
 			})
 		return resp, sap.err
 	}
@@ -316,7 +318,7 @@ type serviceInfoProvider struct {
 	opIsDelete bool
 }
 
-func (sip *serviceInfoProvider) GetMesheryPatternResource(name, namespace, typ, oamType string) (*uuid.UUID, error) {
+func (sip *serviceInfoProvider) GetMesheryPatternResource(name, namespace, typ, oamType string) (*schemacore.Uuid, error) {
 	const page = "0"
 	const pageSize = "1"
 	res, err := sip.provider.GetMesheryPatternResources(sip.token, pageSize, page, "", "", name, namespace, typ, oamType)
