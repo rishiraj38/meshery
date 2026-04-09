@@ -235,7 +235,7 @@ Create a GitHub discussion titled **"📚 Meshery Docs newcomer test report - [D
 
 ### Summary
 - Date of test: [Today's date]
-- Branch / commit tested: `${{ github.ref_name }}` / `${{ github.sha }}`
+- Branch / commit tested: [fill from `git rev-parse --abbrev-ref HEAD` and `git rev-parse HEAD`]
 - Toolchain used: [Node version, Go version, Hugo version]
 - Pages visited: [List URLs]
 - Overall impression as a new Meshery user: [1-2 sentences]
