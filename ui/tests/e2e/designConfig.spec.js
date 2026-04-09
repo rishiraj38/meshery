@@ -123,7 +123,7 @@ test.describe('Design Configurator Tests', () => {
 
     await designConfigPage.updateDesign();
 
-    const updatePayload = JSON.parse((await updateRequest).postData());
+    const updatePayload = (await updateRequest).postDataJSON();
     await expect(updatePayload).toMatchObject({
       id: DESIGN_ID,
       name: 'Sample Design',
