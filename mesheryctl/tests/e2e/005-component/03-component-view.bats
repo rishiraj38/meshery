@@ -73,16 +73,18 @@ test_view_save() {
 @test "given no component-name provided when mesheryctl component view then an error message is displayed" {
   run $MESHERYCTL_BIN component view
   assert_failure
-  assert_output --partial "Error: [component name] is required but not specified"
-  assert_output --partial "Usage: mesheryctl component view [component-name]"
+  assert_output --partial "Error: Only one argument must be provided"
+  assert_output --partial "Invalid Argument"
+  assert_output --partial "Usage: mesheryctl component view [component-name | component-id]"
   assert_output --partial "Run 'mesheryctl component view --help' to see detailed help message"
 }
 
 @test "given a multiple component-name provided when mesheryctl component view component1 component2 then an error message is displayed" {
   run $MESHERYCTL_BIN component view comp1 comp2
   assert_failure
-  assert_output --partial "Error: too many arguments specified"
-  assert_output --partial "Usage: mesheryctl component view [component-name]"
+  assert_output --partial "Error: Only one argument must be provided"
+  assert_output --partial "Invalid Argument"
+  assert_output --partial "Usage: mesheryctl component view [component-name | component-id]"
   assert_output --partial "Run 'mesheryctl component view --help' to see detailed help message"
 }
 
@@ -91,7 +93,8 @@ test_view_save() {
 
   assert_failure
   assert_output --partial "Error"
-  assert_output --partial "Invalid Output Format"
+  assert_output --partial "Invalid flag(s) provided"
+  assert_output --partial "Invalid value for --output-format 'xml': valid values are json yaml"
 }
 
 @test "given a valid format provided when mesheryctl component view component-name -o json then the output is displayed in specified format" {
