@@ -72,7 +72,7 @@ func TestViewWorkspace(t *testing.T) {
 			ExpectedResponse: "",
 			ExpectError:      true,
 			IsOutputGolden:   false,
-			ExpectedError:    utils.ErrInvalidArgument(fmt.Errorf("--orgId is required\n\nUsage: mesheryctl workspace view [workspace-name|workspace-id] --orgId [orgId]")),
+			ExpectedError:    expectedViewFlagError("yaml", ""),
 		},
 		{
 			Name:             "given invalid output format flag when running workspace view then return error",

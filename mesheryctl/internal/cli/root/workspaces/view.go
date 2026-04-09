@@ -57,9 +57,6 @@ mesheryctl workspace view [workspace-id] --orgId [orgId] --output-format json --
 			return utils.ErrInvalidArgument(fmt.Errorf("please provide exactly one workspace name or ID\n\n%v", errMsg))
 		}
 
-		if workspaceViewFlagsProvided.OrgID == "" {
-			return utils.ErrInvalidArgument(fmt.Errorf("--orgId is required\n\nUsage: mesheryctl workspace view [workspace-name|workspace-id] --orgId [orgId]"))
-		}
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -70,7 +67,9 @@ mesheryctl workspace view [workspace-id] --orgId [orgId] --output-format json --
 		var displayData display.DisplayDataAsync
 
 		if utils.IsUUID(workspaceNameOrID) {
-			urlPath = fmt.Sprintf("%s/%s?orgID=%s", workspacesApiPath, url.PathEscape(workspaceNameOrID), url.QueryEscape(workspaceViewFlagsProvided.OrgID))
+			query := url.Values{}
+			query.Set("orgID", workspaceViewFlagsProvided.OrgID)
+			urlPath = fmt.Sprintf("%s/%s?%s", workspacesApiPath, url.PathEscape(workspaceNameOrID), query.Encode())
 			fetchedWorkspace, err := api.Fetch[workspace.Workspace](urlPath)
 			if err != nil {
 				return err
@@ -100,7 +99,9 @@ mesheryctl workspace view [workspace-id] --orgId [orgId] --output-format json --
 				return err
 			}
 
-			urlPath = fmt.Sprintf("%s/%s?orgID=%s", workspacesApiPath, url.PathEscape(selectedAvailableWorkspace.ID.String()), url.QueryEscape(workspaceViewFlagsProvided.OrgID))
+			query := url.Values{}
+			query.Set("orgID", workspaceViewFlagsProvided.OrgID)
+			urlPath = fmt.Sprintf("%s/%s?%s", workspacesApiPath, url.PathEscape(selectedAvailableWorkspace.ID.String()), query.Encode())
 			fetchedWorkspace, err := api.Fetch[workspace.Workspace](urlPath)
 			if err != nil {
 				return err
