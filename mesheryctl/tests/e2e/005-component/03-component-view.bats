@@ -70,8 +70,7 @@ test_view_save() {
   assert_file_exist "$FILE_TO_CLEANUP"
 }
 
-@test "given no component-name provided when mesheryctl component view then an error message is displayed" {
-  run $MESHERYCTL_BIN component view
+assert_invalid_view_args() {
   assert_failure
   assert_output --partial "Error: Only one argument must be provided"
   assert_output --partial "Invalid Argument"
@@ -79,13 +78,14 @@ test_view_save() {
   assert_output --partial "Run 'mesheryctl component view --help' to see detailed help message"
 }
 
+@test "given no component-name provided when mesheryctl component view then an error message is displayed" {
+  run $MESHERYCTL_BIN component view
+  assert_invalid_view_args
+}
+
 @test "given a multiple component-name provided when mesheryctl component view component1 component2 then an error message is displayed" {
   run $MESHERYCTL_BIN component view comp1 comp2
-  assert_failure
-  assert_output --partial "Error: Only one argument must be provided"
-  assert_output --partial "Invalid Argument"
-  assert_output --partial "Usage: mesheryctl component view [component-name | component-id]"
-  assert_output --partial "Run 'mesheryctl component view --help' to see detailed help message"
+  assert_invalid_view_args
 }
 
 @test "given an invalid format provided when mesheryctl component view component-name -o xml then an error message is displayed" {
