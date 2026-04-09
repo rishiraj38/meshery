@@ -33,12 +33,12 @@ func SMPPerformanceTestConfigValidator(perfTest *SMP.PerformanceTestConfig) erro
 		if len(testClient.EndpointUrls) < 1 {
 			return ErrTestEndpoint
 		}
-		       for _, rawURL := range testClient.EndpointUrls {
-			       parsedURL, err := url.ParseRequestURI(rawURL)
-			       if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
-				       return ErrValidURL
-			       }
-		       }
+		for _, rawURL := range testClient.EndpointUrls {
+			parsedURL, err := url.ParseRequestURI(rawURL)
+			if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
+				return ErrValidURL
+			}
+		}
 	}
 	return nil
 }
