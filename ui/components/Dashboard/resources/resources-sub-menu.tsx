@@ -42,7 +42,7 @@ const ResourcesSubMenu = (props) => {
   const tableConfigResult = isCRDS ? null : resource.tableConfig();
   const TABS = isCRDS ? CRDsKind : Object.keys(tableConfigResult);
 
-  if (!selectedResource) {
+  if (!selectedResource && TABS.length > 0) {
     handleChangeSelectedResource(TABS[0]);
   }
 
