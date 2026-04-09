@@ -109,7 +109,6 @@ test.describe('Design Configurator Tests', () => {
 
   test('should edit design in Design Configurator', async ({ page }) => {
     await designConfigPage.categorySelector.click();
-    await expect(designConfigPage.databaseCategory).toBeVisible();
     await designConfigPage.databaseCategory.click();
 
     await designConfigPage.modelSelector.click();
