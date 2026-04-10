@@ -16,27 +16,30 @@ package system
 
 import (
 	"fmt"
-	"sort"
 	mesheryctlflags "github.com/meshery/meshery/mesheryctl/internal/cli/pkg/flags"
 	"github.com/meshery/meshery/mesheryctl/internal/cli/root/config"
 	"github.com/meshery/meshery/mesheryctl/pkg/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"sort"
 )
 
 var (
-	MesheryProvider           = "Layer5"
-	NoneProvider              = "None"
+	MesheryProvider = "Layer5"
+	NoneProvider    = "None"
 )
+
 type cmdProviderViewFlags struct {
-    All bool `json:"all" validate:"boolean"`
+	All bool `json:"all" validate:"boolean"`
 }
 type cmdProviderSetFlags struct {
-    Force bool `json:"force" validate:"boolean"`
+	Force bool `json:"force" validate:"boolean"`
 }
+
 var providerViewFlags cmdProviderViewFlags
 var providerSetFlags cmdProviderSetFlags
+
 // PrintProviderToStdout to return provider details for a context
 func PrintProviderToStdout(ctx config.Context, contextName string) string {
 	return fmt.Sprintf("Context: %v\nProvider: %v", contextName, ctx.Provider)
@@ -59,7 +62,7 @@ mesheryctl system provider view
 		}
 		mctlCfg, err := config.GetMesheryCtl(viper.GetViper())
 		if err != nil {
-			return err 
+			return err
 		}
 		focusedContext := focusedSystemContext(cmd, mctlCfg.CurrentContext)
 
@@ -174,7 +177,7 @@ mesheryctl system provider set [provider]
 		}
 		return nil
 	},
-	PreRunE: func(cmd *cobra.Command, args []string) error{
+	PreRunE: func(cmd *cobra.Command, args []string) error {
 		return mesheryctlflags.ValidateCmdFlags(cmd, &providerSetFlags)
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -208,14 +211,12 @@ mesheryctl system provider set [provider]
 				return ErrProviderInfo(err)
 			}
 
-			keys := make([]string, 0, len(availableProviders))
 			isValidProvider := false
 
 			for k := range availableProviders {
 				if provider == k {
 					isValidProvider = true
 				}
-				keys = append(keys, k)
 			}
 
 			if !isValidProvider {
@@ -270,7 +271,7 @@ mesheryctl system provider switch [provider]
 	RunE: func(cmd *cobra.Command, args []string) error {
 		userResponse := false
 
-		mctlCfg, err = config.GetMesheryCtl(viper.GetViper())
+		mctlCfg, err := config.GetMesheryCtl(viper.GetViper())
 		if err != nil {
 			return err
 		}
