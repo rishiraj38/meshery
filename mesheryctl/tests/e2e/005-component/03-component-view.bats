@@ -46,10 +46,10 @@ test_component_view_format() {
         return 1
     fi
 
-    FILE_TO_CLEANUP="${HOME}/.meshery/component_${COMPONENT_NAME}.${format}"
+    run bash -c "printf '\n' | $MESHERYCTL_BIN component view \"${COMPONENT_NAME}\" -o ${format} --save"
 
-    printf '\n' | $MESHERYCTL_BIN component view "${COMPONENT_NAME}" -o "${format}" --save
-
+    assert_success
+    FILE_TO_CLEANUP="$(echo "$output" | sed -n 's/.*Data saved to file: //p')"
     assert_file_exist "${FILE_TO_CLEANUP}"
     run bash -c "${validation_tool[$format]} -e \"$COMPONENT_REQUIRED_FIELDS\" \"${FILE_TO_CLEANUP}\""
 
@@ -59,14 +59,13 @@ test_component_view_format() {
 
 test_view_save() {
   local format=$1
-  FILE_TO_CLEANUP="${HOME}/.meshery/component_${COMPONENT_NAME}.${format}"
 
-  local expected_success_message="Data saved to file: ${FILE_TO_CLEANUP}"
   run bash -c "printf '\n' | $MESHERYCTL_BIN component view \"${COMPONENT_NAME}\" -o ${format} --save"
 
   assert_success
 
-  assert_output --partial "$expected_success_message"
+  assert_output --partial "Data saved to file:"
+  FILE_TO_CLEANUP="$(echo "$output" | sed -n 's/.*Data saved to file: //p')"
   assert_file_exist "$FILE_TO_CLEANUP"
 }
 
