@@ -1,17 +1,17 @@
 ### END-TO-END TESTS
 
-- Testing started at: April 10th 2026, 1:07:42 am
+- Testing started at: April 10th 2026, 12:42:13 pm
 
 **📦 Test Result Summary**
 
-- ✅ 57 passed
-- ❌ 8 failed
+- ✅ 69 passed
+- ❌ 0 failed
 - ⚠️ 0 flaked
-- ⏩ 7 skipped
+- ⏩ 3 skipped
 
-⌛ _Duration: 8 minutes and 6 seconds_
+⌛ _Duration: 6 minutes and 21 seconds_
 
-**Overall Result**: 👎 Some tests failed.
+**Overall Result**: 👍 All tests passed.
 
 
 
@@ -28,14 +28,14 @@
 | 5 | Meshery | chromium-meshery-provider | Configure Existing Istio adapter through Mesh Adapter URL from Management page | unstable | ⚠️ |
 | 6 | Meshery | chromium-meshery-provider | Connect to Meshery Istio Adapter and configure it |  | ➖ |
 | 7 | Meshery | chromium-meshery-provider | Create a Model |  | ✅ |
-| 8 | Meshery | chromium-meshery-provider | Delete Kubernetes cluster connections |  | ➖ |
+| 8 | Meshery | chromium-meshery-provider | Delete Kubernetes cluster connections |  | ✅ |
 | 9 | Meshery | chromium-meshery-provider | Grafana elements on metrics tab |  | ✅ |
-| 10 | Meshery | chromium-meshery-provider | Import a Model via CSV Import |  | ➖ |
-| 11 | Meshery | chromium-meshery-provider | Import a Model via File Import |  | ➖ |
-| 12 | Meshery | chromium-meshery-provider | Import a Model via Url Import |  | ➖ |
+| 10 | Meshery | chromium-meshery-provider | Import a Model via CSV Import |  | ✅ |
+| 11 | Meshery | chromium-meshery-provider | Import a Model via File Import |  | ✅ |
+| 12 | Meshery | chromium-meshery-provider | Import a Model via Url Import |  | ✅ |
 | 13 | Meshery | chromium-meshery-provider | Logout from current user session |  | ✅ |
 | 14 | Meshery | chromium-meshery-provider | Ping Istio Adapter | unstable | ⚠️ |
-| 15 | Meshery | chromium-meshery-provider | Search a Model and Export it |  | ❌ |
+| 15 | Meshery | chromium-meshery-provider | Search a Model and Export it |  | ✅ |
 | 16 | Meshery | chromium-meshery-provider | should edit design in Design Configurator |  | ✅ |
 | 17 | Meshery | chromium-meshery-provider | should identify relationships for All Relationships | relationship | ✅ |
 | 18 | Meshery | chromium-meshery-provider | should identify relationships for Container-Hierarchical-Parent-Alias-Relationship | relationship | ✅ |
@@ -49,15 +49,15 @@
 | 26 | Meshery | chromium-meshery-provider | Test if Notification button is displayed |  | ✅ |
 | 27 | Meshery | chromium-meshery-provider | Test if Profile button is displayed |  | ✅ |
 | 28 | Meshery | chromium-meshery-provider | Toggle &quot;Send Anonymous Performance Results&quot; |  | ✅ |
-| 29 | Meshery | chromium-meshery-provider | Toggle &quot;Send Anonymous Usage Statistics&quot; |  | ❌ |
-| 30 | Meshery | chromium-meshery-provider | Verify Kanvas Details |  | ❌ |
-| 31 | Meshery | chromium-meshery-provider | Verify Kanvas Snapshot UI elements |  | ❌ |
+| 29 | Meshery | chromium-meshery-provider | Toggle &quot;Send Anonymous Usage Statistics&quot; |  | ✅ |
+| 30 | Meshery | chromium-meshery-provider | Verify Kanvas Details |  | ✅ |
+| 31 | Meshery | chromium-meshery-provider | Verify Kanvas Snapshot UI elements |  | ✅ |
 | 32 | Meshery | chromium-meshery-provider | Verify Meshery Adapter for Istio Section |  | ✅ |
 | 33 | Meshery | chromium-meshery-provider | Verify Meshery Catalog Section Details |  | ✅ |
-| 34 | Meshery | chromium-meshery-provider | Verify Meshery Design Embed Details |  | ❌ |
-| 35 | Meshery | chromium-meshery-provider | Verify Meshery Docker Extension Details |  | ❌ |
-| 36 | Meshery | chromium-meshery-provider | Verify Performance Analysis Details |  | ❌ |
-| 37 | Meshery | chromium-meshery-provider | Verify that UI components are displayed |  | ❌ |
+| 34 | Meshery | chromium-meshery-provider | Verify Meshery Design Embed Details |  | ✅ |
+| 35 | Meshery | chromium-meshery-provider | Verify Meshery Docker Extension Details |  | ✅ |
+| 36 | Meshery | chromium-meshery-provider | Verify Performance Analysis Details |  | ✅ |
+| 37 | Meshery | chromium-meshery-provider | Verify that UI components are displayed |  | ✅ |
 | 38 | None | chromium-local-provider | Action buttons on adapters tab |  | ✅ |
 | 39 | None | chromium-local-provider | Aggregation Charts are displayed |  | ✅ |
 | 40 | None | chromium-local-provider | All settings tabs |  | ✅ |
@@ -99,126 +99,6 @@
 | 76 | None | remote-setup | authenticate with Remote Provider |  | ✅ |
 
 </div>
-</details>
-
-
-
-
-**❌ Failed Test Details**
-
-The following tests failed. Click on each to see the failure reason:
-
-
-<details>
-<summary>❌ Verify Kanvas Snapshot UI elements (Meshery - chromium-meshery-provider)</summary>
-
-**File Location:** `Not Found`
-
-**Error Message:**
-```
-[31mTest timeout of 60000ms exceeded.[39m
-```
-
-
-
-</details>
-
-<details>
-<summary>❌ Verify that UI components are displayed (Meshery - chromium-meshery-provider)</summary>
-
-**File Location:** `Not Found`
-
-**Error Message:**
-```
-[31mTest timeout of 60000ms exceeded.[39m
-```
-
-
-
-</details>
-
-<details>
-<summary>❌ Verify Performance Analysis Details (Meshery - chromium-meshery-provider)</summary>
-
-**File Location:** `Not Found`
-
-**Error Message:**
-```
-[31mTest timeout of 60000ms exceeded.[39m
-```
-
-
-
-</details>
-
-<details>
-<summary>❌ Verify Kanvas Details (Meshery - chromium-meshery-provider)</summary>
-
-**File Location:** `Not Found`
-
-**Error Message:**
-```
-[31mTest timeout of 60000ms exceeded.[39m
-```
-
-
-
-</details>
-
-<details>
-<summary>❌ Search a Model and Export it (Meshery - chromium-meshery-provider)</summary>
-
-**File Location:** `Not Found`
-
-**Error Message:**
-```
-[31mTest timeout of 60000ms exceeded.[39m
-```
-
-
-
-</details>
-
-<details>
-<summary>❌ Verify Meshery Docker Extension Details (Meshery - chromium-meshery-provider)</summary>
-
-**File Location:** `Not Found`
-
-**Error Message:**
-```
-[31mTest timeout of 60000ms exceeded.[39m
-```
-
-
-
-</details>
-
-<details>
-<summary>❌ Toggle "Send Anonymous Usage Statistics" (Meshery - chromium-meshery-provider)</summary>
-
-**File Location:** `Not Found`
-
-**Error Message:**
-```
-[31mTest timeout of 60000ms exceeded.[39m
-```
-
-
-
-</details>
-
-<details>
-<summary>❌ Verify Meshery Design Embed Details (Meshery - chromium-meshery-provider)</summary>
-
-**File Location:** `Not Found`
-
-**Error Message:**
-```
-[31mTest timeout of 60000ms exceeded.[39m
-```
-
-
-
 </details>
 
 
