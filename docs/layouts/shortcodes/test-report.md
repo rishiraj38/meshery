@@ -1,17 +1,17 @@
 ### END-TO-END TESTS
 
-- Testing started at: April 10th 2026, 8:02:49 pm
+- Testing started at: April 10th 2026, 11:36:03 pm
 
 **📦 Test Result Summary**
 
-- ✅ 69 passed
-- ❌ 0 failed
+- ✅ 68 passed
+- ❌ 1 failed
 - ⚠️ 0 flaked
 - ⏩ 3 skipped
 
-⌛ _Duration: 6 minutes and 19 seconds_
+⌛ _Duration: 6 minutes and 33 seconds_
 
-**Overall Result**: 👍 All tests passed.
+**Overall Result**: 👎 Some tests failed.
 
 
 
@@ -30,7 +30,7 @@
 | 7 | Meshery | chromium-meshery-provider | Create a Model |  | ✅ |
 | 8 | Meshery | chromium-meshery-provider | Delete Kubernetes cluster connections |  | ✅ |
 | 9 | Meshery | chromium-meshery-provider | Grafana elements on metrics tab |  | ✅ |
-| 10 | Meshery | chromium-meshery-provider | Import a Model via CSV Import |  | ✅ |
+| 10 | Meshery | chromium-meshery-provider | Import a Model via CSV Import |  | ❌ |
 | 11 | Meshery | chromium-meshery-provider | Import a Model via File Import |  | ✅ |
 | 12 | Meshery | chromium-meshery-provider | Import a Model via Url Import |  | ✅ |
 | 13 | Meshery | chromium-meshery-provider | Logout from current user session |  | ✅ |
@@ -99,6 +99,28 @@
 | 76 | None | remote-setup | authenticate with Remote Provider |  | ✅ |
 
 </div>
+</details>
+
+
+
+
+**❌ Failed Test Details**
+
+The following tests failed. Click on each to see the failure reason:
+
+
+<details>
+<summary>❌ Import a Model via CSV Import (Meshery - chromium-meshery-provider)</summary>
+
+**File Location:** `Not Found`
+
+**Error Message:**
+```
+[31mTest timeout of 60000ms exceeded.[39m
+```
+
+
+
 </details>
 
 
