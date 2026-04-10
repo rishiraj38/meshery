@@ -33,12 +33,8 @@ var (
 type cmdProviderViewFlags struct {
 	All bool `json:"all" validate:"boolean"`
 }
-type cmdProviderSetFlags struct {
-	Force bool `json:"force" validate:"boolean"`
-}
 
 var providerViewFlags cmdProviderViewFlags
-var providerSetFlags cmdProviderSetFlags
 
 // PrintProviderToStdout to return provider details for a context
 func PrintProviderToStdout(ctx config.Context, contextName string) string {
@@ -159,6 +155,12 @@ mesheryctl system provider list
 		return nil
 	},
 }
+
+type cmdProviderSetFlags struct {
+	Force bool `json:"force" validate:"boolean"`
+}
+
+var providerSetFlags cmdProviderSetFlags
 
 var setProviderCmd = &cobra.Command{
 	Use:   "set [provider]",
