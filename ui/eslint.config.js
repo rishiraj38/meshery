@@ -157,8 +157,7 @@ module.exports = [
             },
             {
               name: '@mui/icons-material',
-              message:
-                'Use @sistent/sistent icons, or add an SVG component to ui/assets/icons.',
+              message: 'Use @sistent/sistent icons, or add an SVG component to ui/assets/icons.',
             },
             {
               name: '@mui/x-date-pickers',
@@ -172,8 +171,7 @@ module.exports = [
             },
             {
               name: '@rjsf/mui',
-              message:
-                'Use the shared RJSF wrapper; do not import @rjsf/mui directly.',
+              message: 'Use the shared RJSF wrapper; do not import @rjsf/mui directly.',
             },
             {
               name: '@/themes',
@@ -186,8 +184,7 @@ module.exports = [
             },
             {
               name: '@/themes/index',
-              message:
-                'Use theme.palette.* (light/dark-aware) instead of NOTIFICATIONCOLORS.',
+              message: 'Use theme.palette.* (light/dark-aware) instead of NOTIFICATIONCOLORS.',
             },
             {
               name: '@/constants/colors',
@@ -201,8 +198,7 @@ module.exports = [
             },
             {
               group: ['@material-ui/*'],
-              message:
-                'Material UI v4 is deprecated in this project — use @sistent/sistent.',
+              message: 'Material UI v4 is deprecated in this project — use @sistent/sistent.',
             },
           ],
         },
@@ -211,10 +207,7 @@ module.exports = [
       // Size budget for component files. 1000 lines is the hard ceiling;
       // the plan is to drop this to 600 once the eight giant files are
       // broken up in phase 5.
-      'max-lines': [
-        'warn',
-        { max: 1000, skipComments: true, skipBlankLines: true },
-      ],
+      'max-lines': ['warn', { max: 1000, skipComments: true, skipBlankLines: true }],
     },
   },
 
@@ -242,15 +235,14 @@ module.exports = [
       'lib/**',
       'public/**',
       'tests/**',
+      'eslint.config.js',
     ],
     rules: {
       'no-restricted-syntax': [
         'warn',
         {
-          selector:
-            'Literal[value=/^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/]',
-          message:
-            'Hex color literals are forbidden outside ui/theme/. Use theme.palette.*.',
+          selector: 'Literal[value=/^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/]',
+          message: 'Hex color literals are forbidden outside ui/theme/. Use theme.palette.*.',
         },
         {
           selector: 'Literal[value=/rgba?\\(/]',
