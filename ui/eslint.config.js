@@ -235,6 +235,7 @@ module.exports = [
       'lib/**',
       'public/**',
       'tests/**',
+      'scripts/**',
       'eslint.config.js',
     ],
     rules: {
