@@ -41,6 +41,8 @@ import UnsavedChangesModal from './UnsavedChangesModal';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
+const cols = { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 };
+
 const useDashboardRouter = () => {
   const router = useRouter();
   const { query, push: pushRoute, route, isReady } = router;
@@ -111,17 +113,18 @@ const Dashboard = () => {
   const { k8sConfig } = useSelector((state) => state.ui);
   const [isEditMode, setIsEditMode] = useState(false);
 
-  const iconsProps = {
-    fill: theme.palette.icon.default,
-    primaryFill: theme.palette.icon.default,
-    secondaryFill: theme.palette.icon.secondary,
-    width: '40',
-  };
+  const iconsProps = useMemo(
+    () => ({
+      fill: theme.palette.icon.default,
+      primaryFill: theme.palette.icon.default,
+      secondaryFill: theme.palette.icon.secondary,
+      width: '40',
+    }),
+    [theme.palette.icon.default, theme.palette.icon.secondary],
+  );
 
-  const WIDGETS = getWidgets({ iconsProps, isEditMode });
+  const WIDGETS = useMemo(() => getWidgets({ iconsProps, isEditMode }), [iconsProps, isEditMode]);
   const availableHandles = ['s', 'w', 'e', 'n', 'sw', 'nw', 'se', 'ne'];
-
-  const cols = { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 };
 
   const isWidgetAlreadyAdded = (key, layout, breakpoint) => {
     return Boolean(layout[breakpoint].find((item) => item.i == key));
