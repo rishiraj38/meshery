@@ -27,6 +27,7 @@ export {
   // Color helpers
   alpha,
   lighten,
+  darken,
 
   // Providers & global primitives
   SistentThemeProvider,
