@@ -11,10 +11,15 @@ export const applyMinSizeConstraints = (layouts, colsConfig, widgets) => {
       }
 
       const rawMinW = item.minW ?? widget.defaultSizing.minW ?? widget.defaultSizing.w;
+      const minW = Math.min(rawMinW, maxCols);
+      const minH = item.minH ?? widget.defaultSizing.minH ?? widget.defaultSizing.h;
+
       return {
         ...item,
-        minW: Math.min(rawMinW, maxCols),
-        minH: item.minH ?? widget.defaultSizing.minH ?? widget.defaultSizing.h,
+        w: Math.max(item.w, minW),
+        h: Math.max(item.h, minH),
+        minW,
+        minH,
       };
     });
   }
