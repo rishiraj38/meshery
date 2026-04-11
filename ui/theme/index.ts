@@ -8,7 +8,7 @@
  *
  *   import { useTheme, styled, alpha } from '@/theme';
  *
- * See `ui/docs/THEMING.md` for the full rules:
+ * The core theming rules are:
  *   - Colors come from `theme.palette.*` — never from a hex literal.
  *   - Spacing comes from `theme.spacing()` — never from a hard‑coded pixel.
  *   - Breakpoints come from `theme.breakpoints.*`.
