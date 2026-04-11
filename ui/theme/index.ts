@@ -31,7 +31,7 @@ export {
 
   // Providers & global primitives
   SistentThemeProvider,
-  SistentThemeProviderWithoutBaseLine,
+  SistentThemeProviderWithoutBaseline,
   CssBaseline,
   NoSsr,
 } from '@sistent/sistent';
