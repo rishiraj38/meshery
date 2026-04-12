@@ -458,7 +458,8 @@ func NewRouter(_ context.Context, h models.HandlerInterface, port int, g http.Ha
 	gMux.PathPrefix("/_next").
 		Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			h.ServeUI(w, r, "", "../../ui/out/")
-		}))
+		})).
+		Methods("GET", "HEAD")
 
 	gMux.PathPrefix("/").
 		Handler(h.ProviderMiddleware(h.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
