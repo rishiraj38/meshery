@@ -1,19 +1,33 @@
-// @ts-nocheck
-export const applyMinSizeConstraints = (layouts, colsConfig, widgets) => {
-  const constrained = {};
+interface LayoutItem {
+  i: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  minW?: number;
+  minH?: number;
+  moved?: boolean;
+  static?: boolean;
+}
+
+type Layouts = Record<string, LayoutItem[]>;
+type ColsConfig = Record<string, number>;
+
+export const applyMinSizeConstraints = (
+  layouts: Layouts,
+  defaultLayouts: Layouts,
+  colsConfig: ColsConfig,
+): Layouts => {
+  const constrained: Layouts = {};
 
   for (const [bp, items] of Object.entries(layouts || {})) {
     const maxCols = colsConfig[bp] ?? 12;
-    constrained[bp] = items.map((item) => {
-      const widget = widgets?.[item.i];
-      if (!widget?.defaultSizing) {
-        return item;
-      }
+    const defaults = defaultLayouts?.[bp] ?? [];
 
-      const sysMinW = widget.defaultSizing.minW ?? widget.defaultSizing.w;
-      const sysMinH = widget.defaultSizing.minH ?? widget.defaultSizing.h;
-      const minW = Math.min(Math.max(item.minW ?? 0, sysMinW), maxCols);
-      const minH = Math.max(item.minH ?? 0, sysMinH);
+    constrained[bp] = items.map((item) => {
+      const defaultItem = defaults.find((d) => d.i === item.i);
+      const minW = Math.min(Math.max(defaultItem?.w ?? item.w, 1), maxCols);
+      const minH = Math.max(defaultItem?.h ?? item.h, 1);
 
       return {
         ...item,

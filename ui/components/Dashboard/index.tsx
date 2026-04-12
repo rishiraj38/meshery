@@ -193,7 +193,7 @@ const Dashboard = () => {
   const { handleError, handleSuccess } = useNotificationHandlers();
 
   const updateLayout = async (dashboardLayout) => {
-    const constrainedLayoutToSave = applyMinSizeConstraints(dashboardLayout, cols, WIDGETS);
+    const constrainedLayoutToSave = applyMinSizeConstraints(dashboardLayout, defaultLayout, cols);
     const res = await updateUserPref({ dashboardPreferences: constrainedLayoutToSave });
     if (res.error) {
       handleError('failed to save layout');
@@ -305,8 +305,8 @@ const Dashboard = () => {
   };
 
   const constrainedLayouts = useMemo(
-    () => applyMinSizeConstraints(dashboardLayout, cols, WIDGETS),
-    [dashboardLayout, WIDGETS, cols],
+    () => applyMinSizeConstraints(dashboardLayout, defaultLayout, cols),
+    [dashboardLayout, defaultLayout],
   );
 
   return (

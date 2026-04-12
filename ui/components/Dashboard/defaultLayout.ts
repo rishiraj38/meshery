@@ -9,8 +9,6 @@ export const DEFAULT_LAYOUT = {
       w: 16,
       x: 0,
       y: 0,
-      minW: 12,
-      minH: 2.565,
     },
     {
       h: 2,
@@ -20,8 +18,6 @@ export const DEFAULT_LAYOUT = {
       w: 3,
       x: 0,
       y: 0,
-      minW: 3,
-      minH: 2,
     },
     {
       h: 2,
@@ -31,10 +27,8 @@ export const DEFAULT_LAYOUT = {
       w: 3,
       x: 0,
       y: 0,
-      minW: 3,
-      minH: 2,
     },
-    { h: 2, i: 'MY_DESIGNS', moved: false, static: false, w: 3, x: 3, y: 0, minW: 3, minH: 2 },
+    { h: 2, i: 'MY_DESIGNS', moved: false, static: false, w: 3, x: 3, y: 0 },
     {
       h: 2,
       i: 'WORKSPACE_ACTIVITY',
@@ -43,8 +37,6 @@ export const DEFAULT_LAYOUT = {
       w: 6,
       x: 6,
       y: 0,
-      minW: 6,
-      minH: 2,
     },
     {
       h: 2,
@@ -54,8 +46,6 @@ export const DEFAULT_LAYOUT = {
       w: 6,
       x: 3,
       y: 2,
-      minW: 6,
-      minH: 2,
     },
   ],
   md: [
@@ -67,8 +57,6 @@ export const DEFAULT_LAYOUT = {
       w: 16,
       x: 0,
       y: 0,
-      minW: 10,
-      minH: 2.565,
     },
     {
       h: 2,
@@ -78,8 +66,6 @@ export const DEFAULT_LAYOUT = {
       w: 3,
       x: 0,
       y: 0,
-      minW: 3,
-      minH: 2,
     },
     {
       h: 2,
@@ -89,10 +75,8 @@ export const DEFAULT_LAYOUT = {
       w: 3,
       x: 6,
       y: 0,
-      minW: 3,
-      minH: 2,
     },
-    { h: 2, i: 'MY_DESIGNS', moved: false, static: false, w: 3, x: 3, y: 0, minW: 3, minH: 2 },
+    { h: 2, i: 'MY_DESIGNS', moved: false, static: false, w: 3, x: 3, y: 0 },
     {
       h: 2,
       i: 'WORKSPACE_ACTIVITY',
@@ -101,8 +85,6 @@ export const DEFAULT_LAYOUT = {
       w: 6,
       x: 0,
       y: 0,
-      minW: 6,
-      minH: 2,
     },
     {
       h: 2,
@@ -112,8 +94,6 @@ export const DEFAULT_LAYOUT = {
       w: 6,
       x: 0,
       y: 2,
-      minW: 6,
-      minH: 2,
     },
   ],
   sm: [
@@ -125,8 +105,6 @@ export const DEFAULT_LAYOUT = {
       w: 12,
       x: 0,
       y: 0,
-      minW: 6,
-      minH: 2.565,
     },
     {
       h: 2,
@@ -136,8 +114,6 @@ export const DEFAULT_LAYOUT = {
       w: 3,
       x: 0,
       y: 0,
-      minW: 3,
-      minH: 2,
     },
     {
       h: 2,
@@ -147,10 +123,8 @@ export const DEFAULT_LAYOUT = {
       w: 3,
       x: 0,
       y: 0,
-      minW: 3,
-      minH: 2,
     },
-    { h: 2, i: 'MY_DESIGNS', moved: false, static: false, w: 3, x: 3, y: 0, minW: 3, minH: 2 },
+    { h: 2, i: 'MY_DESIGNS', moved: false, static: false, w: 3, x: 3, y: 0 },
     {
       h: 2,
       i: 'WORKSPACE_ACTIVITY',
@@ -159,8 +133,6 @@ export const DEFAULT_LAYOUT = {
       w: 6,
       x: 6,
       y: 0,
-      minW: 6,
-      minH: 2,
     },
     {
       h: 2,
@@ -170,8 +142,6 @@ export const DEFAULT_LAYOUT = {
       w: 6,
       x: 0,
       y: 2,
-      minW: 6,
-      minH: 2,
     },
   ],
   xs: [
@@ -183,8 +153,6 @@ export const DEFAULT_LAYOUT = {
       w: 12,
       x: 0,
       y: 0,
-      minW: 4,
-      minH: 2.565,
     },
     {
       h: 2,
@@ -194,8 +162,6 @@ export const DEFAULT_LAYOUT = {
       w: 2,
       x: 0,
       y: 0,
-      minW: 2,
-      minH: 2,
     },
     {
       h: 2,
@@ -205,10 +171,8 @@ export const DEFAULT_LAYOUT = {
       w: 2,
       x: 0,
       y: 0,
-      minW: 2,
-      minH: 2,
     },
-    { h: 2, i: 'MY_DESIGNS', moved: false, static: false, w: 2, x: 0, y: 2, minW: 2, minH: 2 },
+    { h: 2, i: 'MY_DESIGNS', moved: false, static: false, w: 2, x: 0, y: 2 },
     {
       h: 2,
       i: 'WORKSPACE_ACTIVITY',
@@ -217,8 +181,6 @@ export const DEFAULT_LAYOUT = {
       w: 6,
       x: 0,
       y: 4,
-      minW: 4,
-      minH: 2,
     },
     {
       h: 2,
@@ -228,8 +190,6 @@ export const DEFAULT_LAYOUT = {
       w: 6,
       x: 0,
       y: 6,
-      minW: 4,
-      minH: 2,
     },
   ],
   xxs: [
@@ -241,8 +201,6 @@ export const DEFAULT_LAYOUT = {
       w: 12,
       x: 0,
       y: 0,
-      minW: 2,
-      minH: 2.565,
     },
     {
       h: 2,
@@ -252,8 +210,6 @@ export const DEFAULT_LAYOUT = {
       w: 2,
       x: 0,
       y: 0,
-      minW: 2,
-      minH: 2,
     },
     {
       h: 2,
@@ -263,10 +219,8 @@ export const DEFAULT_LAYOUT = {
       w: 2,
       x: 0,
       y: 0,
-      minW: 2,
-      minH: 2,
     },
-    { h: 2, i: 'MY_DESIGNS', moved: false, static: false, w: 2, x: 0, y: 2, minW: 2, minH: 2 },
+    { h: 2, i: 'MY_DESIGNS', moved: false, static: false, w: 2, x: 0, y: 2 },
     {
       h: 2,
       i: 'WORKSPACE_ACTIVITY',
@@ -275,8 +229,6 @@ export const DEFAULT_LAYOUT = {
       w: 6,
       x: 0,
       y: 4,
-      minW: 2,
-      minH: 2,
     },
     {
       h: 2,
@@ -286,8 +238,6 @@ export const DEFAULT_LAYOUT = {
       w: 6,
       x: 0,
       y: 6,
-      minW: 2,
-      minH: 2,
     },
   ],
 };
@@ -302,8 +252,6 @@ export const LOCAL_PROVIDER_LAYOUT = {
       w: 16,
       x: 0,
       y: 0,
-      minW: 12,
-      minH: 2.565,
     },
     {
       h: 2,
@@ -313,8 +261,6 @@ export const LOCAL_PROVIDER_LAYOUT = {
       w: 3,
       x: 0,
       y: 0,
-      minW: 3,
-      minH: 2,
     },
   ],
   md: [
@@ -326,8 +272,6 @@ export const LOCAL_PROVIDER_LAYOUT = {
       w: 16,
       x: 0,
       y: 0,
-      minW: 10,
-      minH: 2.565,
     },
     {
       h: 2,
@@ -337,8 +281,6 @@ export const LOCAL_PROVIDER_LAYOUT = {
       w: 3,
       x: 0,
       y: 0,
-      minW: 3,
-      minH: 2,
     },
   ],
   sm: [
@@ -350,8 +292,6 @@ export const LOCAL_PROVIDER_LAYOUT = {
       w: 12,
       x: 0,
       y: 0,
-      minW: 6,
-      minH: 2.565,
     },
     {
       h: 2,
@@ -361,8 +301,6 @@ export const LOCAL_PROVIDER_LAYOUT = {
       w: 3,
       x: 0,
       y: 0,
-      minW: 3,
-      minH: 2,
     },
   ],
   xs: [
@@ -374,8 +312,6 @@ export const LOCAL_PROVIDER_LAYOUT = {
       w: 12,
       x: 0,
       y: 0,
-      minW: 4,
-      minH: 2.565,
     },
     {
       h: 2,
@@ -385,8 +321,6 @@ export const LOCAL_PROVIDER_LAYOUT = {
       w: 3,
       x: 0,
       y: 0,
-      minW: 3,
-      minH: 2,
     },
   ],
   xxs: [
@@ -398,8 +332,6 @@ export const LOCAL_PROVIDER_LAYOUT = {
       w: 12,
       x: 0,
       y: 0,
-      minW: 2,
-      minH: 2.565,
     },
     {
       h: 2,
@@ -409,8 +341,6 @@ export const LOCAL_PROVIDER_LAYOUT = {
       w: 3,
       x: 0,
       y: 0,
-      minW: 2,
-      minH: 2,
     },
   ],
 };
@@ -425,8 +355,6 @@ export const OVERVIEW_LAYOUT = {
       w: 16,
       x: 0,
       y: 0,
-      minW: 12,
-      minH: 2.565,
     },
   ],
   md: [
@@ -438,8 +366,6 @@ export const OVERVIEW_LAYOUT = {
       w: 16,
       x: 0,
       y: 0,
-      minW: 10,
-      minH: 2.565,
     },
   ],
   sm: [
@@ -451,8 +377,6 @@ export const OVERVIEW_LAYOUT = {
       w: 12,
       x: 0,
       y: 0,
-      minW: 6,
-      minH: 2.565,
     },
   ],
   xs: [
@@ -464,8 +388,6 @@ export const OVERVIEW_LAYOUT = {
       w: 12,
       x: 0,
       y: 0,
-      minW: 4,
-      minH: 2.565,
     },
   ],
   xxs: [
@@ -477,8 +399,6 @@ export const OVERVIEW_LAYOUT = {
       w: 12,
       x: 0,
       y: 0,
-      minW: 2,
-      minH: 2.565,
     },
   ],
 };
