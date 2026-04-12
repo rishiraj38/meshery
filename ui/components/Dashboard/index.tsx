@@ -124,6 +124,13 @@ const Dashboard = () => {
   );
 
   const WIDGETS = useMemo(() => getWidgets({ iconsProps, isEditMode }), [iconsProps, isEditMode]);
+  const widgetSizing = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(WIDGETS).map(([key, widget]) => [key, widget.defaultSizing]),
+      ),
+    [WIDGETS],
+  );
   const availableHandles = ['s', 'w', 'e', 'n', 'sw', 'nw', 'se', 'ne'];
 
   const isWidgetAlreadyAdded = (key, layout, breakpoint) => {
@@ -193,7 +200,12 @@ const Dashboard = () => {
   const { handleError, handleSuccess } = useNotificationHandlers();
 
   const updateLayout = async (dashboardLayout) => {
-    const constrainedLayoutToSave = applyMinSizeConstraints(dashboardLayout, defaultLayout, cols);
+    const constrainedLayoutToSave = applyMinSizeConstraints(
+      dashboardLayout,
+      defaultLayout,
+      cols,
+      widgetSizing,
+    );
     const res = await updateUserPref({ dashboardPreferences: constrainedLayoutToSave });
     if (res.error) {
       handleError('failed to save layout');
@@ -305,8 +317,8 @@ const Dashboard = () => {
   };
 
   const constrainedLayouts = useMemo(
-    () => applyMinSizeConstraints(dashboardLayout, defaultLayout, cols),
-    [dashboardLayout, defaultLayout],
+    () => applyMinSizeConstraints(dashboardLayout, defaultLayout, cols, widgetSizing),
+    [dashboardLayout, defaultLayout, widgetSizing],
   );
 
   return (

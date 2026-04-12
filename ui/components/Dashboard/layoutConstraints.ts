@@ -10,13 +10,20 @@ interface LayoutItem {
   static?: boolean;
 }
 
+interface WidgetDefaultSizing {
+  w: number;
+  h: number;
+}
+
 type Layouts = Record<string, LayoutItem[]>;
 type ColsConfig = Record<string, number>;
+type WidgetSizingMap = Record<string, WidgetDefaultSizing>;
 
 export const applyMinSizeConstraints = (
   layouts: Layouts,
   defaultLayouts: Layouts,
   colsConfig: ColsConfig,
+  widgetSizing: WidgetSizingMap = {},
 ): Layouts => {
   const constrained: Layouts = {};
 
@@ -26,8 +33,13 @@ export const applyMinSizeConstraints = (
 
     constrained[bp] = items.map((item) => {
       const defaultItem = defaults.find((d) => d.i === item.i);
-      const minW = Math.min(Math.max(defaultItem?.w ?? item.w, 1), maxCols);
-      const minH = Math.max(defaultItem?.h ?? item.h, 1);
+      const sizing = widgetSizing[item.i];
+
+      const baseMinW = defaultItem?.w ?? sizing?.w ?? 1;
+      const baseMinH = defaultItem?.h ?? sizing?.h ?? 1;
+
+      const minW = Math.min(Math.max(baseMinW, 1), maxCols);
+      const minH = Math.max(baseMinH, 1);
 
       return {
         ...item,
