@@ -15,7 +15,7 @@ setup() {
   assert_output --partial "model_cli-e2e-test"
 }
 
-@test "Error when no search query is provided" {
+@test "given no search query when mesheryctl component search is run then an invalid argument error is displayed" {
   run $MESHERYCTL_BIN component search
   assert_failure
 
@@ -25,7 +25,7 @@ setup() {
   assert_output --partial "Run 'mesheryctl component search --help' to see detailed help message"
 }
 
-@test "Search for non-existent component" {
+@test "given a non-existent component when mesheryctl component search component-name is run then no components are found" {
   run $MESHERYCTL_BIN component search nosuchcomponent123
   assert_success
   assert_output --partial "No components found"
