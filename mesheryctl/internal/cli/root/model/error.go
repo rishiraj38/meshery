@@ -22,10 +22,8 @@ const (
 	errBuildFolderNotFound           = "\nfolder %s does not exist"
 	errBuildMultiVersionNotSupported = "\nCommand does not support multiple versions build under one image"
 
-	errInitOneArg            = "must provide only one argument: model name"
-	errInitUnsupportedFormat = "[ %s ] are the only format supported"
-	errInitInvalidVersion    = "version must follow a semver format, f.e. v1.2.3"
-	errInitFolderExists      = "folder %s exists, please specify different model name or version"
+	errInitOneArg       = "model init requires one argument: 'model name' enclosed in double quotes if it contains spaces (eg. \"model name\", modelName)"
+	errInitFolderExists = "folder %s exists, please specify different model name or version"
 
 	errSearchUsage     = "Usage: mesheryctl model search [query-text]\nRun 'mesheryctl model search --help' to see detailed help message"
 	errSearchModelName = "Please provide a model name. " + errSearchUsage
