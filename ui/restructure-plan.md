@@ -656,7 +656,7 @@ Lint rules added to `ui/eslint.config.js`. Each rule ships with a codemod or has
 // eslint.config.js  
 {  
  rules: {  
- 'no-restricted-imports': \['error', {  
+ 'no-restricted-imports': \['warn', {  
  paths: \[  
  { name: '@mui/material', message: 'Use @sistent/sistent' },  
  { name: '@mui/icons-material', message: 'Use @sistent/sistent icons or ui/assets/icons' },  
