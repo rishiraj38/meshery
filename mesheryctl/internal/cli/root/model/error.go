@@ -22,7 +22,7 @@ const (
 	errBuildFolderNotFound           = "\nfolder %s does not exist"
 	errBuildMultiVersionNotSupported = "\nCommand does not support multiple versions build under one image"
 
-	errInitOneArg       = "model init requires one argument: 'model name' enclosed in double quotes if it contains spaces (eg. \"model name\", modelName)"
+	errInitOneArg       = "model init requires one argument: 'Model name' using kebab-cased (eg. model-name, aws-model-name)"
 	errInitFolderExists = "folder %s exists, please specify different model name or version"
 
 	errSearchUsage     = "Usage: mesheryctl model search [query-text]\nRun 'mesheryctl model search --help' to see detailed help message"
@@ -30,8 +30,6 @@ const (
 
 	errInvalidArg = "only one argument must be provided and needs to be enclosed by double quotes if it contains spaces (eg. \"model name\", modelName)"
 
-	viewUsageMsg        = "Usage: mesheryctl model view [model-name]\nRun 'mesheryctl model view --help' to see detailed help message"
-	formaterrMsg        = "[ yaml, json ] are the only format supported\n\nUsage: mesheryctl model view --output-format [yaml|json]\nRun 'mesheryctl model view --help' to see detailed help message"
 	errDeleteInvalidArg = "[ model-id | model-name ] is required\n\nUsage: mesheryctl model delete [model-id | model-name]\nRun 'mesheryctl model delete --help' to see detailed help message"
 
 	errGenerateUsageMsg = "Usage: mesheryctl model generate [ file | filePath | URL ] path\nRun 'mesheryctl model generate --help' to see detailed help message"
