@@ -249,7 +249,7 @@ func TestModelInit(t *testing.T) {
 			ExpectError:      true,
 			ExpectedResponse: "",
 			IsOutputGolden:   false,
-			ExpectedError:    utils.ErrInvalidArgument(fmt.Errorf(errInitOneArg)),
+			ExpectedError:    utils.ErrInvalidArgument(fmt.Errorf("%s", errInitOneArg)),
 		},
 		{
 			Name:             "given too many arguments when model init then throw error",
