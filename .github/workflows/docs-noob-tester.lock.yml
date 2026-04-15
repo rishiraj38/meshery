@@ -54,7 +54,10 @@ name: "Meshery Docs Noob Tester"
         required: false
         type: string
 
-permissions: {}
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
 
 concurrency:
   group: "gh-aw-${{ github.workflow }}"
@@ -280,8 +283,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      issues: read
-      pull-requests: read
+      issues: write
+      pull-requests: write
     concurrency:
       group: "gh-aw-copilot-${{ github.workflow }}"
     env:
