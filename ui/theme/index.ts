@@ -3,18 +3,24 @@ import type { Theme } from '@sistent/sistent';
 /**
  * Meshery UI theme entry point.
  *
- * Phase 1 uses this module as the approved, project-local import path for
- * theme primitives (`useTheme`, `styled`, `alpha`, `lighten`, `darken`, ...).
- * Prefer `@/theme` over importing those primitives directly from
- * {@link https://github.com/layer5io/sistent Sistent} or from legacy
- * `@/themes*` modules.
+ * This module is a thin wrapper around {@link https://github.com/layer5io/sistent Sistent},
+ * the Meshery design system. It exists so that every consumer in the
+ * Meshery UI imports theme primitives (`useTheme`, `styled`, `alpha`,
+ * `lighten`, ...) from a single, project-local path.
+ *
+ * Phase 1 treats `@/theme` as the approved, project-local import path for
+ * theme primitives. Prefer it over importing those primitives directly from
+ * Sistent or from legacy `@/themes*` modules.
  *
  *   import { useTheme, styled, alpha } from '@/theme';
  *
- * The core theming rules are:
- *   - Colors come from `theme.palette.*` - never from a hex literal.
- *   - Spacing comes from `theme.spacing()` - never from a hard-coded pixel.
- *   - Breakpoints come from `theme.breakpoints.*`.
+ * Preferred theming conventions for new or touched UI code are:
+ *   - Prefer colors from `theme.palette.*` instead of introducing new hex literals.
+ *   - Prefer spacing from `theme.spacing()` instead of hard-coded pixel values where possible.
+ *   - Prefer breakpoints from `theme.breakpoints.*`.
+ *
+ * Some legacy theme files in the UI still contain literal color and spacing
+ * values; treat those as migration candidates rather than precedent for new code.
  *
  * `@/themes/hooks` remains for theme-preference plumbing until a later phase,
  * but new theme-entrypoint imports should start from `@/theme`.
@@ -34,11 +40,10 @@ export {
   // Color helpers
   alpha,
   lighten,
-  darken,
 
   // Providers & global primitives
   SistentThemeProvider,
-  SistentThemeProviderWithoutBaseLine as SistentThemeProviderWithoutBaseline,
+  SistentThemeProviderWithoutBaseLine,
   CssBaseline,
   NoSsr,
 } from '@sistent/sistent';
