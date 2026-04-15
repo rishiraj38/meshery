@@ -39,7 +39,7 @@ export {
   NoSsr,
 } from '@sistent/sistent';
 
-export type { Theme } from '@sistent/sistent';
+export type { Theme };
 
 export const palette = {
   status: {
