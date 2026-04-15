@@ -257,7 +257,7 @@ func TestModelInit(t *testing.T) {
 			ExpectError:      true,
 			ExpectedResponse: "",
 			IsOutputGolden:   false,
-			ExpectedError:    utils.ErrInvalidArgument(fmt.Errorf(errInitOneArg)),
+			ExpectedError:    utils.ErrInvalidArgument(fmt.Errorf("%s", errInitOneArg)),
 		},
 		{
 			Name:             "given invalid model name when model init then throw error",
@@ -265,7 +265,7 @@ func TestModelInit(t *testing.T) {
 			ExpectError:      true,
 			ExpectedResponse: "",
 			IsOutputGolden:   false,
-			ExpectedError:    ErrModelInit(fmt.Errorf("invalid model name: name must match pattern ^[a-z0-9-]+$")),
+			ExpectedError:    ErrModelInit(fmt.Errorf("%s", "invalid model name: name must match pattern ^[a-z0-9-]+$")),
 		},
 	}
 
