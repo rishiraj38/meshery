@@ -8,6 +8,10 @@ import type { Theme } from '@sistent/sistent';
  * Meshery UI imports theme primitives (`useTheme`, `styled`, `alpha`,
  * `lighten`, ...) from a single, project-local path.
  *
+ * Phase 1 treats `@/theme` as the approved, project-local import path for
+ * theme primitives. Prefer it over importing those primitives directly from
+ * Sistent or from legacy `@/themes*` modules.
+ *
  *   import { useTheme, styled, alpha } from '@/theme';
  *
  * Preferred theming conventions for new or touched UI code are:
@@ -17,6 +21,9 @@ import type { Theme } from '@sistent/sistent';
  *
  * Some legacy theme files in the UI still contain literal color and spacing
  * values; treat those as migration candidates rather than precedent for new code.
+ *
+ * `@/themes/hooks` remains for theme-preference plumbing until a later phase,
+ * but new theme-entrypoint imports should start from `@/theme`.
  *
  * If Sistent is missing a token the app needs, open an issue or PR upstream
  * rather than redefining it here. This file must remain a thin wrapper:

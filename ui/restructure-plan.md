@@ -656,7 +656,7 @@ Lint rules added to `ui/eslint.config.js`. Each rule ships with a codemod or has
 // eslint.config.js  
 {  
  rules: {  
- 'no-restricted-imports': \['error', {  
+ 'no-restricted-imports': \['warn', {  
  paths: \[  
  { name: '@mui/material', message: 'Use @sistent/sistent' },  
  { name: '@mui/icons-material', message: 'Use @sistent/sistent icons or ui/assets/icons' },  
@@ -715,10 +715,11 @@ Applied as `warn` initially with a file‑level allowlist; promoted to `error` o
  rules: {  
  'no-restricted-imports': \['error', {  
  paths: \[  
- { name: '@/themes', message: 'Use @/theme (colors come from theme.palette.\*)' },  
- { name: '@/themes/app', message: 'Use theme.palette.\*' },  
- { name: '@/themes/index', message: 'Use theme.palette.\*' },  
- { name: '@/constants/colors', message: 'Use theme.palette.\*' },  
+ { name: '@/theme/index', message: 'Use @/theme; do not deep-import the local theme entry point.' },  
+ { name: '@/themes', message: 'Use @/theme, the approved Phase 1 theme entry point.' },  
+ { name: '@/themes/app', message: 'Use @/theme and theme.palette.\*' },  
+ { name: '@/themes/index', message: 'Use @/theme and theme.palette.\*' },  
+ { name: '@/constants/colors', message: 'Use @/theme and theme.palette.\*' },  
  \],  
  }\],  
  },  
