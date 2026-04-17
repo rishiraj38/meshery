@@ -165,7 +165,7 @@ module.exports = {
 
     // Extension Point: Shared runtime for extensions
     // Extensions that want to use these packages need to:
-    // 1. keep versions in lockstep. 
+    // 1. keep versions in lockstep.
     // 2. configure an `externalDeps` tracking file or similar
     cytoscape: require('cytoscape'),
     'cytoscape-automove': require('cytoscape-automove'),
