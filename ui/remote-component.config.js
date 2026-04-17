@@ -162,5 +162,42 @@ module.exports = {
     '@rjsf/mui': require('@rjsf/mui'),
     '@rjsf/utils': require('@rjsf/utils'),
     '@rjsf/validator-ajv8': require('@rjsf/validator-ajv8'),
+
+    // Kanvas shared runtime — cytoscape stack (Pair 1)
+    // Kanvas `externalDeps` assumes these resolve from the host at runtime.
+    // Keep versions in lockstep with meshmap/package.json.
+    cytoscape: require('cytoscape'),
+    'cytoscape-automove': require('cytoscape-automove'),
+    'cytoscape-autopan-on-drag': require('cytoscape-autopan-on-drag'),
+    'cytoscape-bubblesets': require('cytoscape-bubblesets'),
+    'cytoscape-clipboard': require('cytoscape-clipboard'),
+    'cytoscape-cola': require('cytoscape-cola'),
+    'cytoscape-dagre': require('cytoscape-dagre'),
+    'cytoscape-dblclick': require('cytoscape-dblclick'),
+    'cytoscape-edgehandles': require('cytoscape-edgehandles'),
+    'cytoscape-fcose': require('cytoscape-fcose'),
+    'cytoscape-layers': require('cytoscape-layers'),
+    'cytoscape-popper': require('cytoscape-popper'),
+
+    // Kanvas shared runtime — dockview shell + terminal + emoji picker (Pair 2)
+    dockview: require('dockview'),
+    'emoji-picker-react': require('emoji-picker-react'),
+    '@xterm/xterm': require('@xterm/xterm'),
+    '@xterm/addon-fit': require('@xterm/addon-fit'),
+    '@xterm/addon-search': require('@xterm/addon-search'),
+
+    // Kanvas shared runtime — interaction + styling/util long tail (Pair 3)
+    '@dnd-kit/core': require('@dnd-kit/core'),
+    '@dnd-kit/utilities': require('@dnd-kit/utilities'),
+    '@tippyjs/react': require('@tippyjs/react'),
+    'tippy.js': require('tippy.js'),
+    '@reactour/tour': require('@reactour/tour'),
+    'react-mentions': require('react-mentions'),
+    'hotkeys-js': require('hotkeys-js'),
+    'styled-components': require('styled-components'),
+    immer: require('immer'),
+    'resize-observer-polyfill': require('resize-observer-polyfill'),
+    'prop-types': require('prop-types'),
+    pluralize: require('pluralize'),
   },
 };
