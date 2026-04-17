@@ -163,9 +163,10 @@ module.exports = {
     '@rjsf/utils': require('@rjsf/utils'),
     '@rjsf/validator-ajv8': require('@rjsf/validator-ajv8'),
 
-    // Kanvas shared runtime — cytoscape stack (Pair 1)
-    // Kanvas `externalDeps` assumes these resolve from the host at runtime.
-    // Keep versions in lockstep with meshmap/package.json.
+    // Extension Point: Shared runtime for extensions
+    // Extensions that want to use these packages need to:
+    // 1. keep versions in lockstep. 
+    // 2. configure an `externalDeps` tracking file or similar
     cytoscape: require('cytoscape'),
     'cytoscape-automove': require('cytoscape-automove'),
     'cytoscape-autopan-on-drag': require('cytoscape-autopan-on-drag'),
@@ -179,14 +180,14 @@ module.exports = {
     'cytoscape-layers': require('cytoscape-layers'),
     'cytoscape-popper': require('cytoscape-popper'),
 
-    // Kanvas shared runtime — dockview shell + terminal + emoji picker (Pair 2)
+    // Extension Point: Shared runtime for extensions
     dockview: require('dockview'),
     'emoji-picker-react': require('emoji-picker-react'),
     '@xterm/xterm': require('@xterm/xterm'),
     '@xterm/addon-fit': require('@xterm/addon-fit'),
     '@xterm/addon-search': require('@xterm/addon-search'),
 
-    // Kanvas shared runtime — interaction + styling/util long tail (Pair 3)
+    // Extension Point: Shared runtime for extensions
     '@dnd-kit/core': require('@dnd-kit/core'),
     '@dnd-kit/utilities': require('@dnd-kit/utilities'),
     '@tippyjs/react': require('@tippyjs/react'),
