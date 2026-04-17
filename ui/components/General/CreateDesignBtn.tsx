@@ -1,5 +1,5 @@
 import React from 'react';
-import { AddIcon, Button } from '@sistent/sistent';
+import { AddCircleIcon as AddIcon, Button } from '@sistent/sistent';
 import Link from 'next/link';
 import { iconMedium } from 'css/icons.styles';
 

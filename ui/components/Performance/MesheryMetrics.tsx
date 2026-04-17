@@ -1,5 +1,5 @@
 import React from 'react';
-import { AddIcon, Button, styled, Typography } from '@sistent/sistent';
+import { AddCircleIcon as AddIcon, Button, styled, Typography } from '@sistent/sistent';
 import GrafanaCustomCharts from '../telemetry/grafana/GrafanaCustomCharts';
 import { iconMedium } from '../../css/icons.styles';
 import CAN from '@/utils/can';
