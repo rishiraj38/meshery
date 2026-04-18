@@ -149,7 +149,7 @@ linkTitle: Documentation
     <details>
       <summary>
         <p style="display:inline">
-          <a href="/extensibility/integrations" class="text-black">Models</a>
+<a href="/extensions/models" class="text-black">Models</a>
         </p>
       </summary>
       <ul class="section-title">
