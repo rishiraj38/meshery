@@ -59,7 +59,7 @@ vi.mock('@/utils/can', () => ({
 }));
 
 vi.mock('@/utils/permission_constants', () => ({
-  keys: { VIEW_CONNECTIONS: { action: 'view', subject: 'connections' } },
+  keys: { WorkspaceManagementViewConnections: { action: 'view', subject: 'connections' } },
 }));
 
 vi.mock('next/router', () => ({

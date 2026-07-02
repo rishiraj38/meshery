@@ -231,7 +231,12 @@ function FiltersGrid({
                 aria-label="Add Application"
                 variant="contained"
                 color="primary"
-                disabled={!CAN(keys.IMPORT_FILTER.action, keys.IMPORT_FILTER.subject)}
+                disabled={
+                  !CAN(
+                    keys.CatalogManagementImportFilter.action,
+                    keys.CatalogManagementImportFilter.subject,
+                  )
+                }
                 size="large"
                 // @ts-ignore
                 onClick={handleUploadImport}

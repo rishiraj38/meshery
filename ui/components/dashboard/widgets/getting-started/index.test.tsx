@@ -37,7 +37,7 @@ vi.mock('@/utils/hooks/useNotification', () => ({
 vi.mock('@/utils/can', () => ({ default: () => true }));
 
 vi.mock('@/utils/permission_constants', () => ({
-  keys: { ASSIGN_USER_ROLES: { action: 'assign', subject: 'roles' } },
+  keys: { IdentityAccessManagementAssignUserRoles: { action: 'assign', subject: 'roles' } },
 }));
 
 vi.mock('react-redux', () => ({

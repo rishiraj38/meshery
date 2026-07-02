@@ -97,10 +97,10 @@ vi.mock('@/utils/can', () => ({
 
 vi.mock('@/utils/permission_constants', () => ({
   keys: {
-    VIEW_SETTINGS: { action: 'a', subject: 's' },
-    VIEW_CLOUD_NATIVE_INFRASTRUCTURE: { action: 'a', subject: 's' },
-    VIEW_METRICS: { action: 'a', subject: 's' },
-    VIEW_REGISTRY: { action: 'a', subject: 's' },
+    MesherySystemViewSettings: { action: 'a', subject: 's' },
+    InfrastructureManagementViewCloudNativeInfrastructure: { action: 'a', subject: 's' },
+    MesherySystemViewMetrics: { action: 'a', subject: 's' },
+    MesherySystemViewRegistry: { action: 'a', subject: 's' },
     VIEW_OVERVIEW: { action: 'a', subject: 's' },
   },
 }));
@@ -187,7 +187,7 @@ describe('MesherySettings', () => {
     expect(screen.getByTestId('connection-charts')).toBeInTheDocument();
   });
 
-  it('returns null when VIEW_SETTINGS permission is denied', () => {
+  it('returns null when MesherySystemViewSettings permission is denied', () => {
     canMockReturn = false;
     const { container } = render(<MesherySettings />);
     expect(container.textContent).toBe('');

@@ -175,13 +175,18 @@ const MainDesignsContent = ({
       title: 'Merge Into Current Design',
       icon: <MergeOutlinedIcon fill={theme.palette.icon.default} />,
       enabled: () =>
-        isDesignOpenInExtension() && CAN(keys.EDIT_DESIGN.action, keys.EDIT_DESIGN.subject),
+        isDesignOpenInExtension() &&
+        CAN(keys.CatalogManagementEditDesign.action, keys.CatalogManagementEditDesign.subject),
     },
-    EXPORT_DESIGN: {
+    CatalogManagementExportDesign: {
       id: 'export_design',
       title: 'Export Design',
       icon: <ExportIcon fill={theme.palette.icon.default} />,
-      enabled: () => CAN(keys.DOWNLOAD_A_DESIGN.action, keys.DOWNLOAD_A_DESIGN.subject),
+      enabled: () =>
+        CAN(
+          keys.CatalogManagementDownloadADesign.action,
+          keys.CatalogManagementDownloadADesign.subject,
+        ),
     },
 
     REMOVE_DESIGN: {
@@ -189,15 +194,18 @@ const MainDesignsContent = ({
       title: 'Move Design',
       icon: <MoveFileIcon fill={theme.palette.icon.default} />,
       enabled: () =>
-        CAN(keys.REMOVE_DESIGNS_FROM_WORKSPACE.action, keys.REMOVE_DESIGNS_FROM_WORKSPACE.subject),
+        CAN(
+          keys.WorkspaceManagementRemoveDesignsFromWorkspaces.action,
+          keys.WorkspaceManagementRemoveDesignsFromWorkspaces.subject,
+        ),
     },
-    SHARE_DESIGN: {
+    CatalogManagementShareDesign: {
       id: 'share',
       title: 'Share Design',
       icon: <ShareIcon fill={theme.palette.icon.default} />,
       enabled: ({ design }) =>
         design?.visibility !== 'published' &&
-        CAN(keys.SHARE_DESIGN.action, keys.SHARE_DESIGN.subject),
+        CAN(keys.CatalogManagementShareDesign.action, keys.CatalogManagementShareDesign.subject),
     },
     INFO_DESIGN: {
       id: 'info',
@@ -209,7 +217,11 @@ const MainDesignsContent = ({
       id: 'delete',
       title: 'Delete Design',
       icon: <DeleteIcon fill={theme.palette.icon.default} />,
-      enabled: () => CAN(keys.DELETE_A_DESIGN.action, keys.DELETE_A_DESIGN.subject),
+      enabled: () =>
+        CAN(
+          keys.CatalogManagementDeleteADesign.action,
+          keys.CatalogManagementDeleteADesign.subject,
+        ),
     },
   };
 
@@ -235,12 +247,12 @@ const MainDesignsContent = ({
         handler: () => handleMerge(design),
       },
       {
-        ...DESIGN_ACTIONS.EXPORT_DESIGN,
+        ...DESIGN_ACTIONS.CatalogManagementExportDesign,
         handler: () => handleDesignDownloadModal(design),
       },
 
       {
-        ...DESIGN_ACTIONS.SHARE_DESIGN,
+        ...DESIGN_ACTIONS.CatalogManagementShareDesign,
         handler: () => handleShare(design),
       },
 
@@ -391,16 +403,16 @@ const MainDesignsContent = ({
           assignDesignToWorkspace={assignDesignToWorkspace}
           assignViewToWorkspace={assignViewToWorkspace}
           isCreateWorkspaceAllowed={CAN(
-            keys.CREATE_WORKSPACE.action,
-            keys.CREATE_WORKSPACE.subject,
+            keys.WorkspaceManagementCreateWorkspace.action,
+            keys.WorkspaceManagementCreateWorkspace.subject,
           )}
           isMoveDesignAllowed={CAN(
-            keys.ASSIGN_DESIGNS_TO_WORKSPACE.action,
-            keys.ASSIGN_DESIGNS_TO_WORKSPACE.subject,
+            keys.WorkspaceManagementAssignDesignsToWorkspaces.action,
+            keys.WorkspaceManagementAssignDesignsToWorkspaces.subject,
           )}
           isMoveViewAllowed={CAN(
-            keys.ASSIGN_VIEWS_TO_WORKSPACE.action,
-            keys.ASSIGN_VIEWS_TO_WORKSPACE.subject,
+            keys.KanvasAssignViewsToWorkspace.action,
+            keys.KanvasAssignViewsToWorkspace.subject,
           )}
           currentOrgId={currentOrganization?.id}
           notify={notify}

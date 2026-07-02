@@ -53,7 +53,7 @@ vi.mock('@/utils/can', () => ({
 
 vi.mock('@/utils/permission_constants', () => ({
   keys: {
-    DOWNLOAD_TOKEN: { action: 'download', subject: 'token' },
+    SecurityManagementDownloadToken: { action: 'download', subject: 'token' },
   },
 }));
 

@@ -17,10 +17,10 @@ vi.mock('@/utils/can', () => ({
 
 vi.mock('@/utils/permission_constants', () => ({
   keys: {
-    VIEW_CONNECTIONS: { action: 'view', subject: 'connections' },
-    VIEW_WORKSPACE: { action: 'view', subject: 'workspace' },
-    EDIT_ENVIRONMENT: { action: 'edit', subject: 'environment' },
-    DELETE_ENVIRONMENT: { action: 'delete', subject: 'environment' },
+    WorkspaceManagementViewConnections: { action: 'view', subject: 'connections' },
+    WorkspaceManagementViewWorkspace: { action: 'view', subject: 'workspace' },
+    WorkspaceManagementEditEnvironment: { action: 'edit', subject: 'environment' },
+    WorkspaceManagementDeleteEnvironment: { action: 'delete', subject: 'environment' },
   },
 }));
 

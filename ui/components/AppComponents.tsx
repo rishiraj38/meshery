@@ -65,7 +65,12 @@ export const KubernetesSubscription = ({ setAppState }: { setAppState: SetAppSta
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (!CAN(keys.VIEW_ALL_KUBERNETES_CLUSTERS.action, keys.VIEW_ALL_KUBERNETES_CLUSTERS.subject)) {
+    if (
+      !CAN(
+        keys.IdentityAccessManagementViewAllKubernetesClusters.action,
+        keys.IdentityAccessManagementViewAllKubernetesClusters.subject,
+      )
+    ) {
       return;
     }
 

@@ -12,13 +12,13 @@ vi.mock('@/utils/can', () => ({
 
 vi.mock('@/utils/permission_constants', () => ({
   keys: {
-    PUBLISH_WASM_FILTER: { action: 'publish', subject: 'wasm-filter' },
-    UNPUBLISH_WASM_FILTER: { action: 'unpublish', subject: 'wasm-filter' },
-    DOWNLOAD_A_WASM_FILTER: { action: 'download', subject: 'wasm-filter' },
-    CLONE_WASM_FILTER: { action: 'clone', subject: 'wasm-filter' },
-    DETAILS_OF_WASM_FILTER: { action: 'details', subject: 'wasm-filter' },
-    EDIT_WASM_FILTER: { action: 'edit', subject: 'wasm-filter' },
-    DELETE_WASM_FILTER: { action: 'delete', subject: 'wasm-filter' },
+    CatalogManagementPublishWasmFilter: { action: 'publish', subject: 'wasm-filter' },
+    CatalogManagementUnpublishWasmFilter: { action: 'unpublish', subject: 'wasm-filter' },
+    CatalogManagementDownloadAWasmFilter: { action: 'download', subject: 'wasm-filter' },
+    CatalogManagementCloneWasmFilter: { action: 'clone', subject: 'wasm-filter' },
+    CatalogManagementDetailsOfWasmFilter: { action: 'details', subject: 'wasm-filter' },
+    CatalogManagementEditWasmFilter: { action: 'edit', subject: 'wasm-filter' },
+    CatalogManagementDeleteWasmFilter: { action: 'delete', subject: 'wasm-filter' },
   },
 }));
 

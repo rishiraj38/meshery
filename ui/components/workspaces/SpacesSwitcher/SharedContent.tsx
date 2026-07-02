@@ -17,7 +17,7 @@ import {
 import { getDefaultFilterType } from './hooks';
 
 const SharedContent = () => {
-  const isViewVisible = CAN(keys.VIEW_VIEWS.action, keys.VIEW_VIEWS.subject);
+  const isViewVisible = CAN(keys.KanvasViewViews.action, keys.KanvasViewViews.subject);
 
   const visibilityItems = [VISIBILITY.PUBLIC, VISIBILITY.PRIVATE];
 

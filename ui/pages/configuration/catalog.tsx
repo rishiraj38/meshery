@@ -9,7 +9,8 @@ import { MesheryPage } from '@/components/MesheryPage';
 function CatalogPage() {
   return (
     <MesheryPage title="Catalog">
-      {CAN(keys.VIEW_CATALOG.action, keys.VIEW_CATALOG.subject) || false ? (
+      {CAN(keys.CatalogManagementViewCatalog.action, keys.CatalogManagementViewCatalog.subject) ||
+      false ? (
         <MesheryPatterns
           disableCreateImportDesignButton={true}
           disableUniversalFilter={true}

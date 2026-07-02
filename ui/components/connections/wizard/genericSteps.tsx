@@ -34,8 +34,8 @@ export const kindPermission = (config?: ConnectionWizardKindConfig | null) => {
   }
 
   return config.flow === 'kubernetes'
-    ? CAN(keys.ADD_CLUSTER.action, keys.ADD_CLUSTER.subject)
-    : CAN(keys.CONNECT_METRICS.action, keys.CONNECT_METRICS.subject);
+    ? CAN(keys.LifecycleManagementAddCluster.action, keys.LifecycleManagementAddCluster.subject)
+    : CAN(keys.MesherySystemConnectMetrics.action, keys.MesherySystemConnectMetrics.subject);
 };
 
 const existingCredentialsFor = (ctx: WizardContext) =>

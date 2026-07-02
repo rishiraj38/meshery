@@ -12,8 +12,8 @@ vi.mock('@/utils/can', () => ({
 
 vi.mock('@/utils/permission_constants', () => ({
   keys: {
-    EDIT_WORKSPACE: { action: 'edit', subject: 'workspace' },
-    DELETE_WORKSPACE: { action: 'delete', subject: 'workspace' },
+    WorkspaceManagementEditWorkspace: { action: 'edit', subject: 'workspace' },
+    WorkspaceManagementDeleteWorkspace: { action: 'delete', subject: 'workspace' },
   },
 }));
 

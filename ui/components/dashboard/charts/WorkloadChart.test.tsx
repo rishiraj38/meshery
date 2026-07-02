@@ -47,7 +47,7 @@ vi.mock('@/utils/can', () => ({
 
 vi.mock('@/utils/permission_constants', () => ({
   keys: {
-    VIEW_CONNECTIONS: { action: 'view', subject: 'connections' },
+    WorkspaceManagementViewConnections: { action: 'view', subject: 'connections' },
   },
 }));
 

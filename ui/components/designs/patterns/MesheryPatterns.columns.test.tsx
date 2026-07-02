@@ -47,15 +47,18 @@ vi.mock('@/utils/can', () => ({
 
 vi.mock('@/utils/permission_constants', () => ({
   keys: {
-    EDIT_DESIGN: { action: 'edit', subject: 'design' },
-    CLONE_DESIGN: { action: 'clone', subject: 'design' },
-    VALIDATE_DESIGN: { action: 'validate', subject: 'design' },
-    UNDEPLOY_DESIGN: { action: 'undeploy', subject: 'design' },
-    DEPLOY_DESIGN: { action: 'deploy', subject: 'design' },
-    DOWNLOAD_A_DESIGN: { action: 'download', subject: 'design' },
-    DETAILS_OF_DESIGN: { action: 'details', subject: 'design' },
-    UNPUBLISH_DESIGN: { action: 'unpublish', subject: 'design' },
-    EVALUATE_RELATIONSHIPS: { action: 'evaluate', subject: 'evaluate relationships' },
+    CatalogManagementEditDesign: { action: 'edit', subject: 'design' },
+    CatalogManagementCloneDesign: { action: 'clone', subject: 'design' },
+    CatalogManagementValidateDesign: { action: 'validate', subject: 'design' },
+    CatalogManagementUndeployDesign: { action: 'undeploy', subject: 'design' },
+    CatalogManagementDeployDesign: { action: 'deploy', subject: 'design' },
+    CatalogManagementDownloadADesign: { action: 'download', subject: 'design' },
+    CatalogManagementDetailsOfDesign: { action: 'details', subject: 'design' },
+    CatalogManagementUnpublishDesign: { action: 'unpublish', subject: 'design' },
+    CatalogManagementEvaluateRelationships: {
+      action: 'evaluate',
+      subject: 'evaluate relationships',
+    },
   },
 }));
 

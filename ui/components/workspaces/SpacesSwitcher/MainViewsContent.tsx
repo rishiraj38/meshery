@@ -121,7 +121,7 @@ const MainViewsContent = ({
       title: 'Move View',
       icon: <MoveFileIcon fill={theme.palette.icon.default} />,
       enabled: () =>
-        CAN(keys.ASSIGN_VIEWS_TO_WORKSPACE.action, keys.ASSIGN_VIEWS_TO_WORKSPACE.subject),
+        CAN(keys.KanvasAssignViewsToWorkspace.action, keys.KanvasAssignViewsToWorkspace.subject),
     },
 
     VIEW_INFO: {
@@ -136,12 +136,12 @@ const MainViewsContent = ({
       icon: <ShareIcon fill={theme.palette.icon.default} />,
       enabled: () => true,
     },
-    DELETE_VIEW: {
-      id: 'DELETE_VIEW',
+    KanvasDeleteView: {
+      id: 'KanvasDeleteView',
       title: 'Delete View',
       icon: <DeleteIcon fill={theme.palette.icon.default} />,
       enabled: ({ view, userId }) =>
-        CAN(keys.DELETE_VIEW.action, keys.DELETE_VIEW.subject) && view.userId === userId,
+        CAN(keys.KanvasDeleteView.action, keys.KanvasDeleteView.subject) && view.userId === userId,
     },
   };
   const getMenuOptions = ({
@@ -168,7 +168,7 @@ const MainViewsContent = ({
         handler: () => handleOpenInfoModal(view, user),
       },
       {
-        ...VIEW_ACTIONS.DELETE_VIEW,
+        ...VIEW_ACTIONS.KanvasDeleteView,
         handler: () => handleDelete([view], RESOURCE_TYPE.VIEW, refetch),
       },
     ];
@@ -315,16 +315,16 @@ const MainViewsContent = ({
           assignDesignToWorkspace={assignDesignToWorkspace}
           assignViewToWorkspace={assignViewToWorkspace}
           isCreateWorkspaceAllowed={CAN(
-            keys.CREATE_WORKSPACE.action,
-            keys.CREATE_WORKSPACE.subject,
+            keys.WorkspaceManagementCreateWorkspace.action,
+            keys.WorkspaceManagementCreateWorkspace.subject,
           )}
           isMoveDesignAllowed={CAN(
-            keys.ASSIGN_DESIGNS_TO_WORKSPACE.action,
-            keys.ASSIGN_DESIGNS_TO_WORKSPACE.subject,
+            keys.WorkspaceManagementAssignDesignsToWorkspaces.action,
+            keys.WorkspaceManagementAssignDesignsToWorkspaces.subject,
           )}
           isMoveViewAllowed={CAN(
-            keys.ASSIGN_VIEWS_TO_WORKSPACE.action,
-            keys.ASSIGN_VIEWS_TO_WORKSPACE.subject,
+            keys.KanvasAssignViewsToWorkspace.action,
+            keys.KanvasAssignViewsToWorkspace.subject,
           )}
           currentOrgId={currentOrganization?.id}
           notify={notify}

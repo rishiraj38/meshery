@@ -399,12 +399,12 @@ const Environments = () => {
       getAddedAndRemovedConnection(updatedAssignedData);
     (addedConnectionsIds.length > 0 || removedConnectionsIds.length) > 0 &&
     (CAN(
-      keys.ASSIGN_CONNECTIONS_TO_ENVIRONMENT.action,
-      keys.ASSIGN_CONNECTIONS_TO_ENVIRONMENT.subject,
+      keys.WorkspaceManagementAssignConnectionsToEnvironment.action,
+      keys.WorkspaceManagementAssignConnectionsToEnvironment.subject,
     ) ||
       CAN(
-        keys.REMOVE_CONNECTIONS_FROM_ENVIRONMENT.action,
-        keys.REMOVE_CONNECTIONS_FROM_ENVIRONMENT.subject,
+        keys.WorkspaceManagementRemoveConnectionsFromEnvironments.action,
+        keys.WorkspaceManagementRemoveConnectionsFromEnvironments.subject,
       ))
       ? setDisableTranferButton(false)
       : setDisableTranferButton(true);
@@ -449,7 +449,10 @@ const Environments = () => {
 
   return (
     <NoSsr>
-      {CAN(keys.VIEW_ENVIRONMENTS.action, keys.VIEW_ENVIRONMENTS.subject) ? (
+      {CAN(
+        keys.WorkspaceManagementViewEnvironment.action,
+        keys.WorkspaceManagementViewEnvironment.subject,
+      ) ? (
         <>
           <ToolWrapper>
             <CreateButtonWrapper>
@@ -464,7 +467,12 @@ const Environments = () => {
                   borderRadius: '5px',
                   marginRight: '2rem',
                 }}
-                disabled={!CAN(keys.CREATE_ENVIRONMENT.action, keys.CREATE_ENVIRONMENT.subject)}
+                disabled={
+                  !CAN(
+                    keys.WorkspaceManagementCreateEnvironment.action,
+                    keys.WorkspaceManagementCreateEnvironment.subject,
+                  )
+                }
                 data-cy="btnResetDatabase"
               >
                 <AddIconCircleBorder sx={{ width: '20px', height: '20px' }} />
@@ -498,7 +506,10 @@ const Environments = () => {
                 onClick={handleBulkDeleteEnvironmentConfirm}
                 disabled={
                   selectedEnvironments.length > 0
-                    ? !CAN(keys.DELETE_ENVIRONMENT.action, keys.DELETE_ENVIRONMENT.subject)
+                    ? !CAN(
+                        keys.WorkspaceManagementDeleteEnvironment.action,
+                        keys.WorkspaceManagementDeleteEnvironment.subject,
+                      )
                     : true
                 }
               >
@@ -559,8 +570,14 @@ const Environments = () => {
               pointerLabel="Click “Create” to establish your first environment."
             />
           )}
-          {(CAN(keys.CREATE_ENVIRONMENT.action, keys.CREATE_ENVIRONMENT.subject) ||
-            CAN(keys.EDIT_ENVIRONMENT.action, keys.EDIT_ENVIRONMENT.subject)) &&
+          {(CAN(
+            keys.WorkspaceManagementCreateEnvironment.action,
+            keys.WorkspaceManagementCreateEnvironment.subject,
+          ) ||
+            CAN(
+              keys.WorkspaceManagementEditEnvironment.action,
+              keys.WorkspaceManagementEditEnvironment.subject,
+            )) &&
             environmentModal.open && (
               <SisitentModal
                 open={environmentModal.open}
@@ -618,12 +635,12 @@ const Environments = () => {
                 originalLeftCount={connections?.totalCount}
                 originalRightCount={environmentConnections?.totalCount}
                 leftPermission={CAN(
-                  keys.REMOVE_CONNECTIONS_FROM_ENVIRONMENT.action,
-                  keys.REMOVE_CONNECTIONS_FROM_ENVIRONMENT.subject,
+                  keys.WorkspaceManagementRemoveConnectionsFromEnvironments.action,
+                  keys.WorkspaceManagementRemoveConnectionsFromEnvironments.subject,
                 )}
                 rightPermission={CAN(
-                  keys.ASSIGN_CONNECTIONS_TO_ENVIRONMENT.action,
-                  keys.ASSIGN_CONNECTIONS_TO_ENVIRONMENT.subject,
+                  keys.WorkspaceManagementAssignConnectionsToEnvironment.action,
+                  keys.WorkspaceManagementAssignConnectionsToEnvironment.subject,
                 )}
               />
             </ModalBody>

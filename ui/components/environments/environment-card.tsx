@@ -169,7 +169,12 @@ const EnvironmentCard = ({
                     title="Assigned Connections"
                     count={environmentConnectionsCount}
                     onAssign={onAssignConnection}
-                    disabled={!CAN(keys.VIEW_CONNECTIONS.action, keys.VIEW_CONNECTIONS.subject)}
+                    disabled={
+                      !CAN(
+                        keys.WorkspaceManagementViewConnections.action,
+                        keys.WorkspaceManagementViewConnections.subject,
+                      )
+                    }
                   />
                 </AllocationButton>
                 {/* temporary disable workspace allocation button  */}
@@ -181,7 +186,7 @@ const EnvironmentCard = ({
                         environmentDetails.workspaces ? environmentDetails.workspaces?.length : 0
                       }
                       onAssign={onAssignConnection}
-                      disabled={!CAN(keys.VIEW_WORKSPACE.action, keys.VIEW_WORKSPACE.subject)}
+                      disabled={!CAN(keys.WorkspaceManagementViewWorkspace.action, keys.WorkspaceManagementViewWorkspace.subject)}
                     />
                   </AllocationButton>
                 )} */}
@@ -225,7 +230,10 @@ const EnvironmentCard = ({
                   disabled={
                     selectedEnvironments?.filter((id) => id == environmentDetails.id).length === 1
                       ? true
-                      : !CAN(keys.EDIT_ENVIRONMENT.action, keys.EDIT_ENVIRONMENT.subject)
+                      : !CAN(
+                          keys.WorkspaceManagementEditEnvironment.action,
+                          keys.WorkspaceManagementEditEnvironment.subject,
+                        )
                   }
                 >
                   <EditIcon fill="white" style={{ margin: '0 2px' }} />
@@ -235,7 +243,10 @@ const EnvironmentCard = ({
                   disabled={
                     selectedEnvironments?.filter((id) => id == environmentDetails.id).length === 1
                       ? true
-                      : !CAN(keys.DELETE_ENVIRONMENT.action, keys.DELETE_ENVIRONMENT.subject)
+                      : !CAN(
+                          keys.WorkspaceManagementDeleteEnvironment.action,
+                          keys.WorkspaceManagementDeleteEnvironment.subject,
+                        )
                   }
                 >
                   <DeleteIcon fill="white" style={{ margin: '0 2px' }} />

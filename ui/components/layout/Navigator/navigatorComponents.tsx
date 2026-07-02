@@ -74,8 +74,8 @@ export const getNavigatorComponents = (
         show: providerUiAccessControl.isNavigatorComponentEnabled([LIFECYCLE, CONNECTION]),
         link: true,
         permission: {
-          action: keys.VIEW_CONNECTIONS.action,
-          subject: keys.VIEW_CONNECTIONS.subject,
+          action: keys.WorkspaceManagementViewConnections.action,
+          subject: keys.WorkspaceManagementViewConnections.subject,
         },
       },
       {
@@ -86,8 +86,8 @@ export const getNavigatorComponents = (
         show: providerUiAccessControl.isNavigatorComponentEnabled([LIFECYCLE, CREDENTIAL]),
         link: true,
         permission: {
-          action: keys.VIEW_CREDENTIALS.action,
-          subject: keys.VIEW_CREDENTIALS.subject,
+          action: keys.SecurityManagementViewCredentials.action,
+          subject: keys.SecurityManagementViewCredentials.subject,
         },
       },
       {
@@ -98,8 +98,8 @@ export const getNavigatorComponents = (
         show: providerUiAccessControl.isNavigatorComponentEnabled([LIFECYCLE, ENVIRONMENT]),
         link: true,
         permission: {
-          action: keys.VIEW_ENVIRONMENTS.action,
-          subject: keys.VIEW_ENVIRONMENTS.subject,
+          action: keys.WorkspaceManagementViewEnvironment.action,
+          subject: keys.WorkspaceManagementViewEnvironment.subject,
         },
       },
       {
@@ -110,8 +110,8 @@ export const getNavigatorComponents = (
         show: providerUiAccessControl.isNavigatorComponentEnabled([LIFECYCLE, WORKSPACE]),
         link: true,
         permission: {
-          action: keys.VIEW_WORKSPACE.action,
-          subject: keys.VIEW_WORKSPACE.subject,
+          action: keys.WorkspaceManagementViewWorkspace.action,
+          subject: keys.WorkspaceManagementViewWorkspace.subject,
         },
       },
       {
@@ -122,8 +122,8 @@ export const getNavigatorComponents = (
         icon: <ServiceMeshIcon style={{ ...drawerIconsStyle }} />,
         show: true,
         permission: {
-          action: keys.VIEW_CLOUD_NATIVE_INFRASTRUCTURE.action,
-          subject: keys.VIEW_CLOUD_NATIVE_INFRASTRUCTURE.subject,
+          action: keys.InfrastructureManagementViewCloudNativeInfrastructure.action,
+          subject: keys.InfrastructureManagementViewCloudNativeInfrastructure.subject,
         },
       },
     ],
@@ -162,8 +162,8 @@ export const getNavigatorComponents = (
         link: true,
         isBeta: true,
         permission: {
-          action: keys.VIEW_CATALOG.action,
-          subject: keys.VIEW_CATALOG.subject,
+          action: keys.CatalogManagementViewCatalog.action,
+          subject: keys.CatalogManagementViewCatalog.subject,
         },
       },
       {
@@ -175,8 +175,8 @@ export const getNavigatorComponents = (
         link: true,
         isBeta: true,
         permission: {
-          action: keys.VIEW_DESIGNS.action,
-          subject: keys.VIEW_DESIGNS.subject,
+          action: keys.CatalogManagementViewDesigns.action,
+          subject: keys.CatalogManagementViewDesigns.subject,
         },
       },
     ],
@@ -229,8 +229,8 @@ export const getNavigatorComponents = (
         show: providerUiAccessControl.isNavigatorComponentEnabled([PERFORMANCE, PROFILES]),
         link: true,
         permission: {
-          action: keys.VIEW_PERFORMANCE_PROFILES.action,
-          subject: keys.VIEW_PERFORMANCE_PROFILES.subject,
+          action: keys.PerformanceManagementViewPerformanceProfiles.action,
+          subject: keys.PerformanceManagementViewPerformanceProfiles.subject,
         },
       },
     ],
@@ -246,8 +246,8 @@ export const getNavigatorComponents = (
     href: '/extensions',
     submenu: false,
     permission: {
-      action: keys.VIEW_EXTENSIONS.action,
-      subject: keys.VIEW_EXTENSIONS.subject,
+      action: keys.ExtensibilityViewExtensions.action,
+      subject: keys.ExtensibilityViewExtensions.subject,
     },
   },
 ];

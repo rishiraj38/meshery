@@ -72,7 +72,10 @@ function MeshModelContructs() {
       href="/settings?settingsCategory=Registry"
       style={{
         textDecoration: 'none',
-        pointerEvents: !CAN(keys.VIEW_REGISTRY.action, keys.VIEW_REGISTRY.subject)
+        pointerEvents: !CAN(
+          keys.MesherySystemViewRegistry.action,
+          keys.MesherySystemViewRegistry.subject,
+        )
           ? 'none'
           : 'auto',
       }}

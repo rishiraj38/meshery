@@ -90,7 +90,10 @@ export default function KubernetesConnectionStatsChart() {
     [chartData, router, theme],
   );
 
-  const canViewConnections = CAN(keys.VIEW_CONNECTIONS.action, keys.VIEW_CONNECTIONS.subject);
+  const canViewConnections = CAN(
+    keys.WorkspaceManagementViewConnections.action,
+    keys.WorkspaceManagementViewConnections.subject,
+  );
   const header = (
     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

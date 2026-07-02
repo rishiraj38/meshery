@@ -25,7 +25,7 @@ vi.mock('../rtk-query/connection', () => ({
 }));
 vi.mock('@/utils/can', () => ({ default: () => true }));
 vi.mock('@/utils/permission_constants', () => ({
-  keys: { ADD_CLUSTER: { action: 'add', subject: 'cluster' } },
+  keys: { LifecycleManagementAddCluster: { action: 'add', subject: 'cluster' } },
 }));
 vi.mock('@/utils/hooks/useKubernetesHook', () => ({ default: () => vi.fn() }));
 vi.mock('@/utils/hooks/useTestIDs', () => ({ default: () => () => 'test-id' }));

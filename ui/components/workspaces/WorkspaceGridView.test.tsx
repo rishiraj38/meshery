@@ -18,7 +18,7 @@ vi.mock('@/utils/can', () => ({
 
 vi.mock('@/utils/permission_constants', () => ({
   keys: {
-    DELETE_WORKSPACE: { action: 'delete', subject: 'workspace' },
+    WorkspaceManagementDeleteWorkspace: { action: 'delete', subject: 'workspace' },
   },
 }));
 
@@ -181,7 +181,7 @@ describe('WorkspaceGridView', () => {
     expect(deleteWorkspaceMutator).not.toHaveBeenCalled();
   });
 
-  it('hides the delete modal entirely when the user lacks DELETE_WORKSPACE permission', () => {
+  it('hides the delete modal entirely when the user lacks WorkspaceManagementDeleteWorkspace permission', () => {
     can.mockReturnValue(false);
     renderComponent();
     // Modal is rendered conditionally on CAN(...) - so when no permission, modal element is absent

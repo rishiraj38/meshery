@@ -211,8 +211,8 @@ const WorkspaceDataTable = ({
               }
               useNotificationHandlers={useNotificationHandlers}
               isAssignedEnvironmentAllowed={CAN(
-                keys.ASSIGN_ENVIRONMENT_TO_WORKSPACE.action,
-                keys.ASSIGN_ENVIRONMENT_TO_WORKSPACE.subject,
+                keys.WorkspaceManagementAssignEnvironmentToWorkspace.action,
+                keys.WorkspaceManagementAssignEnvironmentToWorkspace.subject,
               )}
             />
           );

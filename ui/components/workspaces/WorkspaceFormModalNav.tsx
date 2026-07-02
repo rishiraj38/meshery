@@ -71,7 +71,7 @@ const getNavItem = (theme: Theme): NavConfigItem[] => {
       id: 'My-Views',
       label: 'My Views',
       icon: <ViewIcon {...iconSmall} fill={theme.palette.icon.default} />,
-      enabled: CAN(keys.VIEW_VIEWS.action, keys.VIEW_VIEWS.subject),
+      enabled: CAN(keys.KanvasViewViews.action, keys.KanvasViewViews.subject),
       content: <MyViewsContent />,
     },
     {

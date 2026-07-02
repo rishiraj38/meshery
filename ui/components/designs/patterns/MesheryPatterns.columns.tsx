@@ -47,7 +47,10 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
         e.stopPropagation();
         handleOpenInConfigurator(rowData.id);
       },
-      disabled: !CAN(keys.EDIT_DESIGN.action, keys.EDIT_DESIGN.subject),
+      disabled: !CAN(
+        keys.CatalogManagementEditDesign.action,
+        keys.CatalogManagementEditDesign.subject,
+      ),
       condition: userCanEdit(rowData),
     },
     {
@@ -57,7 +60,10 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
         e.stopPropagation();
         handleClone(rowData.id, rowData.name);
       },
-      disabled: !CAN(keys.CLONE_DESIGN.action, keys.CLONE_DESIGN.subject),
+      disabled: !CAN(
+        keys.CatalogManagementCloneDesign.action,
+        keys.CatalogManagementCloneDesign.subject,
+      ),
       condition: visibility === VISIBILITY.PUBLISHED,
     },
     {
@@ -67,7 +73,10 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
         e.stopPropagation();
         handleOpenInConfigurator(patterns[tableMeta.rowIndex].id);
       },
-      disabled: !CAN(keys.EDIT_DESIGN.action, keys.EDIT_DESIGN.subject),
+      disabled: !CAN(
+        keys.CatalogManagementEditDesign.action,
+        keys.CatalogManagementEditDesign.subject,
+      ),
       condition: visibility !== VISIBILITY.PUBLISHED,
     },
     {
@@ -76,7 +85,10 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
       onClick: (e) => {
         openValidateModal(e, rowData.patternFile, rowData.name, rowData.id);
       },
-      disabled: !CAN(keys.VALIDATE_DESIGN.action, keys.VALIDATE_DESIGN.subject),
+      disabled: !CAN(
+        keys.CatalogManagementValidateDesign.action,
+        keys.CatalogManagementValidateDesign.subject,
+      ),
     },
     {
       label: 'Dry Run',
@@ -84,7 +96,10 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
       onClick: (e) => {
         openDryRunModal(e, rowData.patternFile, rowData.name, rowData.id);
       },
-      disabled: !CAN(keys.VALIDATE_DESIGN.action, keys.VALIDATE_DESIGN.subject),
+      disabled: !CAN(
+        keys.CatalogManagementValidateDesign.action,
+        keys.CatalogManagementValidateDesign.subject,
+      ),
     },
     {
       label: 'Evaluate',
@@ -93,7 +108,10 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
         e.stopPropagation();
         handleEvaluateRelationship(rowData);
       },
-      disabled: !CAN(keys.EVALUATE_RELATIONSHIPS.action, keys.EVALUATE_RELATIONSHIPS.subject),
+      disabled: !CAN(
+        keys.CatalogManagementEvaluateRelationships.action,
+        keys.CatalogManagementEvaluateRelationships.subject,
+      ),
     },
     {
       label: 'Undeploy',
@@ -101,7 +119,10 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
       onClick: (e) => {
         openUndeployModal(e, rowData.patternFile, rowData.name, rowData.id);
       },
-      disabled: !CAN(keys.UNDEPLOY_DESIGN.action, keys.UNDEPLOY_DESIGN.subject),
+      disabled: !CAN(
+        keys.CatalogManagementUndeployDesign.action,
+        keys.CatalogManagementUndeployDesign.subject,
+      ),
     },
     {
       label: 'Deploy',
@@ -109,7 +130,10 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
       onClick: (e) => {
         openDeployModal(e, rowData.patternFile, rowData.name, rowData.id);
       },
-      disabled: !CAN(keys.DEPLOY_DESIGN.action, keys.DEPLOY_DESIGN.subject),
+      disabled: !CAN(
+        keys.CatalogManagementDeployDesign.action,
+        keys.CatalogManagementDeployDesign.subject,
+      ),
     },
     {
       label: 'Download',
@@ -117,7 +141,10 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
       onClick: (e) => {
         handleDesignDownloadModal(e, rowData);
       },
-      disabled: !CAN(keys.DOWNLOAD_A_DESIGN.action, keys.DOWNLOAD_A_DESIGN.subject),
+      disabled: !CAN(
+        keys.CatalogManagementDownloadADesign.action,
+        keys.CatalogManagementDownloadADesign.subject,
+      ),
     },
     {
       label: 'Design Information',
@@ -125,7 +152,10 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
       onClick: (e) => {
         genericClickHandler(e, () => handleInfoModal(rowData));
       },
-      disabled: !CAN(keys.DETAILS_OF_DESIGN.action, keys.DETAILS_OF_DESIGN.subject),
+      disabled: !CAN(
+        keys.CatalogManagementDetailsOfDesign.action,
+        keys.CatalogManagementDetailsOfDesign.subject,
+      ),
     },
 
     /* Publish action can be done through Info modal so we might not need separate publish action */
@@ -133,7 +163,7 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
       label="Publish",
       icon: <PublicIcon fill="#F91313" data-cy="publish-button" />,
       onClick: (e) => handlePublishModal(e, rowData)(),
-      disabled: !CAN(keys.PUBLISH_DESIGN.action, keys.PUBLISH_DESIGN.subject),
+      disabled: !CAN(keys.CatalogManagementPublishDesign.action, keys.CatalogManagementPublishDesign.subject),
       condition: canPublishPattern && visibility !== VISIBILITY.PUBLISHED,
     },*/
 
@@ -143,7 +173,10 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
       onClick: (e) => {
         handleUnpublishModal(e, rowData)();
       },
-      disabled: !CAN(keys.UNPUBLISH_DESIGN.action, keys.UNPUBLISH_DESIGN.subject),
+      disabled: !CAN(
+        keys.CatalogManagementUnpublishDesign.action,
+        keys.CatalogManagementUnpublishDesign.subject,
+      ),
       condition: visibility === VISIBILITY.PUBLISHED,
     },
   ].filter((action) => action.condition === undefined || action.condition);

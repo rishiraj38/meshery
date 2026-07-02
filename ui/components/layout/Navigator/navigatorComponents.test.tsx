@@ -75,15 +75,15 @@ vi.mock('../../../css/icons.styles', () => ({
 
 vi.mock('@/utils/permission_constants', () => ({
   keys: {
-    VIEW_CONNECTIONS: { action: 'view', subject: 'connection' },
-    VIEW_CREDENTIALS: { action: 'view', subject: 'credential' },
-    VIEW_ENVIRONMENTS: { action: 'view', subject: 'environment' },
-    VIEW_WORKSPACE: { action: 'view', subject: 'workspace' },
-    VIEW_CLOUD_NATIVE_INFRASTRUCTURE: { action: 'view', subject: 'infra' },
-    VIEW_CATALOG: { action: 'view', subject: 'catalog' },
-    VIEW_DESIGNS: { action: 'view', subject: 'design' },
-    VIEW_PERFORMANCE_PROFILES: { action: 'view', subject: 'profile' },
-    VIEW_EXTENSIONS: { action: 'view', subject: 'extension' },
+    WorkspaceManagementViewConnections: { action: 'view', subject: 'connection' },
+    SecurityManagementViewCredentials: { action: 'view', subject: 'credential' },
+    WorkspaceManagementViewEnvironment: { action: 'view', subject: 'environment' },
+    WorkspaceManagementViewWorkspace: { action: 'view', subject: 'workspace' },
+    InfrastructureManagementViewCloudNativeInfrastructure: { action: 'view', subject: 'infra' },
+    CatalogManagementViewCatalog: { action: 'view', subject: 'catalog' },
+    CatalogManagementViewDesigns: { action: 'view', subject: 'design' },
+    PerformanceManagementViewPerformanceProfiles: { action: 'view', subject: 'profile' },
+    ExtensibilityViewExtensions: { action: 'view', subject: 'extension' },
   },
 }));
 

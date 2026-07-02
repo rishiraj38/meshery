@@ -428,8 +428,8 @@ const MeshAdapterConfigComponent = () => {
                 onClick={handleAdapterUndeploy}
                 disabled={
                   !CAN(
-                    keys.UNDEPLOY_CLOUD_NATIVE_INFRASTRUCTURE.action,
-                    keys.UNDEPLOY_CLOUD_NATIVE_INFRASTRUCTURE.subject,
+                    keys.InfrastructureManagementUndeployCloudNativeInfrastructure.action,
+                    keys.InfrastructureManagementUndeployCloudNativeInfrastructure.subject,
                   )
                 }
               >
@@ -443,7 +443,12 @@ const MeshAdapterConfigComponent = () => {
                 size="large"
                 onClick={handleSubmit}
                 data-cy="btnSubmitMeshAdapter"
-                disabled={!CAN(keys.CONNECT_ADAPTER.action, keys.CONNECT_ADAPTER.subject)}
+                disabled={
+                  !CAN(
+                    keys.MesherySystemConnectAdapter.action,
+                    keys.MesherySystemConnectAdapter.subject,
+                  )
+                }
               >
                 Connect
               </AdapterButton>
@@ -491,8 +496,8 @@ const MeshAdapterConfigComponent = () => {
                   onClick={handleAdapterDeploy}
                   disabled={
                     !CAN(
-                      keys.DEPLOY_CLOUD_NATIVE_INFRASTRUCTURE.action,
-                      keys.DEPLOY_CLOUD_NATIVE_INFRASTRUCTURE.subject,
+                      keys.InfrastructureManagementDeployCloudNativeInfrastructure.action,
+                      keys.InfrastructureManagementDeployCloudNativeInfrastructure.subject,
                     )
                   }
                 >

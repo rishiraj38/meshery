@@ -11,7 +11,7 @@ vi.mock('@/utils/can', () => ({
 
 vi.mock('@/utils/permission_constants', () => ({
   keys: {
-    IMPORT_FILTER: { action: 'import', subject: 'filter' },
+    CatalogManagementImportFilter: { action: 'import', subject: 'filter' },
   },
 }));
 

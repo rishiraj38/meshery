@@ -434,7 +434,12 @@ const Workspaces = ({ onSelectWorkspace }) => {
                   borderRadius: '5px',
                   marginRight: '2rem',
                 }}
-                disabled={!CAN(keys.CREATE_WORKSPACE.action, keys.CREATE_WORKSPACE.subject)}
+                disabled={
+                  !CAN(
+                    keys.WorkspaceManagementCreateWorkspace.action,
+                    keys.WorkspaceManagementCreateWorkspace.subject,
+                  )
+                }
                 data-cy="btnResetDatabase"
               >
                 <AddIconCircleBorder sx={{ width: '20px', height: '20px' }} />
@@ -509,8 +514,14 @@ const Workspaces = ({ onSelectWorkspace }) => {
           )}
         </>
         {(actionType === WORKSPACE_ACTION_TYPES.CREATE
-          ? CAN(keys.CREATE_WORKSPACE.action, keys.CREATE_WORKSPACE.subject)
-          : CAN(keys.EDIT_WORKSPACE.action, keys.EDIT_WORKSPACE.subject)) &&
+          ? CAN(
+              keys.WorkspaceManagementCreateWorkspace.action,
+              keys.WorkspaceManagementCreateWorkspace.subject,
+            )
+          : CAN(
+              keys.WorkspaceManagementEditWorkspace.action,
+              keys.WorkspaceManagementEditWorkspace.subject,
+            )) &&
           workspaceModal.open && (
             <Modal
               open={workspaceModal.open}
@@ -543,12 +554,21 @@ const Workspaces = ({ onSelectWorkspace }) => {
           <WorkspaceTeamsTable
             workspaceId={teamsModal.workspaceId}
             isAssignTeamAllowed={CAN(
-              keys.ASSIGN_TEAM_TO_WORKSPACE.action,
-              keys.ASSIGN_TEAM_TO_WORKSPACE.subject,
+              keys.WorkspaceManagementAssignTeamToWorkspace.action,
+              keys.WorkspaceManagementAssignTeamToWorkspace.subject,
             )}
-            isDeleteTeamAllowed={CAN(keys.DELETE_TEAM.action, keys.DELETE_TEAM.subject)}
-            isEditTeamAllowed={CAN(keys.EDIT_TEAM.action, keys.EDIT_TEAM.subject)}
-            isLeaveTeamAllowed={CAN(keys.LEAVE_TEAM.action, keys.LEAVE_TEAM.subject)}
+            isDeleteTeamAllowed={CAN(
+              keys.IdentityAccessManagementDeleteTeam.action,
+              keys.IdentityAccessManagementDeleteTeam.subject,
+            )}
+            isEditTeamAllowed={CAN(
+              keys.IdentityAccessManagementEditTeam.action,
+              keys.IdentityAccessManagementEditTeam.subject,
+            )}
+            isLeaveTeamAllowed={CAN(
+              keys.IdentityAccessManagementLeaveTeam.action,
+              keys.IdentityAccessManagementLeaveTeam.subject,
+            )}
             useAssignTeamToWorkspaceMutation={useAssignTeamToWorkspaceMutation}
             useGetTeamsOfWorkspaceQuery={useGetTeamsOfWorkspaceQuery}
             useUnassignTeamFromWorkspaceMutation={useUnassignTeamFromWorkspaceMutation}
@@ -559,8 +579,8 @@ const Workspaces = ({ onSelectWorkspace }) => {
             useNotificationHandlers={useNotificationHandlers}
             useRemoveUserFromTeamMutation={useRemoveUserFromTeamMutation}
             isRemoveTeamFromWorkspaceAllowed={CAN(
-              keys.REMOVE_TEAM_FROM_WORKSPACE.action,
-              keys.REMOVE_TEAM_FROM_WORKSPACE.subject,
+              keys.WorkspaceManagementRemoveTeamFromWorkspace.action,
+              keys.WorkspaceManagementRemoveTeamFromWorkspace.subject,
             )}
           />
           <ModalFooter variant="filled"></ModalFooter>

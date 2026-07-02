@@ -143,7 +143,9 @@ const DatabaseSummary: FC<DatabaseSummaryProps> = (props) => {
               backgroundColor: theme.palette.error.dark,
             }}
             size="medium"
-            disabled={!CAN(keys.RESET_DATABASE.action, keys.RESET_DATABASE.subject)}
+            disabled={
+              !CAN(keys.MesherySystemResetDatabase.action, keys.MesherySystemResetDatabase.subject)
+            }
             onClick={handleResetDatabase()}
             data-cy="btnResetDatabase"
           >

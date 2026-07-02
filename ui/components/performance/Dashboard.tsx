@@ -131,7 +131,10 @@ function Dashboard() {
 
   return (
     <>
-      {CAN(keys.VIEW_PERFORMANCE_PROFILES.action, keys.VIEW_PERFORMANCE_PROFILES.subject) ? (
+      {CAN(
+        keys.PerformanceManagementViewPerformanceProfiles.action,
+        keys.PerformanceManagementViewPerformanceProfiles.subject,
+      ) ? (
         <>
           <Grid2
             container
@@ -172,7 +175,12 @@ function Dashboard() {
                       <div style={{ margin: '2rem 0 0 auto', width: 'fit-content' }}>
                         <StyledButton
                           onClick={() => setRunTest(true)}
-                          disabled={!CAN(keys.RUN_TEST.action, keys.RUN_TEST.subject)}
+                          disabled={
+                            !CAN(
+                              keys.PerformanceManagementRunTest.action,
+                              keys.PerformanceManagementRunTest.subject,
+                            )
+                          }
                           variant="contained"
                         >
                           Run Test

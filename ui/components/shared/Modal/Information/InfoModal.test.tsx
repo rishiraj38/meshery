@@ -63,7 +63,7 @@ vi.mock('@/utils/objects', () => ({
 }));
 
 vi.mock('@/utils/permission_constants', () => ({
-  keys: { PUBLISH_DESIGN: { action: 'publish', subject: 'design' } },
+  keys: { CatalogManagementPublishDesign: { action: 'publish', subject: 'design' } },
 }));
 
 vi.mock('@/utils/TooltipButton', () => ({

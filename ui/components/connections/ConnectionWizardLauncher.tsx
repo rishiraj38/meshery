@@ -12,8 +12,8 @@ const LaunchButton = styled(Button)({
 });
 
 const canOpenConnectionWizard = () =>
-  CAN(keys.ADD_CLUSTER.action, keys.ADD_CLUSTER.subject) ||
-  CAN(keys.CONNECT_METRICS.action, keys.CONNECT_METRICS.subject);
+  CAN(keys.LifecycleManagementAddCluster.action, keys.LifecycleManagementAddCluster.subject) ||
+  CAN(keys.MesherySystemConnectMetrics.action, keys.MesherySystemConnectMetrics.subject);
 
 const ConnectionWizardLauncher = () => {
   const [isOpen, setIsOpen] = useState(false);

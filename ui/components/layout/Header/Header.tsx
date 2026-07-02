@@ -252,7 +252,7 @@ function K8sContextMenu({
   return (
     <>
       <div>
-        <CanShow Key={keys.VIEW_ALL_KUBERNETES_CLUSTERS}>
+        <CanShow Key={keys.IdentityAccessManagementViewAllKubernetesClusters}>
           <IconButton
             ref={anchorRef}
             aria-label="contexts"
@@ -303,7 +303,10 @@ function K8sContextMenu({
           unmountOnExit
         >
           <div>
-            <CanShow Key={keys.VIEW_ALL_KUBERNETES_CLUSTERS} invert_action={['hide']}>
+            <CanShow
+              Key={keys.IdentityAccessManagementViewAllKubernetesClusters}
+              invert_action={['hide']}
+            >
               <ClickAwayListener
                 onClickAway={(e) => {
                   if (anchorRef.current && anchorRef.current.contains(e.target as Node)) {

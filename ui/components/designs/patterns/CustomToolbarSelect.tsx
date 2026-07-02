@@ -33,7 +33,12 @@ const CustomToolbarSelect = ({
         <div>
           <IconButton
             onClick={handleClickDelete}
-            disabled={!CAN(keys.DELETE_A_DESIGN.action, keys.DELETE_A_DESIGN.subject)}
+            disabled={
+              !CAN(
+                keys.CatalogManagementDeleteADesign.action,
+                keys.CatalogManagementDeleteADesign.subject,
+              )
+            }
           >
             <DeleteIcon />
           </IconButton>

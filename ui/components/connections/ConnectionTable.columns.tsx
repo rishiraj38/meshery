@@ -232,8 +232,8 @@ export const useConnectionColumns = ({
                         menuPlacement={'bottom'}
                         disabled={
                           !CAN(
-                            keys.ASSIGN_CONNECTIONS_TO_ENVIRONMENT.action,
-                            keys.ASSIGN_CONNECTIONS_TO_ENVIRONMENT.subject,
+                            keys.WorkspaceManagementAssignConnectionsToEnvironment.action,
+                            keys.WorkspaceManagementAssignConnectionsToEnvironment.subject,
                           )
                         }
                       />
@@ -422,7 +422,10 @@ export const useConnectionColumns = ({
             const disabled =
               value === 'deleted'
                 ? true
-                : !CAN(keys.CHANGE_CONNECTION_STATE.action, keys.CHANGE_CONNECTION_STATE.subject);
+                : !CAN(
+                    keys.LifecycleManagementChangeConnectionState.action,
+                    keys.LifecycleManagementChangeConnectionState.subject,
+                  );
 
             return (
               <FormControl>

@@ -69,7 +69,10 @@ export default function ConnectionStatsChart() {
     [chartData, router, theme],
   );
 
-  const canViewConnections = CAN(keys.VIEW_CONNECTIONS.action, keys.VIEW_CONNECTIONS.subject);
+  const canViewConnections = CAN(
+    keys.WorkspaceManagementViewConnections.action,
+    keys.WorkspaceManagementViewConnections.subject,
+  );
 
   return (
     <Link

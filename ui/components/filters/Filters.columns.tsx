@@ -137,7 +137,12 @@ export function buildFiltersColumns({
                     e.stopPropagation();
                     handleClone(rowData.id, rowData.name);
                   }}
-                  disabled={!CAN(keys.CLONE_WASM_FILTER.action, keys.CLONE_WASM_FILTER.subject)}
+                  disabled={
+                    !CAN(
+                      keys.CatalogManagementCloneWasmFilter.action,
+                      keys.CatalogManagementCloneWasmFilter.subject,
+                    )
+                  }
                 >
                   <CloneIcon fill="currentColor" />
                 </TooltipIcon>
@@ -148,7 +153,12 @@ export function buildFiltersColumns({
                     e.stopPropagation();
                     setSelectedRowData(filters[tableMeta.rowIndex]);
                   }}
-                  disabled={!CAN(keys.EDIT_WASM_FILTER.action, keys.EDIT_WASM_FILTER.subject)}
+                  disabled={
+                    !CAN(
+                      keys.CatalogManagementEditWasmFilter.action,
+                      keys.CatalogManagementEditWasmFilter.subject,
+                    )
+                  }
                 >
                   <EditIcon aria-label="config" color="inherit" style={iconMedium} />
                 </TooltipIcon>
@@ -157,7 +167,10 @@ export function buildFiltersColumns({
                 title="Download"
                 onClick={(e) => handleDownload(e, rowData.id, rowData.name)}
                 disabled={
-                  !CAN(keys.DOWNLOAD_A_WASM_FILTER.action, keys.DOWNLOAD_A_WASM_FILTER.subject)
+                  !CAN(
+                    keys.CatalogManagementDownloadAWasmFilter.action,
+                    keys.CatalogManagementDownloadAWasmFilter.subject,
+                  )
                 }
               >
                 <GetAppIcon data-cy="download-button" />
@@ -166,7 +179,10 @@ export function buildFiltersColumns({
                 title="Filter Information"
                 onClick={() => handleInfoModal(rowData)}
                 disabled={
-                  !CAN(keys.DETAILS_OF_WASM_FILTER.action, keys.DETAILS_OF_WASM_FILTER.subject)
+                  !CAN(
+                    keys.CatalogManagementDetailsOfWasmFilter.action,
+                    keys.CatalogManagementDetailsOfWasmFilter.subject,
+                  )
                 }
               >
                 <InfoOutlinedIcon data-cy="information-button" />
@@ -175,7 +191,12 @@ export function buildFiltersColumns({
                 <TooltipIcon
                   title="Publish"
                   onClick={(ev) => handlePublishModal(ev, rowData)}
-                  disabled={!CAN(keys.PUBLISH_WASM_FILTER.action, keys.PUBLISH_WASM_FILTER.subject)}
+                  disabled={
+                    !CAN(
+                      keys.CatalogManagementPublishWasmFilter.action,
+                      keys.CatalogManagementPublishWasmFilter.subject,
+                    )
+                  }
                 >
                   <PublicIcon fill="#F91313" data-cy="publish-button" />
                 </TooltipIcon>
@@ -184,7 +205,10 @@ export function buildFiltersColumns({
                   title="Unpublish"
                   onClick={(ev) => handleUnpublishModal(ev, rowData)?.()}
                   disabled={
-                    !CAN(keys.UNPUBLISH_WASM_FILTER.action, keys.UNPUBLISH_WASM_FILTER.subject)
+                    !CAN(
+                      keys.CatalogManagementUnpublishWasmFilter.action,
+                      keys.CatalogManagementUnpublishWasmFilter.subject,
+                    )
                   }
                 >
                   <PublicIcon fill="#F91313" data-cy="unpublish-button" />

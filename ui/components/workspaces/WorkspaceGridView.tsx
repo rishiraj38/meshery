@@ -94,7 +94,10 @@ const WorkspaceGridView = ({
               onClick={handleDeleteWorkspacesModalOpen}
               disabled={
                 selectedWorkspaces.length > 0
-                  ? !CAN(keys.DELETE_WORKSPACE.action, keys.DELETE_WORKSPACE.subject)
+                  ? !CAN(
+                      keys.WorkspaceManagementDeleteWorkspace.action,
+                      keys.WorkspaceManagementDeleteWorkspace.subject,
+                    )
                   : true
               }
             />
@@ -135,7 +138,10 @@ const WorkspaceGridView = ({
           )}
         />
       </Grid2>
-      {CAN(keys.DELETE_WORKSPACE.action, keys.DELETE_WORKSPACE.subject) && (
+      {CAN(
+        keys.WorkspaceManagementDeleteWorkspace.action,
+        keys.WorkspaceManagementDeleteWorkspace.subject,
+      ) && (
         <Modal
           open={deleteWorkspacesModal}
           closeModal={handleDeleteWorkspacesModalClose}

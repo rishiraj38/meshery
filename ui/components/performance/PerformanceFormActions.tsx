@@ -76,7 +76,11 @@ const PerformanceFormActions: React.FC<PerformanceFormActionsProps> = ({
         size="large"
         onClick={onRunTest}
         sx={{ marginLeft: '1rem' }}
-        disabled={blockRunTest || disableTest || !CAN(keys.RUN_TEST.action, keys.RUN_TEST.subject)}
+        disabled={
+          blockRunTest ||
+          disableTest ||
+          !CAN(keys.PerformanceManagementRunTest.action, keys.PerformanceManagementRunTest.subject)
+        }
       >
         {blockRunTest ? <CircularProgress size={30} /> : 'Run Test'}
       </Button>

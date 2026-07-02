@@ -623,7 +623,7 @@ const Extensions = () => {
       <Head>
         <title>Extensions | Meshery</title>
       </Head>
-      {CAN(keys.VIEW_EXTENSIONS.action, keys.VIEW_EXTENSIONS.subject) ? (
+      {CAN(keys.ExtensibilityViewExtensions.action, keys.ExtensibilityViewExtensions.subject) ? (
         <Grid2 container spacing={2} size="grow">
           <KanvasExtension />
           <WrappedMeshMapSnapShopCard githubActionEnabled={false} />

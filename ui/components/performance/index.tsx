@@ -487,7 +487,10 @@ const MesheryPerformanceComponent_ = (props) => {
 
   return (
     <NoSsr>
-      {CAN(keys.VIEW_PERFORMANCE_PROFILES.action, keys.VIEW_PERFORMANCE_PROFILES.subject) ? (
+      {CAN(
+        keys.PerformanceManagementViewPerformanceProfiles.action,
+        keys.PerformanceManagementViewPerformanceProfiles.subject,
+      ) ? (
         <>
           <React.Fragment>
             <ModalBody>

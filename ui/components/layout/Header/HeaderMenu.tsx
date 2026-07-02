@@ -134,7 +134,10 @@ const HeaderMenu = () => {
         id: 'get-token',
         title: 'Get Token',
         onClick: handleGetToken,
-        permission: CAN(keys.DOWNLOAD_TOKEN.action, keys.DOWNLOAD_TOKEN.subject),
+        permission: CAN(
+          keys.SecurityManagementDownloadToken.action,
+          keys.SecurityManagementDownloadToken.subject,
+        ),
       });
     }
 

@@ -89,7 +89,12 @@ export default function MesheryConfigurationChart() {
       href="/configuration/designs"
       style={{
         textDecoration: 'none',
-        pointerEvents: !CAN(keys.VIEW_DESIGNS.action, keys.VIEW_DESIGNS.subject) ? 'none' : 'auto',
+        pointerEvents: !CAN(
+          keys.CatalogManagementViewDesigns.action,
+          keys.CatalogManagementViewDesigns.subject,
+        )
+          ? 'none'
+          : 'auto',
       }}
     >
       <DashboardSection>

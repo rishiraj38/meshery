@@ -55,8 +55,8 @@ const GetStarted = (props: { iconsProps?: object }) => {
         useHandleUserInviteMutation={useHandleUserInviteMutation}
         useNotificationHandlers={useNotificationHandlers}
         isAssignUserRolesAllowed={CAN(
-          keys.ASSIGN_USER_ROLES.action,
-          keys.ASSIGN_USER_ROLES.subject,
+          keys.IdentityAccessManagementAssignUserRoles.action,
+          keys.IdentityAccessManagementAssignUserRoles.subject,
         )}
         useLazyGetTeamsQuery={useLazyGetTeamsQuery}
         embedDesignPath="/static/img/getting-started/embedded-design-edge-stack.js"

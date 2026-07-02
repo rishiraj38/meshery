@@ -181,10 +181,10 @@ vi.mock('@/utils/can', () => ({
 
 vi.mock('@/utils/permission_constants', () => ({
   keys: {
-    ASSIGN_CONNECTIONS_TO_ENVIRONMENT: { action: 'assign', subject: 'environment' },
-    CHANGE_CONNECTION_STATE: { action: 'change', subject: 'connection' },
-    DELETE_A_CONNECTION: { action: 'delete', subject: 'connection' },
-    FLUSH_MESHSYNC_DATA: { action: 'flush', subject: 'meshsync' },
+    WorkspaceManagementAssignConnectionsToEnvironment: { action: 'assign', subject: 'environment' },
+    LifecycleManagementChangeConnectionState: { action: 'change', subject: 'connection' },
+    LifecycleManagementDeleteAConnection: { action: 'delete', subject: 'connection' },
+    LifecycleManagementFlushMeshsyncData: { action: 'flush', subject: 'meshsync' },
   },
 }));
 

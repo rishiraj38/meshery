@@ -286,7 +286,10 @@ function PerformanceProfile({ handleDelete }) {
                     }}
                     aria-label="edit"
                     disabled={
-                      !CAN(keys.EDIT_PERFORMANCE_TEST.action, keys.EDIT_PERFORMANCE_TEST.subject)
+                      !CAN(
+                        keys.PerformanceManagementEditPerformanceTest.action,
+                        keys.PerformanceManagementEditPerformanceTest.subject,
+                      )
                     }
                   >
                     <EditIcon
@@ -308,7 +311,12 @@ function PerformanceProfile({ handleDelete }) {
                       setSelectedProfile({ ...testProfiles[tableMeta.rowIndex], runTest: true });
                     }}
                     aria-label="run"
-                    disabled={!CAN(keys.RUN_TEST.action, keys.RUN_TEST.subject)}
+                    disabled={
+                      !CAN(
+                        keys.PerformanceManagementRunTest.action,
+                        keys.PerformanceManagementRunTest.subject,
+                      )
+                    }
                   >
                     <PlayArrowIcon
                       style={{
@@ -449,8 +457,8 @@ function PerformanceProfile({ handleDelete }) {
                     onClick={() => setProfileForModal({})}
                     disabled={
                       !CAN(
-                        keys.ADD_PERFORMANCE_PROFILE.action,
-                        keys.ADD_PERFORMANCE_PROFILE.subject,
+                        keys.PerformanceManagementAddPerformaceProfile.action,
+                        keys.PerformanceManagementAddPerformaceProfile.subject,
                       )
                     }
                   >
@@ -513,7 +521,10 @@ function PerformanceProfile({ handleDelete }) {
                 size="large"
                 onClick={() => setProfileForModal({})}
                 disabled={
-                  !CAN(keys.ADD_PERFORMANCE_PROFILE.action, keys.ADD_PERFORMANCE_PROFILE.subject)
+                  !CAN(
+                    keys.PerformanceManagementAddPerformaceProfile.action,
+                    keys.PerformanceManagementAddPerformaceProfile.subject,
+                  )
                 }
               >
                 <Typography className="addIcon">Add Performance Profile</Typography>

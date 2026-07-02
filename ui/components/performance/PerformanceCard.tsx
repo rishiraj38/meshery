@@ -232,7 +232,12 @@ function PerformanceCard({
                   });
                 })
               }
-              disabled={!CAN(keys.VIEW_RESULTS.action, keys.VIEW_RESULTS.subject)}
+              disabled={
+                !CAN(
+                  keys.PerformanceManagementViewResults.action,
+                  keys.PerformanceManagementViewResults.subject,
+                )
+              }
               sx={{ marginRight: '0.5rem' }}
             >
               {renderTable ? 'Hide' : 'View'} Results
@@ -241,7 +246,12 @@ function PerformanceCard({
               color="primary"
               variant="contained"
               onClick={(ev) => genericClickHandler(ev, handleProfile)}
-              disabled={!CAN(keys.RUN_TEST.action, keys.RUN_TEST.subject)}
+              disabled={
+                !CAN(
+                  keys.PerformanceManagementRunTest.action,
+                  keys.PerformanceManagementRunTest.subject,
+                )
+              }
               sx={{ marginRight: '0.5rem' }}
             >
               Edit Profile
@@ -250,7 +260,12 @@ function PerformanceCard({
               color="primary"
               variant="contained"
               onClick={(ev) => genericClickHandler(ev, handleRunTest)}
-              disabled={!CAN(keys.RUN_TEST.action, keys.RUN_TEST.subject)}
+              disabled={
+                !CAN(
+                  keys.PerformanceManagementRunTest.action,
+                  keys.PerformanceManagementRunTest.subject,
+                )
+              }
             >
               Run Test
             </Button>
@@ -300,7 +315,10 @@ function PerformanceCard({
                   onClick={(ev) => genericClickHandler(ev, handleEdit)}
                   data-testid={dataTestIDs('edit')}
                   disabled={
-                    !CAN(keys.EDIT_PERFORMANCE_TEST.action, keys.EDIT_PERFORMANCE_TEST.subject)
+                    !CAN(
+                      keys.PerformanceManagementEditPerformanceTest.action,
+                      keys.PerformanceManagementEditPerformanceTest.subject,
+                    )
                   }
                 >
                   <EditIcon style={iconMedium} />
@@ -311,7 +329,10 @@ function PerformanceCard({
                   onClick={(ev) => genericClickHandler(ev, handleDelete)}
                   data-testid={dataTestIDs('delete')}
                   disabled={
-                    !CAN(keys.DELETE_PERFORMANCE_TEST.action, keys.DELETE_PERFORMANCE_TEST.subject)
+                    !CAN(
+                      keys.PerformanceManagementDeletePerformanceTest.action,
+                      keys.PerformanceManagementDeletePerformanceTest.subject,
+                    )
                   }
                 >
                   <DeleteIcon style={iconMedium} />

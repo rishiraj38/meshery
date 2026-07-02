@@ -414,7 +414,8 @@ function MesheryPatterns({
 
   const userCanEdit = (pattern) => {
     return (
-      CAN(keys.EDIT_DESIGN.action, keys.EDIT_DESIGN.subject) && user?.userId == pattern?.userId
+      CAN(keys.CatalogManagementEditDesign.action, keys.CatalogManagementEditDesign.subject) &&
+      user?.userId == pattern?.userId
     );
   };
 
@@ -520,7 +521,10 @@ function MesheryPatterns({
   return (
     <>
       <NoSsr>
-        {CAN(keys.VIEW_DESIGNS.action, keys.VIEW_DESIGNS.subject) ? (
+        {CAN(
+          keys.CatalogManagementViewDesigns.action,
+          keys.CatalogManagementViewDesigns.subject,
+        ) ? (
           <>
             {selectedRowData && Object.keys(selectedRowData).length > 0 && (
               <YAMLEditor
@@ -612,7 +616,10 @@ function MesheryPatterns({
 
             <SistentModal maxWidth="sm" {...designLifecycleModal}></SistentModal>
             <SistentModal {...sistentInfoModal}>
-              {CAN(keys.DETAILS_OF_DESIGN.action, keys.DETAILS_OF_DESIGN.subject) &&
+              {CAN(
+                keys.CatalogManagementDetailsOfDesign.action,
+                keys.CatalogManagementDetailsOfDesign.subject,
+              ) &&
                 infoModal.open && (
                   <InfoModal
                     infoModalOpen={true}
@@ -626,7 +633,10 @@ function MesheryPatterns({
 
             {canPublishPattern &&
               publishModal.open &&
-              CAN(keys.PUBLISH_DESIGN.action, keys.PUBLISH_DESIGN.subject) && (
+              CAN(
+                keys.CatalogManagementPublishDesign.action,
+                keys.CatalogManagementPublishDesign.subject,
+              ) && (
                 <PublishDesignModal
                   publishFormSchema={publishSchema}
                   handleClose={handlePublishModalClose}
@@ -634,12 +644,16 @@ function MesheryPatterns({
                   handleSubmit={handlePublish}
                 />
               )}
-            {importModal.open && CAN(keys.IMPORT_DESIGN.action, keys.IMPORT_DESIGN.subject) && (
-              <ImportDesignModal
-                handleClose={handleUploadImportClose}
-                handleImportDesign={handleImportDesign}
-              />
-            )}
+            {importModal.open &&
+              CAN(
+                keys.CatalogManagementImportDesign.action,
+                keys.CatalogManagementImportDesign.subject,
+              ) && (
+                <ImportDesignModal
+                  handleClose={handleUploadImportClose}
+                  handleImportDesign={handleImportDesign}
+                />
+              )}
             <_PromptComponent ref={modalRef} />
           </>
         ) : (

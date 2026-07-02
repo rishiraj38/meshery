@@ -31,7 +31,7 @@ vi.mock('@/utils/can', () => ({
 
 vi.mock('@/utils/permission_constants', () => ({
   keys: {
-    VIEW_ALL_KUBERNETES_CLUSTERS: { action: 'view', subject: 'k8s' },
+    IdentityAccessManagementViewAllKubernetesClusters: { action: 'view', subject: 'k8s' },
   },
 }));
 

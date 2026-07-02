@@ -65,14 +65,20 @@ const WorkspaceActionList = ({
       label: 'Edit Workspace',
       icon: <EditIcon style={{ fill: theme.palette.icon.default, ...iconMedium }} />,
       onClick: (e) => handleWorkspaceModalOpen(e, WORKSPACE_ACTION_TYPES.EDIT, selectedWorkspace),
-      disabled: !CAN(keys.EDIT_WORKSPACE.action, keys.EDIT_WORKSPACE.subject),
+      disabled: !CAN(
+        keys.WorkspaceManagementEditWorkspace.action,
+        keys.WorkspaceManagementEditWorkspace.subject,
+      ),
     },
     {
       key: 'delete-workspace',
       label: 'Delete Workspace',
       icon: <DeleteIcon style={{ fill: theme.palette.icon.default, ...iconMedium }} />,
       onClick: (e) => handleDeleteWorkspaceConfirm(e, selectedWorkspace),
-      disabled: !CAN(keys.DELETE_WORKSPACE.action, keys.DELETE_WORKSPACE.subject),
+      disabled: !CAN(
+        keys.WorkspaceManagementDeleteWorkspace.action,
+        keys.WorkspaceManagementDeleteWorkspace.subject,
+      ),
     },
   ];
 

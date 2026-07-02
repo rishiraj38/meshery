@@ -63,8 +63,8 @@ vi.mock('@/utils/can', () => ({
 
 vi.mock('@/utils/permission_constants', () => ({
   keys: {
-    EDIT_DESIGN: { action: 'edit', subject: 'design' },
-    DELETE_A_DESIGN: { action: 'delete', subject: 'design' },
+    CatalogManagementEditDesign: { action: 'edit', subject: 'design' },
+    CatalogManagementDeleteADesign: { action: 'delete', subject: 'design' },
   },
 }));
 

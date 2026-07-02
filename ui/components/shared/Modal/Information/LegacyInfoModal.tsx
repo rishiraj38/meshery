@@ -479,8 +479,10 @@ const InfoModal_: FC<InfoModalProps> = React.memo((props) => {
                 !isPublished
                   ? false
                   : !(
-                      CAN(keys.PUBLISH_DESIGN.action, keys.PUBLISH_DESIGN.subject) &&
-                      currentUser?.id === selectedResource?.userId
+                      CAN(
+                        keys.CatalogManagementPublishDesign.action,
+                        keys.CatalogManagementPublishDesign.subject,
+                      ) && currentUser?.id === selectedResource?.userId
                     ) || isPublished
               }
             >

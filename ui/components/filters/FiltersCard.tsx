@@ -163,7 +163,12 @@ function FiltersCard_({
                     borderRadius: '8px',
                   }}
                   onClick={(ev) => genericClickHandler(ev, handlePublishModal)}
-                  disabled={!CAN(keys.PUBLISH_WASM_FILTER.action, keys.PUBLISH_WASM_FILTER.subject)}
+                  disabled={
+                    !CAN(
+                      keys.CatalogManagementPublishWasmFilter.action,
+                      keys.CatalogManagementPublishWasmFilter.subject,
+                    )
+                  }
                 >
                   <PublicIcon style={iconMedium} />
                   <> Publish </>
@@ -178,7 +183,10 @@ function FiltersCard_({
                   }}
                   onClick={(ev) => genericClickHandler(ev, handleUnpublishModal)}
                   disabled={
-                    !CAN(keys.UNPUBLISH_WASM_FILTER.action, keys.UNPUBLISH_WASM_FILTER.subject)
+                    !CAN(
+                      keys.CatalogManagementUnpublishWasmFilter.action,
+                      keys.CatalogManagementUnpublishWasmFilter.subject,
+                    )
                   }
                 >
                   <PublicIcon style={iconMedium} />
@@ -195,7 +203,10 @@ function FiltersCard_({
                   borderRadius: '8px',
                 }}
                 disabled={
-                  !CAN(keys.DOWNLOAD_A_WASM_FILTER.action, keys.DOWNLOAD_A_WASM_FILTER.subject)
+                  !CAN(
+                    keys.CatalogManagementDownloadAWasmFilter.action,
+                    keys.CatalogManagementDownloadAWasmFilter.subject,
+                  )
                 }
               >
                 <GetAppIcon fill={theme.palette.background.constant.white} style={iconMedium} />
@@ -212,7 +223,12 @@ function FiltersCard_({
                     borderRadius: '8px',
                   }}
                   onClick={(ev) => genericClickHandler(ev, handleClone)}
-                  disabled={!CAN(keys.CLONE_WASM_FILTER.action, keys.CLONE_WASM_FILTER.subject)}
+                  disabled={
+                    !CAN(
+                      keys.CatalogManagementCloneWasmFilter.action,
+                      keys.CatalogManagementCloneWasmFilter.subject,
+                    )
+                  }
                 >
                   <CloneIcon fill={theme.palette.background.constant.white} style={iconMedium} />
                   <GridCloneBtnText>Clone</GridCloneBtnText>
@@ -228,7 +244,10 @@ function FiltersCard_({
                   borderRadius: '8px',
                 }}
                 disabled={
-                  !CAN(keys.DETAILS_OF_WASM_FILTER.action, keys.DETAILS_OF_WASM_FILTER.subject)
+                  !CAN(
+                    keys.CatalogManagementDetailsOfWasmFilter.action,
+                    keys.CatalogManagementDetailsOfWasmFilter.subject,
+                  )
                 }
               >
                 <InfoOutlinedIcon
@@ -311,7 +330,12 @@ function FiltersCard_({
                 {/* Save button */}
                 <Tooltip title="Save" arrow interactive placement="bottom">
                   <IconButton
-                    disabled={!CAN(keys.EDIT_WASM_FILTER.action, keys.EDIT_WASM_FILTER.subject)}
+                    disabled={
+                      !CAN(
+                        keys.CatalogManagementEditWasmFilter.action,
+                        keys.CatalogManagementEditWasmFilter.subject,
+                      )
+                    }
                     onClick={(ev) => genericClickHandler(ev, updateHandler)}
                   >
                     <Save fill={theme.palette.icon.default} />
@@ -321,7 +345,12 @@ function FiltersCard_({
                 {/* Delete Button */}
                 <Tooltip title="Delete" arrow interactive placement="bottom">
                   <IconButton
-                    disabled={!CAN(keys.DELETE_WASM_FILTER.action, keys.DELETE_WASM_FILTER.subject)}
+                    disabled={
+                      !CAN(
+                        keys.CatalogManagementDeleteWasmFilter.action,
+                        keys.CatalogManagementDeleteWasmFilter.subject,
+                      )
+                    }
                     onClick={(ev) => genericClickHandler(ev, deleteHandler)}
                   >
                     <DeleteIcon fill={theme.palette.icon.default} />

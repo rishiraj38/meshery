@@ -248,13 +248,25 @@ const ConfirmationMsg: FC<ConfirmationMsgProps> = (props) => {
                 )}
               </div>
             }
-            disabled={!CAN(keys.VALIDATE_DESIGN.action, keys.VALIDATE_DESIGN.subject)}
+            disabled={
+              !CAN(
+                keys.CatalogManagementValidateDesign.action,
+                keys.CatalogManagementValidateDesign.subject,
+              )
+            }
           />
         )}
         <Tab
           disabled={
-            !CAN(keys.UNDEPLOY_DESIGN.action, keys.UNDEPLOY_DESIGN.subject) ||
-            (CAN(keys.UNDEPLOY_DESIGN.action, keys.UNDEPLOY_DESIGN.subject) && isDisabled)
+            !CAN(
+              keys.CatalogManagementUndeployDesign.action,
+              keys.CatalogManagementUndeployDesign.subject,
+            ) ||
+            (CAN(
+              keys.CatalogManagementUndeployDesign.action,
+              keys.CatalogManagementUndeployDesign.subject,
+            ) &&
+              isDisabled)
           }
           data-cy="Undeploy-btn-modal"
           onClick={(event) => handleTabValChange(event, ACTIONS.UNDEPLOY)}
@@ -275,8 +287,15 @@ const ConfirmationMsg: FC<ConfirmationMsgProps> = (props) => {
         />
         <Tab
           disabled={
-            !CAN(keys.DEPLOY_DESIGN.action, keys.DEPLOY_DESIGN.subject) ||
-            (CAN(keys.DEPLOY_DESIGN.action, keys.DEPLOY_DESIGN.subject) && isDisabled)
+            !CAN(
+              keys.CatalogManagementDeployDesign.action,
+              keys.CatalogManagementDeployDesign.subject,
+            ) ||
+            (CAN(
+              keys.CatalogManagementDeployDesign.action,
+              keys.CatalogManagementDeployDesign.subject,
+            ) &&
+              isDisabled)
           }
           data-cy="deploy-btn-modal"
           onClick={(event) => handleTabValChange(event, ACTIONS.DEPLOY)}

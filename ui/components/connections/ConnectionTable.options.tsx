@@ -76,7 +76,12 @@ export const useConnectionTableOptions = ({
           size="large"
           onClick={() => handleDeleteConnections(selected)}
           sx={{ backgroundColor: `${theme.palette.error.dark} !important`, marginRight: '10px' }}
-          disabled={!CAN(keys.DELETE_A_CONNECTION.action, keys.DELETE_A_CONNECTION.subject)}
+          disabled={
+            !CAN(
+              keys.LifecycleManagementDeleteAConnection.action,
+              keys.LifecycleManagementDeleteAConnection.subject,
+            )
+          }
           data-testid="Button-delete-connections"
         >
           <DeleteIcon style={iconMedium} fill={theme.palette.common.white} />

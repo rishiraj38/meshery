@@ -64,7 +64,12 @@ function MesheryPatternsToolbar({
                     // @ts-ignore
                     onClick={() => router.push('designs/configurator')}
                     style={{ display: 'flex', marginRight: '2rem' }}
-                    disabled={!CAN(keys.CREATE_NEW_DESIGN.action, keys.CREATE_NEW_DESIGN.subject)}
+                    disabled={
+                      !CAN(
+                        keys.CatalogManagementCreateNewDesign.action,
+                        keys.CatalogManagementCreateNewDesign.subject,
+                      )
+                    }
                   >
                     <AddIconStyled />
                     <BtnText> Create Design </BtnText>
@@ -79,7 +84,12 @@ function MesheryPatternsToolbar({
                     // @ts-ignore
                     onClick={handleUploadImport}
                     style={{ display: 'flex', marginRight: '2rem', marginLeft: '-0.6rem' }}
-                    disabled={!CAN(keys.IMPORT_DESIGN.action, keys.IMPORT_DESIGN.subject)}
+                    disabled={
+                      !CAN(
+                        keys.CatalogManagementImportDesign.action,
+                        keys.CatalogManagementImportDesign.subject,
+                      )
+                    }
                   >
                     <AddIconStyled>
                       <PublishIcon />

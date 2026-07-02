@@ -74,7 +74,12 @@ export const ConnectionActionMenu = ({
           type="submit"
           onClick={onFlushMeshSync}
           data-cy="btnResetDatabase"
-          disabled={!CAN(keys.FLUSH_MESHSYNC_DATA.action, keys.FLUSH_MESHSYNC_DATA.subject)}
+          disabled={
+            !CAN(
+              keys.LifecycleManagementFlushMeshsyncData.action,
+              keys.LifecycleManagementFlushMeshsyncData.subject,
+            )
+          }
         >
           <SyncAltIcon {...iconMedium} />
           <Typography variant="body1" style={{ marginLeft: '0.5rem' }}>

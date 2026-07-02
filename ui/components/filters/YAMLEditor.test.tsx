@@ -11,8 +11,8 @@ vi.mock('@/utils/can', () => ({
 
 vi.mock('@/utils/permission_constants', () => ({
   keys: {
-    EDIT_WASM_FILTER: { action: 'edit', subject: 'wasm-filter' },
-    DELETE_WASM_FILTER: { action: 'delete', subject: 'wasm-filter' },
+    CatalogManagementEditWasmFilter: { action: 'edit', subject: 'wasm-filter' },
+    CatalogManagementDeleteWasmFilter: { action: 'delete', subject: 'wasm-filter' },
   },
 }));
 

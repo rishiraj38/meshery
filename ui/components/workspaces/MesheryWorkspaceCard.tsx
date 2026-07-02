@@ -41,10 +41,19 @@ const MesheryWorkspaceCard = ({
 }) => {
   const [skip, setSkip] = useState(true);
   const [skipEvents, setSkipEvents] = useState(true);
-  const isViewsVisible = CAN(keys.VIEW_VIEWS.action, keys.VIEW_VIEWS.subject);
-  const isDesignsVisible = CAN(keys.VIEW_DESIGNS.action, keys.VIEW_DESIGNS.subject);
-  const isTeamsVisible = CAN(keys.VIEW_TEAMS.action, keys.VIEW_TEAMS.subject);
-  const isEnvironmentsVisible = CAN(keys.VIEW_ENVIRONMENTS.action, keys.VIEW_ENVIRONMENTS.subject);
+  const isViewsVisible = CAN(keys.KanvasViewViews.action, keys.KanvasViewViews.subject);
+  const isDesignsVisible = CAN(
+    keys.CatalogManagementViewDesigns.action,
+    keys.CatalogManagementViewDesigns.subject,
+  );
+  const isTeamsVisible = CAN(
+    keys.IdentityAccessManagementViewTeams.action,
+    keys.IdentityAccessManagementViewTeams.subject,
+  );
+  const isEnvironmentsVisible = CAN(
+    keys.WorkspaceManagementViewEnvironment.action,
+    keys.WorkspaceManagementViewEnvironment.subject,
+  );
   const deleted = workspaceDetails.deletedAt.Valid;
 
   const { data: teamsOfWorkspace } = useGetTeamsOfWorkspaceQuery(
@@ -121,7 +130,10 @@ const MesheryWorkspaceCard = ({
 
   const teamAssignment = useTeamAssignment({
     workspaceId: workspaceDetails.id,
-    isTeamsVisible: CAN(keys.VIEW_TEAMS.action, keys.VIEW_TEAMS.subject),
+    isTeamsVisible: CAN(
+      keys.IdentityAccessManagementViewTeams.action,
+      keys.IdentityAccessManagementViewTeams.subject,
+    ),
     useAssignTeamToWorkspaceMutation: useAssignTeamToWorkspaceMutation,
     useGetTeamsOfWorkspaceQuery: useGetTeamsOfWorkspaceQuery,
     useUnassignTeamFromWorkspaceMutation: useUnassignTeamFromWorkspaceMutation,
@@ -129,7 +141,10 @@ const MesheryWorkspaceCard = ({
 
   const environmentAssignment = useEnvironmentAssignment({
     workspaceId: workspaceDetails.id,
-    isEnvironmentsVisible: CAN(keys.VIEW_ENVIRONMENTS.action, keys.VIEW_ENVIRONMENTS.subject),
+    isEnvironmentsVisible: CAN(
+      keys.WorkspaceManagementViewEnvironment.action,
+      keys.WorkspaceManagementViewEnvironment.subject,
+    ),
 
     useAssignEnvironmentToWorkspaceMutation: useAssignEnvironmentToWorkspaceMutation,
     useGetEnvironmentsOfWorkspaceQuery: useGetEnvironmentsOfWorkspaceQuery,
@@ -138,7 +153,10 @@ const MesheryWorkspaceCard = ({
 
   const designAssignment = useDesignAssignment({
     workspaceId: workspaceDetails.id,
-    isDesignsVisible: CAN(keys.VIEW_DESIGNS.action, keys.VIEW_DESIGNS.subject),
+    isDesignsVisible: CAN(
+      keys.CatalogManagementViewDesigns.action,
+      keys.CatalogManagementViewDesigns.subject,
+    ),
     useAssignDesignToWorkspaceMutation: useAssignDesignToWorkspaceMutation,
     useGetDesignsOfWorkspaceQuery: useGetDesignsOfWorkspaceQuery,
     useUnassignDesignFromWorkspaceMutation: useUnassignDesignFromWorkspaceMutation,
@@ -146,7 +164,7 @@ const MesheryWorkspaceCard = ({
 
   const viewAssignment = useViewAssignment({
     workspaceId: workspaceDetails.id,
-    isViewsVisible: CAN(keys.VIEW_VIEWS.action, keys.VIEW_VIEWS.subject),
+    isViewsVisible: CAN(keys.KanvasViewViews.action, keys.KanvasViewViews.subject),
     useGetViewsOfWorkspaceQuery: useGetViewsOfWorkspaceQuery,
     useAssignViewToWorkspaceMutation: useAssignViewToWorkspaceMutation,
     useUnassignViewFromWorkspaceMutation: useUnassignViewFromWorkspaceMutation,
@@ -173,20 +191,32 @@ const MesheryWorkspaceCard = ({
         designAndViewOfWorkspaceCount={designsAndViewsCount}
         environmentsOfWorkspaceCount={environmentsOfWorkspaceCount}
         teamsOfWorkspaceCount={teamsOfWorkspaceCount}
-        isDeleteWorkspaceAllowed={CAN(keys.DELETE_WORKSPACE.action, keys.DELETE_WORKSPACE.subject)}
+        isDeleteWorkspaceAllowed={CAN(
+          keys.WorkspaceManagementDeleteWorkspace.action,
+          keys.WorkspaceManagementDeleteWorkspace.subject,
+        )}
         isTeamAllowed={
-          CAN(keys.ASSIGN_TEAM_TO_WORKSPACE.action, keys.ASSIGN_TEAM_TO_WORKSPACE.subject) ||
-          CAN(keys.REMOVE_TEAM_FROM_WORKSPACE.action, keys.REMOVE_TEAM_FROM_WORKSPACE.subject)
-        }
-        isEditWorkspaceAllowed={CAN(keys.EDIT_WORKSPACE.action, keys.EDIT_WORKSPACE.subject)}
-        isEnvironmentAllowed={
           CAN(
-            keys.ASSIGN_ENVIRONMENT_TO_WORKSPACE.action,
-            keys.ASSIGN_ENVIRONMENT_TO_WORKSPACE.subject,
+            keys.WorkspaceManagementAssignTeamToWorkspace.action,
+            keys.WorkspaceManagementAssignTeamToWorkspace.subject,
           ) ||
           CAN(
-            keys.REMOVE_ENVIRONMENT_FROM_WORKSPACE.action,
-            keys.REMOVE_ENVIRONMENT_FROM_WORKSPACE.subject,
+            keys.WorkspaceManagementRemoveTeamFromWorkspace.action,
+            keys.WorkspaceManagementRemoveTeamFromWorkspace.subject,
+          )
+        }
+        isEditWorkspaceAllowed={CAN(
+          keys.WorkspaceManagementEditWorkspace.action,
+          keys.WorkspaceManagementEditWorkspace.subject,
+        )}
+        isEnvironmentAllowed={
+          CAN(
+            keys.WorkspaceManagementAssignEnvironmentToWorkspace.action,
+            keys.WorkspaceManagementAssignEnvironmentToWorkspace.subject,
+          ) ||
+          CAN(
+            keys.WorkspaceManagementRemoveEnvironmentFromWorkspace.action,
+            keys.WorkspaceManagementRemoveEnvironmentFromWorkspace.subject,
           )
         }
         onFlip={() => setSkipEvents(false)}
@@ -202,12 +232,24 @@ const MesheryWorkspaceCard = ({
         recentActivities={events?.data}
         loadingEvents={isEventsLoading}
         isDesignAllowed={
-          CAN(keys.ASSIGN_DESIGNS_TO_WORKSPACE.action, keys.ASSIGN_DESIGNS_TO_WORKSPACE.subject) ||
-          CAN(keys.REMOVE_DESIGNS_FROM_WORKSPACE.action, keys.REMOVE_DESIGNS_FROM_WORKSPACE.subject)
+          CAN(
+            keys.WorkspaceManagementAssignDesignsToWorkspaces.action,
+            keys.WorkspaceManagementAssignDesignsToWorkspaces.subject,
+          ) ||
+          CAN(
+            keys.WorkspaceManagementRemoveDesignsFromWorkspaces.action,
+            keys.WorkspaceManagementRemoveDesignsFromWorkspaces.subject,
+          )
         }
         isViewAllowed={
-          CAN(keys.ASSIGN_VIEWS_TO_WORKSPACE.action, keys.ASSIGN_VIEWS_TO_WORKSPACE.subject) ||
-          CAN(keys.REMOVE_VIEWS_FROM_WORKSPACE.action, keys.REMOVE_VIEWS_FROM_WORKSPACE.subject)
+          CAN(
+            keys.KanvasAssignViewsToWorkspace.action,
+            keys.KanvasAssignViewsToWorkspace.subject,
+          ) ||
+          CAN(
+            keys.KanvasUnassignViewsFromWorkspace.action,
+            keys.KanvasUnassignViewsFromWorkspace.subject,
+          )
         }
         isViewsVisible={false}
         isDesignsVisible={false}
@@ -241,12 +283,12 @@ const MesheryWorkspaceCard = ({
         disableTransfer={teamAssignment.disableTransferButton}
         helpText={`Assign Teams to ${workspaceDetails.name}`}
         isAssignAllowed={CAN(
-          keys.ASSIGN_TEAM_TO_WORKSPACE.action,
-          keys.ASSIGN_TEAM_TO_WORKSPACE.subject,
+          keys.WorkspaceManagementAssignTeamToWorkspace.action,
+          keys.WorkspaceManagementAssignTeamToWorkspace.subject,
         )}
         isRemoveAllowed={CAN(
-          keys.REMOVE_TEAM_FROM_WORKSPACE.action,
-          keys.REMOVE_TEAM_FROM_WORKSPACE.subject,
+          keys.WorkspaceManagementRemoveTeamFromWorkspace.action,
+          keys.WorkspaceManagementRemoveTeamFromWorkspace.subject,
         )}
       />
       <AssignmentModal
@@ -275,12 +317,12 @@ const MesheryWorkspaceCard = ({
         disableTransfer={environmentAssignment.disableTransferButton}
         helpText={`Assign Environments to ${workspaceDetails.name}`}
         isAssignAllowed={CAN(
-          keys.ASSIGN_ENVIRONMENT_TO_WORKSPACE.action,
-          keys.ASSIGN_ENVIRONMENT_TO_WORKSPACE.subject,
+          keys.WorkspaceManagementAssignEnvironmentToWorkspace.action,
+          keys.WorkspaceManagementAssignEnvironmentToWorkspace.subject,
         )}
         isRemoveAllowed={CAN(
-          keys.REMOVE_ENVIRONMENT_FROM_WORKSPACE.action,
-          keys.REMOVE_ENVIRONMENT_FROM_WORKSPACE.subject,
+          keys.WorkspaceManagementRemoveEnvironmentFromWorkspace.action,
+          keys.WorkspaceManagementRemoveEnvironmentFromWorkspace.subject,
         )}
       />
 
@@ -311,12 +353,12 @@ const MesheryWorkspaceCard = ({
         }
         helpText={`Assign Designs and Views to ${workspaceDetails.name}`}
         isAssignAllowed={CAN(
-          keys.ASSIGN_DESIGNS_TO_WORKSPACE.action,
-          keys.ASSIGN_DESIGNS_TO_WORKSPACE.subject,
+          keys.WorkspaceManagementAssignDesignsToWorkspaces.action,
+          keys.WorkspaceManagementAssignDesignsToWorkspaces.subject,
         )}
         isRemoveAllowed={CAN(
-          keys.REMOVE_DESIGNS_FROM_WORKSPACE.action,
-          keys.REMOVE_DESIGNS_FROM_WORKSPACE.subject,
+          keys.WorkspaceManagementRemoveDesignsFromWorkspaces.action,
+          keys.WorkspaceManagementRemoveDesignsFromWorkspaces.subject,
         )}
         showViews={true}
         emptyStateViewsIcon={
@@ -331,12 +373,12 @@ const MesheryWorkspaceCard = ({
         originalLeftViewsCount={viewAssignment.data?.totalCount}
         originalRightViewsCount={viewAssignment.workspaceData?.totalCount}
         isAssignAllowedViews={CAN(
-          keys.ASSIGN_VIEWS_TO_WORKSPACE.action,
-          keys.ASSIGN_VIEWS_TO_WORKSPACE.subject,
+          keys.KanvasAssignViewsToWorkspace.action,
+          keys.KanvasAssignViewsToWorkspace.subject,
         )}
         isRemoveAllowedViews={CAN(
-          keys.REMOVE_VIEWS_FROM_WORKSPACE.action,
-          keys.REMOVE_VIEWS_FROM_WORKSPACE.subject,
+          keys.KanvasUnassignViewsFromWorkspace.action,
+          keys.KanvasUnassignViewsFromWorkspace.subject,
         )}
       />
     </>

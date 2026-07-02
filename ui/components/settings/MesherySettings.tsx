@@ -198,7 +198,7 @@ const MesherySettings = () => {
   }
   return (
     <>
-      {CAN(keys.VIEW_SETTINGS.action, keys.VIEW_SETTINGS.subject) ? (
+      {CAN(keys.MesherySystemViewSettings.action, keys.MesherySystemViewSettings.subject) ? (
         <>
           <div sx={{ flexGrow: 1, maxWidth: '100%', height: 'auto' }}>
             <StyledPaper square>
@@ -240,8 +240,8 @@ const MesherySettings = () => {
                     value={ADAPTERS}
                     disabled={
                       !CAN(
-                        keys.VIEW_CLOUD_NATIVE_INFRASTRUCTURE.action,
-                        keys.VIEW_CLOUD_NATIVE_INFRASTRUCTURE.subject,
+                        keys.InfrastructureManagementViewCloudNativeInfrastructure.action,
+                        keys.InfrastructureManagementViewCloudNativeInfrastructure.subject,
                       )
                     }
                   />
@@ -252,7 +252,12 @@ const MesherySettings = () => {
                     label="Registry"
                     data-testid="settings-tab-registry"
                     value={REGISTRY}
-                    disabled={!CAN(keys.VIEW_REGISTRY.action, keys.VIEW_REGISTRY.subject)}
+                    disabled={
+                      !CAN(
+                        keys.MesherySystemViewRegistry.action,
+                        keys.MesherySystemViewRegistry.subject,
+                      )
+                    }
                   />
                 </CustomTooltip>
 
@@ -319,8 +324,8 @@ const MesherySettings = () => {
             )}
             {tabVal === ADAPTERS &&
               CAN(
-                keys.VIEW_CLOUD_NATIVE_INFRASTRUCTURE.action,
-                keys.VIEW_CLOUD_NATIVE_INFRASTRUCTURE.subject,
+                keys.InfrastructureManagementViewCloudNativeInfrastructure.action,
+                keys.InfrastructureManagementViewCloudNativeInfrastructure.subject,
               ) && (
                 <TabContainer>
                   <MeshAdapterConfigComponent />

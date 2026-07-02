@@ -440,7 +440,10 @@ function MesheryFilters() {
     <>
       <>
         <NoSsr>
-          {CAN(keys.VIEW_FILTERS.action, keys.VIEW_FILTERS.subject) ? (
+          {CAN(
+            keys.CatalogManagementViewFilters.action,
+            keys.CatalogManagementViewFilters.subject,
+          ) ? (
             <>
               {selectedRowData && Object.keys(selectedRowData).length > 0 && (
                 <YAMLEditor
@@ -460,7 +463,12 @@ function MesheryFilters() {
                           color="primary"
                           size="large"
                           onClick={handleUploadImport}
-                          disabled={!CAN(keys.IMPORT_FILTER.action, keys.IMPORT_FILTER.subject)}
+                          disabled={
+                            !CAN(
+                              keys.CatalogManagementImportFilter.action,
+                              keys.CatalogManagementImportFilter.subject,
+                            )
+                          }
                         >
                           <PublishIcon style={iconMedium} data-cy="import-button" />
                           <BtnText> Import Filters </BtnText>
@@ -547,21 +555,31 @@ function MesheryFilters() {
               )}
               {canPublishFilter &&
                 publishModal.open &&
-                CAN(keys.PUBLISH_WASM_FILTER.action, keys.PUBLISH_WASM_FILTER.subject) && (
+                CAN(
+                  keys.CatalogManagementPublishWasmFilter.action,
+                  keys.CatalogManagementPublishWasmFilter.subject,
+                ) && (
                   <PublishModal
                     handleClose={handlePublishModalClose}
                     title={publishModal.filter?.name}
                     handleSubmit={handlePublish}
                   />
                 )}
-              {importModal.open && CAN(keys.IMPORT_FILTER.action, keys.IMPORT_FILTER.subject) && (
-                <ImportModal
-                  handleClose={handleUploadImportClose}
-                  handleImportFilter={handleImportFilter}
-                />
-              )}
+              {importModal.open &&
+                CAN(
+                  keys.CatalogManagementImportFilter.action,
+                  keys.CatalogManagementImportFilter.subject,
+                ) && (
+                  <ImportModal
+                    handleClose={handleUploadImportClose}
+                    handleImportFilter={handleImportFilter}
+                  />
+                )}
               {infoModal.open &&
-                CAN(keys.DETAILS_OF_WASM_FILTER.action, keys.DETAILS_OF_WASM_FILTER.subject) && (
+                CAN(
+                  keys.CatalogManagementDetailsOfWasmFilter.action,
+                  keys.CatalogManagementDetailsOfWasmFilter.subject,
+                ) && (
                   <InfoModal
                     handlePublish={handlePublish}
                     infoModalOpen={true}

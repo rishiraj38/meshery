@@ -38,7 +38,7 @@ import { useSelector } from 'react-redux';
 import { useNotification } from '@/utils/hooks/useNotification';
 
 const WorkspaceContent = ({ workspace }) => {
-  const isViewVisible = CAN(keys.VIEW_VIEWS.action, keys.VIEW_VIEWS.subject);
+  const isViewVisible = CAN(keys.KanvasViewViews.action, keys.KanvasViewViews.subject);
   const visibilityItems = [VISIBILITY.PUBLIC, VISIBILITY.PRIVATE];
 
   const [filters, setFilters] = useState({
@@ -247,8 +247,8 @@ const WorkspaceContent = ({ workspace }) => {
                 workspaceId={workspace?.id}
                 disabled={
                   !CAN(
-                    keys.ASSIGN_DESIGNS_TO_WORKSPACE.action,
-                    keys.ASSIGN_DESIGNS_TO_WORKSPACE.subject,
+                    keys.WorkspaceManagementAssignDesignsToWorkspaces.action,
+                    keys.WorkspaceManagementAssignDesignsToWorkspaces.subject,
                   )
                 }
               />
@@ -276,16 +276,16 @@ const WorkspaceContent = ({ workspace }) => {
             assignDesignToWorkspace={assignDesignToWorkspace}
             assignViewToWorkspace={assignViewToWorkspace}
             isCreateWorkspaceAllowed={CAN(
-              keys.CREATE_WORKSPACE.action,
-              keys.CREATE_WORKSPACE.subject,
+              keys.WorkspaceManagementCreateWorkspace.action,
+              keys.WorkspaceManagementCreateWorkspace.subject,
             )}
             isMoveDesignAllowed={CAN(
-              keys.ASSIGN_DESIGNS_TO_WORKSPACE.action,
-              keys.ASSIGN_DESIGNS_TO_WORKSPACE.subject,
+              keys.WorkspaceManagementAssignDesignsToWorkspaces.action,
+              keys.WorkspaceManagementAssignDesignsToWorkspaces.subject,
             )}
             isMoveViewAllowed={CAN(
-              keys.ASSIGN_VIEWS_TO_WORKSPACE.action,
-              keys.ASSIGN_VIEWS_TO_WORKSPACE.subject,
+              keys.KanvasAssignViewsToWorkspace.action,
+              keys.KanvasAssignViewsToWorkspace.subject,
             )}
             currentOrgId={currentOrganization?.id}
             notify={notify}
