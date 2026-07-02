@@ -16,6 +16,13 @@ import (
 // apparently-silent stream.
 const eventStreamKeepAliveInterval = 15 * time.Second
 
+// eventStreamWriteTimeout caps how long a single frame write may block on the
+// socket. Without it a client that stops reading (a stalled tab, a half-open
+// connection) would wedge this goroutine on the write indefinitely, and - since
+// events flow through a per-user buffered channel - back up delivery for that
+// user. On timeout the write errors out and the handler unwinds, unsubscribing.
+const eventStreamWriteTimeout = 30 * time.Second
+
 // SubscribeEventsHandler streams a user's events over Server-Sent Events. It
 // replaces the former `subscribeEvents` GraphQL subscription: both draw from the
 // same per-user EventBroadcaster, so any handler that publishes an event (e.g.
@@ -61,6 +68,13 @@ func (h *Handler) SubscribeEventsHandler(w http.ResponseWriter, req *http.Reques
 	keepAlive := time.NewTicker(eventStreamKeepAliveInterval)
 	defer keepAlive.Stop()
 
+	// responseController lets us bound each frame write with a deadline so a
+	// client that stops reading can't pin this goroutine on the write.
+	// SetWriteDeadline reports ErrNotSupported for writers that don't implement
+	// it (e.g. the test recorder); there we fall back to unbounded writes, which
+	// matches the prior behavior.
+	responseController := http.NewResponseController(w)
+
 	ctx := req.Context()
 	for {
 		select {
@@ -86,15 +100,17 @@ func (h *Handler) SubscribeEventsHandler(w http.ResponseWriter, req *http.Reques
 				h.log.Error(models.ErrMarshal(err, "event"))
 				continue
 			}
+			_ = responseController.SetWriteDeadline(time.Now().Add(eventStreamWriteTimeout))
 			if _, err := fmt.Fprintf(w, "data: %s\n\n", payload); err != nil {
-				// Client disconnected mid-write; context cancellation will
-				// unsubscribe us on the way out.
+				// Client disconnected or stalled past the write deadline; context
+				// cancellation will unsubscribe us on the way out.
 				return
 			}
 			flusher.Flush()
 		case <-keepAlive.C:
 			// SSE comment line: ignored by EventSource, but surfaces a dead
 			// connection and keeps proxies from timing the stream out.
+			_ = responseController.SetWriteDeadline(time.Now().Add(eventStreamWriteTimeout))
 			if _, err := fmt.Fprint(w, ": keepalive\n\n"); err != nil {
 				return
 			}
