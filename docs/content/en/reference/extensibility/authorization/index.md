@@ -17,71 +17,67 @@ The extensible authorization system is available to both Local and Remote Provid
 
 ### Adding a New Permission Key
 
-Permission keys are added via a two-repository workflow:
+Permission keys are defined and managed centrally via an automated Google Spreadsheet workflow, ensuring `@meshery/schemas` serves as the single source of truth:
 
-1. **Meshery Schemas**: The repository where keys are registered in a CSV spreadsheet and compiled into Go/TS constants.
-2. **Meshery Server / UI**: The codebase that downloads these keys from the provider, maps them to CASL runtime abilities, and gates UI components.
+1. **Spreadsheet Registration**: Keys are registered in the central permissions spreadsheet.
+2. **Meshery Schemas Automation**: A GitHub Actions workflow automatically imports the spreadsheet, updates `build/permissions.csv`, and compiles the definitions into Go and TypeScript libraries.
+3. **Dynamic Consumption**: Downstream projects (`meshery/meshery` backend and React UI) consume the generated models and constants dynamically, removing the need for duplicate, hardcoded constants.
 
 ---
 
 ### Step-by-Step Guide
 
-Follow these steps to generate, register, sync, and wire up a new permission key. This guide uses the **Evaluate Relationships** key (added in [schemas PR #909](https://github.com/meshery/schemas/pull/909)) as a running example.
+Follow these steps to generate, register, sync, and wire up a new permission key.
 
-#### Phase 1: Define Key in `meshery/schemas`
+#### Phase 1: Define Key in Spreadsheet
 
 ##### Step 1: Generate a UUID v4
 Generate a unique, lowercase UUID v4 for the new permission key:
 {{< code code=`uuidgen | tr '[:upper:]' '[:lower:]'` >}}
 
-##### Step 2: Add a Row to `permissions.csv`
-Open the local CSV registry [`build/permissions.csv`](https://github.com/meshery/schemas/blob/master/build/permissions.csv) in your local `meshery/schemas` clone. **Copy an existing row** under the same category and modify it. Avoid creating sparse rows. Ensure the following core columns are set:
-*   **Theme**: High-level keychain category (e.g. `Catalog Management`).
+##### Step 2: Add to the Permissions Spreadsheet
+Add a new row to the authoritative **Permissions Spreadsheet**. Ensure the following columns are set:
+*   **Theme**: The high-level category (e.g. `Catalog Management`).
 *   **Category**: Specific feature area (e.g. `Designs`).
-*   **Function**: Permission name (e.g. `Evaluate Relationships`).
-*   **Feature**: Description of the capability (e.g. `Evaluate relationships inside a design`).
-*   **Key ID**: The generated UUID from Step 1 (e.g. `c7752be7-5c0f-465d-a8ba-5594acd08b93`).
-*   **Local Provider**: Set to `TRUE` to seed the key for local development.
+*   **Function**: CamelCase name (e.g. `Evaluate Relationships`).
+*   **Feature**: Feature description (e.g. `Evaluate relationships inside a design`).
+*   **Key ID**: The generated UUID from Step 1.
+*   **Local Provider**: Set to `TRUE` if this key should be seeded for the Local Provider database.
 
-##### Step 3: Run the Generators
-From the root of `meshery/schemas`, run the generator command:
-{{< code code=`make generate-permissions` >}}
-This compiles the CSV registry into:
-*   [`models/permissions/permissions.go`](https://github.com/meshery/schemas/blob/master/models/permissions/permissions.go) (Go constants in PascalCase, combining Theme + Function, e.g. `CatalogManagementEvaluateRelationships`).
-*   [`typescript/permissions.ts`](https://github.com/meshery/schemas/blob/master/typescript/permissions.ts) (TypeScript definitions).
+##### Step 3: Run the Schema Sync & Generation Workflow
+Once added to the spreadsheet, the GitHub Actions workflow [`generate-artifacts-from-schemas.yml`](https://github.com/meshery/schemas/blob/master/.github/workflows/generate-artifacts-from-schemas.yml) in `meshery/schemas` runs (or is manually triggered) to sync the spreadsheet keys to the local [`build/permissions.csv`](https://github.com/meshery/schemas/blob/master/build/permissions.csv).
 
-##### Step 4: Submit Pull Request in Schemas
-Verify correctness and submit a PR to the schemas repository:
-{{< code code=`make validate-schemas && make consumer-audit` >}}
+This workflow automatically executes the generators to produce:
+*   Go constants: [`models/permissions/permissions.go`](https://github.com/meshery/schemas/blob/master/models/permissions/permissions.go)
+*   TypeScript definitions: [`typescript/permissions.ts`](https://github.com/meshery/schemas/blob/master/typescript/permissions.ts)
+
+These generated files are committed to the master branch and published as part of the `@meshery/schemas` package.
 
 ---
 
-#### Phase 2: Spreadsheet Sync
+#### Phase 2: Backend Sync
 
-##### Step 5: Wait for `keys.csv` Sync in `meshery/meshery`
-The [`server/permissions/keys.csv`](https://github.com/meshery/meshery/blob/master/server/permissions/keys.csv) file (used to seed the Local Provider database) is updated automatically by the [`Import Keys`](https://github.com/meshery/meshery/blob/master/.github/workflows/generate_keys.yml) workflow, which downloads the Google Spreadsheet as a CSV every day. Keys with `Local Provider = TRUE` in the spreadsheet will be committed to `keys.csv` and seeded on Meshery Server startup via [`SeedKeys`](https://github.com/meshery/meshery/blob/master/server/models/keys_helper.go).
+##### Step 4: Wait for `keys.csv` Sync in Meshery
+The local database seeds are populated via `server/permissions/keys.csv` in the `meshery/meshery` repository. This file is automatically kept in sync with the spreadsheet by the [`Import Keys`](https://github.com/meshery/meshery/blob/master/.github/workflows/generate_keys.yml) workflow, which runs daily. 
 
-*Note: If you need the key immediately for local testing without waiting for the daily sync, temporarily copy the row directly into your local `server/permissions/keys.csv`.*
+On startup, Meshery Server's [`SeedKeys`](https://github.com/meshery/meshery/blob/master/server/models/keys_helper.go) seeds these keys into the database.
 
 ---
 
-#### Phase 3: Wire Key in `meshery/meshery` (UI)
+#### Phase 3: Wire Key in the UI
 
-##### Step 6: Map UI Constants
-Add the mapping to the `keys` object in [`ui/utils/permission_constants.ts`](https://github.com/meshery/meshery/blob/master/ui/utils/permission_constants.ts) (and mirror in [`docs/static/js/permission_constants.js`](https://github.com/meshery/meshery/blob/master/docs/static/js/permission_constants.js)):
-{{< code code=`EVALUATE_RELATIONSHIPS: {
-  subject: 'Evaluate Relationships',
-  action: 'c7752be7-5c0f-465d-a8ba-5594acd08b93',
-},` >}}
-*   **subject**: Must **exactly** match the `Function` column in `permissions.csv` (case-sensitive).
-*   **action**: The generated UUID.
+##### Step 5: Direct Import from Schemas
+Because the UI constants are dynamically mapped and resolved at runtime, **you do not need to edit `ui/utils/permission_constants.ts`** to define your new key.
 
-##### Step 7: Gate the Component using `CAN`
-Import the `CAN` utility and `keys` mapping, and use it to conditionally gate your component actions:
+Simply import the `Keys` object directly from `@meshery/schemas/permissions` in your component:
+{{< code code=`import { Keys } from '@meshery/schemas/permissions';` >}}
+
+##### Step 6: Gate the Component using `CAN`
+Pass the schema key object directly to the `CAN` utility to check permissions:
 {{< code code=`import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 
-const canEvaluate = CAN(keys.EVALUATE_RELATIONSHIPS.action, keys.EVALUATE_RELATIONSHIPS.subject);
+const canEvaluate = CAN(Keys.CatalogManagementEvaluateRelationships);
 
 return (
   <Button disabled={!canEvaluate} onClick={handleEvaluate}>
@@ -89,10 +85,10 @@ return (
   </Button>
 );` >}}
 
-##### Step 8: Verify End-to-End
-1. Run `make ui-lint` to verify typescript code guidelines.
+##### Step 7: Verify End-to-End
+1. Run `make ui-lint` to verify that there are no formatting or typescript errors.
 2. Restart Meshery Server (or reset database settings) to seed the local provider with the new key.
-3. Login and verify that the button gates correctly based on user roles.
+3. Login and verify that your UI component gates correctly.
 
 ---
 
@@ -108,20 +104,21 @@ This example shows how the **Evaluate Relationships** key is wired across each l
   "subcategory": "Designs"
 }` >}}
 
-2. **UI Constant Entry (`permission_constants.ts`)**:
-{{< code code=`EVALUATE_RELATIONSHIPS: {
-  subject: 'Evaluate Relationships',
-  action: 'c7752be7-5c0f-465d-a8ba-5594acd08b93',
+2. **TypeScript constant from `@meshery/schemas`**:
+{{< code code=`export const Keys = {
+  CatalogManagementEvaluateRelationships: {
+    id: "c7752be7-5c0f-465d-a8ba-5594acd08b93",
+    function: "Evaluate Relationships",
+    category: "Catalog Management",
+    subcategory: "Designs"
+  }
 }` >}}
 
-3. **CASL ability mapping (`ui/rtk-query/ability.tsx`)**:
-{{< code code=`const abilities = data?.keys?.map((key) => ({
-  action: key.id,
-  subject: _.lowerCase(key.function), // CASL compares lowercased subject
-}));` >}}
+3. **React Component Gating**:
+{{< code code=`import CAN from '@/utils/can';
+import { Keys } from '@meshery/schemas/permissions';
 
-4. **React Component Gating (`ui/components/registry/MeshModelComponent.tsx`)**:
-{{< code code=`const canEvaluate = CAN(keys.EVALUATE_RELATIONSHIPS.action, keys.EVALUATE_RELATIONSHIPS.subject);
+const canEvaluate = CAN(Keys.CatalogManagementEvaluateRelationships);
 return canEvaluate ? <EvaluateRelationshipsButton /> : null;` >}}
 
 ---
