@@ -159,12 +159,17 @@ func (cp *ConnectionPersister) SaveConnection(connection *connections.Connection
 	err := cp.DB.Transaction(func(tx *gorm.DB) error {
 		existingConnection := connections.Connection{}
 
-		// Check if there is already an entry for this context
+		// A kubernetes context's connection ID is deterministic, so re-importing
+		// the same cluster collides here. Preserve the existing connection (its
+		// current status and metadata) and return *that* record, rather than
+		// leaving the caller's transient payload — which previously surfaced a
+		// stale/empty status on re-import.
 		if err := tx.First(&existingConnection, "id = ?", connection.ID).Error; err == nil {
-			return err
+			*connection = existingConnection
+			return nil
 		}
 
-		return tx.Save(&connection).Error
+		return tx.Save(connection).Error
 	})
 
 	return connection, err

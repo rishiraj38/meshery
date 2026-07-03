@@ -200,6 +200,19 @@ func (h *Handler) addK8SConfig(user *models.User, _ *models.Preference, w http.R
 			ctx.ConnectionID = connection.ID.String()
 			eventBuilder.ActedUpon(connection.ID)
 			status := connection.Status
+			// Guard against a provider returning a saved k8s connection with an
+			// empty status (observed when re-importing an already-existing
+			// cluster). A persisted context is at least DISCOVERED; normalize and
+			// persist the correction so the connection never surfaces without a
+			// status.
+			if status == "" {
+				status = connections.DISCOVERED
+				if corrected, _, uerr := provider.UpdateConnectionStatusByID(token, connection.ID, status); uerr != nil {
+					h.log.Warn(uerr)
+				} else if corrected != nil {
+					connection = *corrected
+				}
+			}
 			machineCtx := &kubernetes.MachineCtx{
 				K8sContext:         *ctx,
 				MesheryCtrlsHelper: h.MesheryCtrlsHelper,
