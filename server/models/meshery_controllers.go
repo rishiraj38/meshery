@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -57,6 +58,11 @@ type MesheryControllersHelper struct {
 
 	// meshsync data handler for a particular context
 	ctxMeshsyncDataHandler *MeshsyncDataHandler
+
+	// brokerPortForward is the self-healing port-forward to the NATS pod used when
+	// Meshery runs out-of-cluster and the broker is only reachable on a ClusterIP.
+	// nil when running in-cluster or when managed forwarding is disabled.
+	brokerPortForward *mesherykube.PortForwarder
 
 	log          logger.Handler
 	oprDepConfig controllers.OperatorDeploymentConfig
@@ -265,14 +271,38 @@ func (mch *MesheryControllersHelper) meshsynDataHandlersNatsBroker(
 		}, userID)
 		return nil
 	}
-	// Self-healing connection: hand NATS the resolved endpoint plus localhost /
-	// host.docker.internal on the same port, retry on failed connect, and
-	// reconnect forever. NATS connects as soon as any candidate becomes reachable
-	// (e.g. a port-forward that comes up after Meshery started) and reconnects if
+	// The operator (>= 1.0.2) provisions NATS with token auth; without the token
+	// the connection is rejected with an authorization violation even when the
+	// endpoint is reachable. Read it from the broker controller (empty for
+	// tokenless brokers, preserving backward compatibility).
+	var brokerToken string
+	if tokenProvider, ok := controllerHandlers[MesheryBroker].(interface{ GetToken() (string, error) }); ok {
+		if token, terr := tokenProvider.GetToken(); terr != nil {
+			mch.log.Warn(terr)
+		} else {
+			brokerToken = token
+		}
+	}
+
+	// Out-of-cluster Meshery can't reach a ClusterIP-only broker directly. Start a
+	// self-healing managed port-forward to the NATS pod and prefer its stable local
+	// address, so it works out of the box (no manual `kubectl port-forward`).
+	// In-cluster Meshery reaches the ClusterIP directly, so this is skipped.
+	forwardAddr := mch.ensureBrokerPortForward(controllerHandlers[MesheryBroker])
+
+	// Self-healing connection: hand NATS the (managed forward, if any) plus the
+	// resolved endpoint and localhost / host.docker.internal on the same port,
+	// retry on failed connect, and reconnect forever. NATS connects as soon as any
+	// candidate becomes reachable (e.g. once the forward is up) and reconnects if
 	// the broker or the tunnel drops — no restart or manual reconnect needed.
+	urls := brokerConnectURLs(brokerEndpoint)
+	if forwardAddr != "" {
+		urls = append([]string{forwardAddr}, urls...)
+	}
 	brokerHandler, err := nats.New(nats.Options{
-		URLS:                 brokerConnectURLs(brokerEndpoint),
+		URLS:                 urls,
 		ConnectionName:       MesheryServerBrokerConnection,
+		Token:                brokerToken,
 		ReconnectWait:        2 * time.Second,
 		MaxReconnect:         -1, // reconnect indefinitely
 		RetryOnFailedConnect: true,
@@ -336,6 +366,51 @@ func brokerConnectURLs(endpoint string) []string {
 	return urls
 }
 
+// managedBrokerPortForwardEnabled reports whether Meshery should manage a
+// port-forward to the broker. On by default; set
+// MESHERY_MANAGED_BROKER_PORTFORWARD=false to disable (e.g. for a deterministic
+// "unreachable" state in tests, or when a manual/other path is preferred).
+func managedBrokerPortForwardEnabled() bool {
+	return !strings.EqualFold(os.Getenv("MESHERY_MANAGED_BROKER_PORTFORWARD"), "false")
+}
+
+// runningInCluster reports whether Meshery itself runs inside a Kubernetes
+// cluster, where the broker's ClusterIP is directly reachable and no port-forward
+// is needed.
+func runningInCluster() bool {
+	return os.Getenv("KUBERNETES_SERVICE_HOST") != ""
+}
+
+// ensureBrokerPortForward starts (once) a self-healing managed port-forward to the
+// broker's NATS pod when Meshery runs out-of-cluster, and returns its stable local
+// address (or "" when not applicable). The forwarder is stored on the helper and
+// torn down in RemoveMeshSyncDataHandler.
+func (mch *MesheryControllersHelper) ensureBrokerPortForward(broker controllers.IMesheryController) string {
+	if !managedBrokerPortForwardEnabled() || runningInCluster() || broker == nil {
+		return ""
+	}
+	if mch.brokerPortForward != nil {
+		return mch.brokerPortForward.LocalAddr()
+	}
+	provider, ok := broker.(interface {
+		GetPortForwarder(logger.Handler) (*mesherykube.PortForwarder, error)
+	})
+	if !ok {
+		return ""
+	}
+	pf, err := provider.GetPortForwarder(mch.log)
+	if err != nil || pf == nil {
+		if err != nil {
+			mch.log.Warn(err)
+		}
+		return ""
+	}
+	pf.Start()
+	mch.brokerPortForward = pf
+	mch.log.Info(fmt.Sprintf("Started managed broker port-forward at %s", pf.LocalAddr()))
+	return pf.LocalAddr()
+}
+
 // meshsynDataHandlersStartLibMeshsyncRun starts the libmeshsync run for the given context.
 // returns stop function to stop goroutine
 func (mch *MesheryControllersHelper) meshsynDataHandlersStartLibMeshsyncRun(
@@ -378,6 +453,11 @@ func (mch *MesheryControllersHelper) RemoveMeshSyncDataHandler(ctx context.Conte
 		mch.log.Infof("MesheryControllersHelper::RemoveMeshSyncDataHandler for contextID = %s", contextID)
 		mch.ctxMeshsyncDataHandler.Stop()
 		mch.ctxMeshsyncDataHandler = nil
+	}
+	// Tear down the managed broker port-forward alongside the data handler.
+	if mch.brokerPortForward != nil {
+		mch.brokerPortForward.Stop()
+		mch.brokerPortForward = nil
 	}
 }
 
