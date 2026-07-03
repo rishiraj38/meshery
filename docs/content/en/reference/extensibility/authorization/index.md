@@ -39,7 +39,7 @@ Generate a unique, lowercase UUID v4 for the new permission key:
 Add a new row to the authoritative **Permissions Spreadsheet**. Ensure the following columns are set:
 *   **Theme**: The high-level category (e.g. `Catalog Management`).
 *   **Category**: Specific feature area (e.g. `Designs`).
-*   **Function**: CamelCase name (e.g. `Evaluate Relationships`).
+*   **Function**: Human-readable operation name (e.g. `Evaluate Relationships`). This value becomes `key.function` in the Provider API.
 *   **Feature**: Feature description (e.g. `Evaluate relationships inside a design`).
 *   **Key ID**: The generated UUID from Step 1.
 *   **Local Provider**: Set to `TRUE` if this key should be seeded for the Local Provider database.
@@ -73,11 +73,12 @@ Simply import the `Keys` object directly from `@meshery/schemas/permissions` in 
 {{< code code=`import { Keys } from '@meshery/schemas/permissions';` >}}
 
 ##### Step 6: Gate the Component using `CAN`
-Pass the schema key object directly to the `CAN` utility to check permissions:
+Pass the schema key's `id` (action) and `function` (subject) to the `CAN` utility to check permissions:
 {{< code code=`import CAN from '@/utils/can';
 import { Keys } from '@meshery/schemas/permissions';
 
-const canEvaluate = CAN(Keys.CatalogManagementEvaluateRelationships);
+const key = Keys.CatalogManagementEvaluateRelationships;
+const canEvaluate = CAN(key.id, key.function);
 
 return (
   <Button disabled={!canEvaluate} onClick={handleEvaluate}>
@@ -96,7 +97,7 @@ return (
 
 This example shows how the **Evaluate Relationships** key is wired across each layer of the application:
 
-1. **Provider Manifest (API output)**:
+1. **Provider API key object (excerpt from API output)**:
 {{< code code=`{
   "id": "c7752be7-5c0f-465d-a8ba-5594acd08b93",
   "function": "Evaluate Relationships",
@@ -118,7 +119,8 @@ This example shows how the **Evaluate Relationships** key is wired across each l
 {{< code code=`import CAN from '@/utils/can';
 import { Keys } from '@meshery/schemas/permissions';
 
-const canEvaluate = CAN(Keys.CatalogManagementEvaluateRelationships);
+const key = Keys.CatalogManagementEvaluateRelationships;
+const canEvaluate = CAN(key.id, key.function);
 return canEvaluate ? <EvaluateRelationshipsButton /> : null;` >}}
 
 ---
@@ -154,7 +156,7 @@ Use this checklist when a gated button does not appear, permissions look stale a
 ##### 1. Confirm the provider returned the key
 In DevTools **Network**, check the response for:
 `GET /api/identity/orgs/{orgId}/users/keys`
-Verify your UUID is in the `keys` array and that `function` matches the `subject` in `permission_constants.ts`.
+Verify your UUID is in the `keys` array. If you're gating via `permission_constants.ts`, `_.lowerCase(function)` from the API should match `_.lowerCase(subject)` passed to `CAN(...)`.
 
 ##### 2. Clear stale browser cache
 Meshery reuses `sessionStorage.keys` until the org changes or keys are refetched:
@@ -164,7 +166,7 @@ location.reload();` >}}
 ##### 3. Verify the UI constant map
 In [`permission_constants.ts`](https://github.com/meshery/meshery/blob/master/ui/utils/permission_constants.ts):
 *   `action` = key UUID (`id` from the API)
-*   `subject` = key `function` from the API (exact match, including capitalization)
+*   `subject` = key `function` from the API (capitalization/camelCase differences are normalized by `_.lowerCase` in `CAN`)
 
 ##### 4. Confirm CASL loaded the rules
 *   **Redux DevTools**: check `state.ui.keys` for the expected UUID.
@@ -209,7 +211,7 @@ Meshery utilizes CASL (JS-based permission framework) to evaluate any given user
 An example of how CASL evaluates permissions in the UI:
 {{< code code=`<React.Fragment>
 	{CAN(keys.DELETE_CONNECTION.action, keys.DELETE_CONNECTION.subject) && (
-		<Button id="delete-connection">Delete<Button/>
+		<Button id="delete-connection">Delete</Button>
 	)}
 </React.Fragment>` >}}
 
