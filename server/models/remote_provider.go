@@ -107,7 +107,7 @@ type RemoteProvider struct {
 }
 type AnonymousFlowResponse struct {
 	AccessToken string    `json:"accessToken"`
-	UserID      core.Uuid `json:"userId,omitempty"`
+	Owner       core.Uuid `json:"owner,omitempty"`
 }
 
 type userSession struct {
@@ -552,9 +552,9 @@ func (l *RemoteProvider) InterceptLoginAndInitiateAnonymousUserSession(req *http
 
 	l.SetJWTCookie(res, flowResponse.AccessToken)
 
-	err = l.WriteCapabilitiesForUser(flowResponse.UserID.String(), &providerProperties)
+	err = l.WriteCapabilitiesForUser(flowResponse.Owner.String(), &providerProperties)
 	if err != nil {
-		err = ErrDBPut(fmt.Errorf("failed to write capabilities for the user %s: %w", flowResponse.UserID.String(), err))
+		err = ErrDBPut(fmt.Errorf("failed to write capabilities for the user %s: %w", flowResponse.Owner.String(), err))
 		l.Log.Error(err)
 		http.Redirect(res, req, errorUI, http.StatusFound)
 
@@ -1050,7 +1050,12 @@ func (l *RemoteProvider) SaveK8sContext(token string, k8sContext K8sContext, add
 		}
 	}
 
-	k8sServerID := *k8sContext.KubernetesServerID
+	// An unreachable context has no server ID assigned; persist it anyway as a
+	// discovered connection rather than dereferencing a nil pointer.
+	var k8sServerID uuid.UUID
+	if k8sContext.KubernetesServerID != nil {
+		k8sServerID = *k8sContext.KubernetesServerID
+	}
 
 	_metadata := map[string]string{
 		"id":                 k8sContext.ID,
@@ -1094,13 +1099,21 @@ func (l *RemoteProvider) SaveK8sContext(token string, k8sContext K8sContext, add
 	}
 
 	connection, err := l.SaveConnection(conn, token, true)
-
-	l.Log.Infof("Persisting k8s context to remote_provider, %v %v", connection, err)
-
 	if err != nil {
 		l.Log.Error(ErrPersistConnection(err))
 		return connections.Connection{}, err
 	}
+	if connection == nil {
+		// SaveConnection can return (nil, nil) when the remote provider answers
+		// 2xx but the connection page is empty or carries a null element. Guard
+		// the dereference below so a malformed response is a structured error,
+		// not a panic.
+		err := ErrPersistConnection(fmt.Errorf("remote provider returned a nil connection for kubernetes context %q", conn.Name))
+		l.Log.Error(err)
+		return connections.Connection{}, err
+	}
+
+	l.Log.Infof("persisted kubernetes context %q to remote provider as connection %s", connection.Name, connection.ID)
 
 	return *connection, nil
 }
@@ -1214,42 +1227,6 @@ func (l *RemoteProvider) LoadAllK8sContext(token string) ([]*K8sContext, error) 
 	}
 
 	return results, nil
-}
-
-func (l *RemoteProvider) DeleteK8sContext(token, id string) (K8sContext, error) {
-	l.Log.Info("attempting to delete kubernetes context from cloud for id: ", id)
-	if !l.Capabilities.IsSupported(PersistConnection) {
-		l.Log.Error(ErrOperationNotAvailable)
-		return K8sContext{}, ErrInvalidCapability("PersistConnection", l.ProviderName)
-	}
-	ep, _ := l.Capabilities.GetEndpointForFeature(PersistConnection)
-	remoteProviderURL, _ := url.Parse(fmt.Sprintf("%s%s/%s", l.RemoteProviderURL, ep, id))
-	l.Log.Debug("constructed kubernetes contexts url: ", remoteProviderURL.String())
-	cReq, _ := http.NewRequest(http.MethodDelete, remoteProviderURL.String(), nil)
-
-	resp, err := l.DoRequest(cReq, token)
-	if err != nil {
-		if resp == nil {
-			return K8sContext{}, ErrUnreachableRemoteProvider(err)
-		}
-		err = ErrDelete(err, "Kubernetes Context", resp.StatusCode)
-		l.Log.Error(err)
-		return K8sContext{}, err
-	}
-
-	if resp.StatusCode == http.StatusOK {
-		defer func() {
-			_ = resp.Body.Close()
-		}()
-
-		deletedContext := K8sContext{}
-		_ = json.NewDecoder(resp.Body).Decode(&deletedContext)
-		l.Log.Info("kubernetes deleted from remote provider")
-		return deletedContext, nil
-	}
-	err = ErrDelete(fmt.Errorf("unable to delete kubernetes context with id: %s", id), "Kubernetes Context", resp.StatusCode)
-	l.Log.Error(err)
-	return K8sContext{}, err
 }
 
 func (l *RemoteProvider) GetK8sContext(token, connectionID string) (K8sContext, error) {
@@ -1707,7 +1684,7 @@ func (l *RemoteProvider) persistEventRemote(event events.Event, tokenString stri
 		return ErrMarshal(err, "meshery event")
 	}
 
-	l.Log.Info("attempting to publish event to remote provider, size: %d", len(data))
+	l.Log.Infof("attempting to publish event to remote provider, size: %d", len(data))
 	bf := bytes.NewBuffer(data)
 	remoteProviderURL, _ := url.Parse(l.RemoteProviderURL + ep)
 
@@ -2006,7 +1983,7 @@ func (l *RemoteProvider) PublishMetrics(tokenString string, result *MesheryResul
 		return ErrMarshal(err, "meshery metrics for shipping")
 	}
 
-	l.Log.Debug("Result: %s, size: %d", data, len(data))
+	l.Log.Debugf("Result: %s, size: %d", data, len(data))
 	l.Log.Info("attempting to publish metrics to remote provider")
 	bf := bytes.NewBuffer(data)
 
@@ -4608,15 +4585,17 @@ func (l *RemoteProvider) GetConnectionByID(token string, connectionID core.Uuid)
 		statusCode := http.StatusInternalServerError
 		return nil, statusCode, ErrFetch(err, "connection", statusCode)
 	}
+	// Close the body on every path once DoRequest has handed us a response.
+	// This defer previously lived inside the 200 branch, leaking the
+	// connection whenever the provider returned a non-2xx status.
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	bdr, err := io.ReadAll(resp.Body)
 	if resp.StatusCode == http.StatusOK {
-		defer func() {
-			_ = resp.Body.Close()
-		}()
-
 		if err != nil {
-			l.Log.Errorf("unable to read response body for connection with id %s: %v , resp body", connectionID, err, string(bdr))
+			l.Log.Errorf("unable to read response body for connection with id %s: %v, resp body: %s", connectionID, err, string(bdr))
 			return nil, resp.StatusCode, ErrFetch(fmt.Errorf("unable to retrieve connection with id %s, err body %s", connectionID, string(bdr)), "connection", resp.StatusCode)
 		}
 		var conn connections.Connection
@@ -4627,7 +4606,11 @@ func (l *RemoteProvider) GetConnectionByID(token string, connectionID core.Uuid)
 		return &conn, resp.StatusCode, nil
 	}
 
-	l.Log.Errorf("unable to read response body for connection with id %s: %v , resp body", connectionID, err, string(bdr))
+	if err != nil {
+		l.Log.Errorf("unable to read response body for connection with id %s: %v", connectionID, err)
+	} else {
+		l.Log.Errorf("failed to retrieve connection with id %s: unexpected status %d, resp body: %s", connectionID, resp.StatusCode, string(bdr))
+	}
 	return nil, resp.StatusCode, ErrFetch(fmt.Errorf("unable to retrieve connection with id %s", connectionID), "connection", resp.StatusCode)
 }
 
