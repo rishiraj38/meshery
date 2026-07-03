@@ -61,13 +61,6 @@ vi.mock('@/utils/can', () => ({
   default: () => true,
 }));
 
-vi.mock('@/utils/permission_constants', () => ({
-  keys: {
-    CatalogManagementEditDesign: { action: 'edit', subject: 'design' },
-    CatalogManagementDeleteADesign: { action: 'delete', subject: 'design' },
-  },
-}));
-
 vi.mock('./MesheryPatterns.styled', () => ({
   YamlDialogTitle: ({ children, ...rest }: any) => <div {...rest}>{children}</div>,
   YamlDialogTitleText: ({ children }: any) => <span>{children}</span>,

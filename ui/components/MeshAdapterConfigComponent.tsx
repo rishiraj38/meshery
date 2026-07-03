@@ -7,7 +7,7 @@ import changeAdapterState from '@/graphql/mutations/AdapterStatusMutation';
 import { useNotification } from '../utils/hooks/useNotification';
 import { EVENT_TYPES } from '../lib/event-types';
 import BadgeAvatars from './CustomAvatar';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import CAN from '@/utils/can';
 import { iconMedium } from 'css/icons.styles';
 import {
@@ -428,8 +428,8 @@ const MeshAdapterConfigComponent = () => {
                 onClick={handleAdapterUndeploy}
                 disabled={
                   !CAN(
-                    keys.InfrastructureManagementUndeployCloudNativeInfrastructure.action,
-                    keys.InfrastructureManagementUndeployCloudNativeInfrastructure.subject,
+                    Keys.InfrastructureManagementUndeployCloudNativeInfrastructure.id,
+                    Keys.InfrastructureManagementUndeployCloudNativeInfrastructure.function,
                   )
                 }
               >
@@ -445,8 +445,8 @@ const MeshAdapterConfigComponent = () => {
                 data-cy="btnSubmitMeshAdapter"
                 disabled={
                   !CAN(
-                    keys.MesherySystemConnectAdapter.action,
-                    keys.MesherySystemConnectAdapter.subject,
+                    Keys.MesherySystemConnectAdapter.id,
+                    Keys.MesherySystemConnectAdapter.function,
                   )
                 }
               >
@@ -496,8 +496,8 @@ const MeshAdapterConfigComponent = () => {
                   onClick={handleAdapterDeploy}
                   disabled={
                     !CAN(
-                      keys.InfrastructureManagementDeployCloudNativeInfrastructure.action,
-                      keys.InfrastructureManagementDeployCloudNativeInfrastructure.subject,
+                      Keys.InfrastructureManagementDeployCloudNativeInfrastructure.id,
+                      Keys.InfrastructureManagementDeployCloudNativeInfrastructure.function,
                     )
                   }
                 >

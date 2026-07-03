@@ -28,7 +28,7 @@ import LazyComponentForm from './LazyComponentForm';
 import useDesignLifecycle from './hooks/useDesignLifecycle';
 import { useRouter } from 'next/router';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 
 const ScrollContainer = styled('div')({
   overflowY: 'auto',
@@ -195,8 +195,8 @@ export default function DesignConfigurator() {
                 onClick={designSave}
                 disabled={
                   !CAN(
-                    keys.CatalogManagementCreateNewDesign.action,
-                    keys.CatalogManagementCreateNewDesign.subject,
+                    Keys.CatalogManagementCreateNewDesign.id,
+                    Keys.CatalogManagementCreateNewDesign.function,
                   )
                 }
               >
@@ -214,8 +214,8 @@ export default function DesignConfigurator() {
                     onClick={designUpdate}
                     disabled={
                       !CAN(
-                        keys.CatalogManagementEditDesign.action,
-                        keys.CatalogManagementEditDesign.subject,
+                        Keys.CatalogManagementEditDesign.id,
+                        Keys.CatalogManagementEditDesign.function,
                       )
                     }
                   >
@@ -231,8 +231,8 @@ export default function DesignConfigurator() {
                     onClick={designDelete}
                     disabled={
                       !CAN(
-                        keys.CatalogManagementDeleteADesign.action,
-                        keys.CatalogManagementDeleteADesign.subject,
+                        Keys.CatalogManagementDeleteADesign.id,
+                        Keys.CatalogManagementDeleteADesign.function,
                       )
                     }
                   >

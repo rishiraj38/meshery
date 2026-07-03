@@ -5,7 +5,7 @@ import ExtensionPointSchemaValidator from '../../../utils/ExtensionPointSchemaVa
 import { useNotification } from '@/utils/hooks/useNotification';
 import { EVENT_TYPES } from 'lib/event-types';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import { MenuIcon, NavigationNavbar, Popover } from '@sistent/sistent';
 import { IconButtonMenu } from './Header.styles';
 import { useDispatch, useSelector } from 'react-redux';
@@ -135,8 +135,8 @@ const HeaderMenu = () => {
         title: 'Get Token',
         onClick: handleGetToken,
         permission: CAN(
-          keys.SecurityManagementDownloadToken.action,
-          keys.SecurityManagementDownloadToken.subject,
+          Keys.SecurityManagementDownloadToken.id,
+          Keys.SecurityManagementDownloadToken.function,
         ),
       });
     }

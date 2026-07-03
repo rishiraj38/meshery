@@ -11,7 +11,7 @@ import {
 } from '../designs/patterns/Grid.styles';
 import { RJSFModalWrapper } from '../shared/Modal/Modal';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import { Modal as SistentModal } from '@sistent/sistent';
 import Filter from '../../public/static/img/drawer-icons/filter_svg';
 
@@ -233,8 +233,8 @@ function FiltersGrid({
                 color="primary"
                 disabled={
                   !CAN(
-                    keys.CatalogManagementImportFilter.action,
-                    keys.CatalogManagementImportFilter.subject,
+                    Keys.CatalogManagementImportFilter.id,
+                    Keys.CatalogManagementImportFilter.function,
                   )
                 }
                 size="large"

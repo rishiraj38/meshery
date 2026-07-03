@@ -35,7 +35,7 @@ import TooltipButton from '../../utils/TooltipButton';
 import { VISIBILITY } from '../../utils/Enum';
 import { useGetUserByIdQuery } from '../../rtk-query/user';
 import { MESHERY_CLOUD_PROD } from '../../constants/endpoints';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import CAN from '@/utils/can';
 import { VisibilityChipMenu } from '@sistent/sistent';
 import { VIEW_VISIBILITY } from '../shared/Modal/Information/InfoModal';
@@ -165,8 +165,8 @@ function FiltersCard_({
                   onClick={(ev) => genericClickHandler(ev, handlePublishModal)}
                   disabled={
                     !CAN(
-                      keys.CatalogManagementPublishWasmFilter.action,
-                      keys.CatalogManagementPublishWasmFilter.subject,
+                      Keys.CatalogManagementPublishWasmFilter.id,
+                      Keys.CatalogManagementPublishWasmFilter.function,
                     )
                   }
                 >
@@ -184,8 +184,8 @@ function FiltersCard_({
                   onClick={(ev) => genericClickHandler(ev, handleUnpublishModal)}
                   disabled={
                     !CAN(
-                      keys.CatalogManagementUnpublishWasmFilter.action,
-                      keys.CatalogManagementUnpublishWasmFilter.subject,
+                      Keys.CatalogManagementUnpublishWasmFilter.id,
+                      Keys.CatalogManagementUnpublishWasmFilter.function,
                     )
                   }
                 >
@@ -204,8 +204,8 @@ function FiltersCard_({
                 }}
                 disabled={
                   !CAN(
-                    keys.CatalogManagementDownloadAWasmFilter.action,
-                    keys.CatalogManagementDownloadAWasmFilter.subject,
+                    Keys.CatalogManagementDownloadAWasmFilter.id,
+                    Keys.CatalogManagementDownloadAWasmFilter.function,
                   )
                 }
               >
@@ -225,8 +225,8 @@ function FiltersCard_({
                   onClick={(ev) => genericClickHandler(ev, handleClone)}
                   disabled={
                     !CAN(
-                      keys.CatalogManagementCloneWasmFilter.action,
-                      keys.CatalogManagementCloneWasmFilter.subject,
+                      Keys.CatalogManagementCloneWasmFilter.id,
+                      Keys.CatalogManagementCloneWasmFilter.function,
                     )
                   }
                 >
@@ -245,8 +245,8 @@ function FiltersCard_({
                 }}
                 disabled={
                   !CAN(
-                    keys.CatalogManagementDetailsOfWasmFilter.action,
-                    keys.CatalogManagementDetailsOfWasmFilter.subject,
+                    Keys.CatalogManagementDetailsOfWasmFilter.id,
+                    Keys.CatalogManagementDetailsOfWasmFilter.function,
                   )
                 }
               >
@@ -332,8 +332,8 @@ function FiltersCard_({
                   <IconButton
                     disabled={
                       !CAN(
-                        keys.CatalogManagementEditWasmFilter.action,
-                        keys.CatalogManagementEditWasmFilter.subject,
+                        Keys.CatalogManagementEditWasmFilter.id,
+                        Keys.CatalogManagementEditWasmFilter.function,
                       )
                     }
                     onClick={(ev) => genericClickHandler(ev, updateHandler)}
@@ -347,8 +347,8 @@ function FiltersCard_({
                   <IconButton
                     disabled={
                       !CAN(
-                        keys.CatalogManagementDeleteWasmFilter.action,
-                        keys.CatalogManagementDeleteWasmFilter.subject,
+                        Keys.CatalogManagementDeleteWasmFilter.id,
+                        Keys.CatalogManagementDeleteWasmFilter.function,
                       )
                     }
                     onClick={(ev) => genericClickHandler(ev, deleteHandler)}

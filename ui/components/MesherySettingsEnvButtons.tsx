@@ -21,7 +21,7 @@ import { CONNECTION_STATES } from '../utils/Enum';
 import { TooltipWrappedConnectionChip, ConnectionStateChip } from './connections/ConnectionChip';
 import { getKubernetesContexts } from './connections/ConnectionWizard.helpers';
 import useKubernetesHook from '@/utils/hooks/useKubernetesHook';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import useTestIDsGenerator from '@/utils/hooks/useTestIDs';
 import CAN from '@/utils/can';
 import { useAddKubernetesConfigMutation } from '../rtk-query/connection';
@@ -216,10 +216,7 @@ const MesherySettingsEnvButtons = () => {
             padding: '8px',
           }}
           disabled={
-            !CAN(
-              keys.LifecycleManagementAddCluster.action,
-              keys.LifecycleManagementAddCluster.subject,
-            )
+            !CAN(Keys.LifecycleManagementAddCluster.id, Keys.LifecycleManagementAddCluster.function)
           }
           data-cy="btnResetDatabase"
         >

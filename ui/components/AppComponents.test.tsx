@@ -29,12 +29,6 @@ vi.mock('@/utils/can', () => ({
   default: () => true,
 }));
 
-vi.mock('@/utils/permission_constants', () => ({
-  keys: {
-    IdentityAccessManagementViewAllKubernetesClusters: { action: 'view', subject: 'k8s' },
-  },
-}));
-
 vi.mock('@/store/slices/mesheryUi', () => ({
   updateK8SConfig: (payload: Record<string, unknown>) => ({
     type: 'core/updateK8SConfig',

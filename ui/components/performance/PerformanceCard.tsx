@@ -20,7 +20,7 @@ import PerformanceResults from './PerformanceResults';
 import { MESHERY_CLOUD_PROD } from '../../constants/endpoints';
 import { iconMedium } from '../../css/icons.styles';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import { useGetUserByIdQuery } from '@/rtk-query/user';
 import useTestIDsGenerator from '@/utils/hooks/useTestIDs';
 import { BottomPart, CardButton, ResultContainer } from './style';
@@ -234,8 +234,8 @@ function PerformanceCard({
               }
               disabled={
                 !CAN(
-                  keys.PerformanceManagementViewResults.action,
-                  keys.PerformanceManagementViewResults.subject,
+                  Keys.PerformanceManagementViewResults.id,
+                  Keys.PerformanceManagementViewResults.function,
                 )
               }
               sx={{ marginRight: '0.5rem' }}
@@ -248,8 +248,8 @@ function PerformanceCard({
               onClick={(ev) => genericClickHandler(ev, handleProfile)}
               disabled={
                 !CAN(
-                  keys.PerformanceManagementRunTest.action,
-                  keys.PerformanceManagementRunTest.subject,
+                  Keys.PerformanceManagementRunTest.id,
+                  Keys.PerformanceManagementRunTest.function,
                 )
               }
               sx={{ marginRight: '0.5rem' }}
@@ -262,8 +262,8 @@ function PerformanceCard({
               onClick={(ev) => genericClickHandler(ev, handleRunTest)}
               disabled={
                 !CAN(
-                  keys.PerformanceManagementRunTest.action,
-                  keys.PerformanceManagementRunTest.subject,
+                  Keys.PerformanceManagementRunTest.id,
+                  Keys.PerformanceManagementRunTest.function,
                 )
               }
             >
@@ -316,8 +316,8 @@ function PerformanceCard({
                   data-testid={dataTestIDs('edit')}
                   disabled={
                     !CAN(
-                      keys.PerformanceManagementEditPerformanceTest.action,
-                      keys.PerformanceManagementEditPerformanceTest.subject,
+                      Keys.PerformanceManagementEditPerformanceTest.id,
+                      Keys.PerformanceManagementEditPerformanceTest.function,
                     )
                   }
                 >
@@ -330,8 +330,8 @@ function PerformanceCard({
                   data-testid={dataTestIDs('delete')}
                   disabled={
                     !CAN(
-                      keys.PerformanceManagementDeletePerformanceTest.action,
-                      keys.PerformanceManagementDeletePerformanceTest.subject,
+                      Keys.PerformanceManagementDeletePerformanceTest.id,
+                      Keys.PerformanceManagementDeletePerformanceTest.function,
                     )
                   }
                 >

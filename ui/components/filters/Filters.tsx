@@ -28,7 +28,7 @@ import { updateVisibleColumns } from '../../utils/responsive-column';
 import { useWindowDimensions } from '../../utils/dimension';
 import InfoModal from '../shared/Modal/Information/InfoModal';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import DefaultError from '../general/error-404/index';
 import {
   useGetFiltersQuery,
@@ -440,10 +440,7 @@ function MesheryFilters() {
     <>
       <>
         <NoSsr>
-          {CAN(
-            keys.CatalogManagementViewFilters.action,
-            keys.CatalogManagementViewFilters.subject,
-          ) ? (
+          {CAN(Keys.CatalogManagementViewFilters.id, Keys.CatalogManagementViewFilters.function) ? (
             <>
               {selectedRowData && Object.keys(selectedRowData).length > 0 && (
                 <YAMLEditor
@@ -465,8 +462,8 @@ function MesheryFilters() {
                           onClick={handleUploadImport}
                           disabled={
                             !CAN(
-                              keys.CatalogManagementImportFilter.action,
-                              keys.CatalogManagementImportFilter.subject,
+                              Keys.CatalogManagementImportFilter.id,
+                              Keys.CatalogManagementImportFilter.function,
                             )
                           }
                         >
@@ -556,8 +553,8 @@ function MesheryFilters() {
               {canPublishFilter &&
                 publishModal.open &&
                 CAN(
-                  keys.CatalogManagementPublishWasmFilter.action,
-                  keys.CatalogManagementPublishWasmFilter.subject,
+                  Keys.CatalogManagementPublishWasmFilter.id,
+                  Keys.CatalogManagementPublishWasmFilter.function,
                 ) && (
                   <PublishModal
                     handleClose={handlePublishModalClose}
@@ -567,8 +564,8 @@ function MesheryFilters() {
                 )}
               {importModal.open &&
                 CAN(
-                  keys.CatalogManagementImportFilter.action,
-                  keys.CatalogManagementImportFilter.subject,
+                  Keys.CatalogManagementImportFilter.id,
+                  Keys.CatalogManagementImportFilter.function,
                 ) && (
                   <ImportModal
                     handleClose={handleUploadImportClose}
@@ -577,8 +574,8 @@ function MesheryFilters() {
                 )}
               {infoModal.open &&
                 CAN(
-                  keys.CatalogManagementDetailsOfWasmFilter.action,
-                  keys.CatalogManagementDetailsOfWasmFilter.subject,
+                  Keys.CatalogManagementDetailsOfWasmFilter.id,
+                  Keys.CatalogManagementDetailsOfWasmFilter.function,
                 ) && (
                   <InfoModal
                     handlePublish={handlePublish}

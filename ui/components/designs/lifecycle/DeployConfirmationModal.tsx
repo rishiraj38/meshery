@@ -43,7 +43,7 @@ import { EVENT_TYPES } from '../../../lib/event-types';
 import { K8sEmptyState } from '../../shared/EmptyState/K8sContextEmptyState';
 import { ACTIONS } from '../../../utils/Enum';
 import CAN from '../../../utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import { TooltipWrappedConnectionChip } from '../../connections/ConnectionChip';
 import { setK8sContexts, updateProgress } from '@/store/slices/mesheryUi';
 import {
@@ -250,8 +250,8 @@ const ConfirmationMsg: FC<ConfirmationMsgProps> = (props) => {
             }
             disabled={
               !CAN(
-                keys.CatalogManagementValidateDesign.action,
-                keys.CatalogManagementValidateDesign.subject,
+                Keys.CatalogManagementValidateDesign.id,
+                Keys.CatalogManagementValidateDesign.function,
               )
             }
           />
@@ -259,12 +259,12 @@ const ConfirmationMsg: FC<ConfirmationMsgProps> = (props) => {
         <Tab
           disabled={
             !CAN(
-              keys.CatalogManagementUndeployDesign.action,
-              keys.CatalogManagementUndeployDesign.subject,
+              Keys.CatalogManagementUndeployDesign.id,
+              Keys.CatalogManagementUndeployDesign.function,
             ) ||
             (CAN(
-              keys.CatalogManagementUndeployDesign.action,
-              keys.CatalogManagementUndeployDesign.subject,
+              Keys.CatalogManagementUndeployDesign.id,
+              Keys.CatalogManagementUndeployDesign.function,
             ) &&
               isDisabled)
           }
@@ -288,12 +288,12 @@ const ConfirmationMsg: FC<ConfirmationMsgProps> = (props) => {
         <Tab
           disabled={
             !CAN(
-              keys.CatalogManagementDeployDesign.action,
-              keys.CatalogManagementDeployDesign.subject,
+              Keys.CatalogManagementDeployDesign.id,
+              Keys.CatalogManagementDeployDesign.function,
             ) ||
             (CAN(
-              keys.CatalogManagementDeployDesign.action,
-              keys.CatalogManagementDeployDesign.subject,
+              Keys.CatalogManagementDeployDesign.id,
+              Keys.CatalogManagementDeployDesign.function,
             ) &&
               isDisabled)
           }

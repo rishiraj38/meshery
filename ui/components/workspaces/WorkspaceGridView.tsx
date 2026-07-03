@@ -15,7 +15,7 @@ import {
   ErrorBoundary,
 } from '@sistent/sistent';
 import { useDeleteWorkspaceMutation } from '@/rtk-query/workspace';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import CAN from '@/utils/can';
 import { useNotificationHandlers } from '@/utils/hooks/useNotification';
 import { UserCommonBox } from './styles';
@@ -95,8 +95,8 @@ const WorkspaceGridView = ({
               disabled={
                 selectedWorkspaces.length > 0
                   ? !CAN(
-                      keys.WorkspaceManagementDeleteWorkspace.action,
-                      keys.WorkspaceManagementDeleteWorkspace.subject,
+                      Keys.WorkspaceManagementDeleteWorkspace.id,
+                      Keys.WorkspaceManagementDeleteWorkspace.function,
                     )
                   : true
               }
@@ -139,8 +139,8 @@ const WorkspaceGridView = ({
         />
       </Grid2>
       {CAN(
-        keys.WorkspaceManagementDeleteWorkspace.action,
-        keys.WorkspaceManagementDeleteWorkspace.subject,
+        Keys.WorkspaceManagementDeleteWorkspace.id,
+        Keys.WorkspaceManagementDeleteWorkspace.function,
       ) && (
         <Modal
           open={deleteWorkspacesModal}

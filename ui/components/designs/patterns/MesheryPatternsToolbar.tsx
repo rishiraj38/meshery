@@ -3,7 +3,7 @@ import { CustomColumnVisibilityControl, SearchBar, UniversalFilter } from '@sist
 import { Publish as PublishIcon } from '@/assets/icons';
 import ViewSwitch from '../../ViewSwitch';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import TooltipButton from '@/utils/TooltipButton';
 import { ToolWrapper } from '@/assets/styles/general/tool.styles';
 import {
@@ -66,8 +66,8 @@ function MesheryPatternsToolbar({
                     style={{ display: 'flex', marginRight: '2rem' }}
                     disabled={
                       !CAN(
-                        keys.CatalogManagementCreateNewDesign.action,
-                        keys.CatalogManagementCreateNewDesign.subject,
+                        Keys.CatalogManagementCreateNewDesign.id,
+                        Keys.CatalogManagementCreateNewDesign.function,
                       )
                     }
                   >
@@ -86,8 +86,8 @@ function MesheryPatternsToolbar({
                     style={{ display: 'flex', marginRight: '2rem', marginLeft: '-0.6rem' }}
                     disabled={
                       !CAN(
-                        keys.CatalogManagementImportDesign.action,
-                        keys.CatalogManagementImportDesign.subject,
+                        Keys.CatalogManagementImportDesign.id,
+                        Keys.CatalogManagementImportDesign.function,
                       )
                     }
                   >

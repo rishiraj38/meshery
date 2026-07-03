@@ -45,23 +45,6 @@ vi.mock('@/utils/can', () => ({
   default: (...args: any[]) => canMock(...args),
 }));
 
-vi.mock('@/utils/permission_constants', () => ({
-  keys: {
-    CatalogManagementEditDesign: { action: 'edit', subject: 'design' },
-    CatalogManagementCloneDesign: { action: 'clone', subject: 'design' },
-    CatalogManagementValidateDesign: { action: 'validate', subject: 'design' },
-    CatalogManagementUndeployDesign: { action: 'undeploy', subject: 'design' },
-    CatalogManagementDeployDesign: { action: 'deploy', subject: 'design' },
-    CatalogManagementDownloadADesign: { action: 'download', subject: 'design' },
-    CatalogManagementDetailsOfDesign: { action: 'details', subject: 'design' },
-    CatalogManagementUnpublishDesign: { action: 'unpublish', subject: 'design' },
-    CatalogManagementEvaluateRelationships: {
-      action: 'evaluate',
-      subject: 'evaluate relationships',
-    },
-  },
-}));
-
 vi.mock('@/assets/icons/CheckIcon', () => ({
   default: () => <svg data-testid="check-icon" />,
 }));

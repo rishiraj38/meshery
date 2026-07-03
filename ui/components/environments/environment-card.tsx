@@ -2,7 +2,7 @@ import React from 'react';
 import { FlipCard } from '../lifecycle/general';
 import { useGetEnvironmentConnectionsQuery } from '../../rtk-query/environments';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import { DeleteIcon, EditIcon, Grid2, SyncAltIcon, useTheme } from '@sistent/sistent';
 
 import {
@@ -171,8 +171,8 @@ const EnvironmentCard = ({
                     onAssign={onAssignConnection}
                     disabled={
                       !CAN(
-                        keys.WorkspaceManagementViewConnections.action,
-                        keys.WorkspaceManagementViewConnections.subject,
+                        Keys.WorkspaceManagementViewConnections.id,
+                        Keys.WorkspaceManagementViewConnections.function,
                       )
                     }
                   />
@@ -186,7 +186,7 @@ const EnvironmentCard = ({
                         environmentDetails.workspaces ? environmentDetails.workspaces?.length : 0
                       }
                       onAssign={onAssignConnection}
-                      disabled={!CAN(keys.WorkspaceManagementViewWorkspace.action, keys.WorkspaceManagementViewWorkspace.subject)}
+                      disabled={!CAN(Keys.WorkspaceManagementViewWorkspace.id, Keys.WorkspaceManagementViewWorkspace.function)}
                     />
                   </AllocationButton>
                 )} */}
@@ -231,8 +231,8 @@ const EnvironmentCard = ({
                     selectedEnvironments?.filter((id) => id == environmentDetails.id).length === 1
                       ? true
                       : !CAN(
-                          keys.WorkspaceManagementEditEnvironment.action,
-                          keys.WorkspaceManagementEditEnvironment.subject,
+                          Keys.WorkspaceManagementEditEnvironment.id,
+                          Keys.WorkspaceManagementEditEnvironment.function,
                         )
                   }
                 >
@@ -244,8 +244,8 @@ const EnvironmentCard = ({
                     selectedEnvironments?.filter((id) => id == environmentDetails.id).length === 1
                       ? true
                       : !CAN(
-                          keys.WorkspaceManagementDeleteEnvironment.action,
-                          keys.WorkspaceManagementDeleteEnvironment.subject,
+                          Keys.WorkspaceManagementDeleteEnvironment.id,
+                          Keys.WorkspaceManagementDeleteEnvironment.function,
                         )
                   }
                 >

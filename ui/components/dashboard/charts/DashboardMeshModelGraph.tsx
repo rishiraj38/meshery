@@ -14,7 +14,7 @@ import {
 } from '@/rtk-query/meshModel';
 import { DashboardSection } from '../style';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import { useRouter } from 'next/router';
 import { Grid2, InfoOutlinedIcon, Typography, useTheme } from '@sistent/sistent';
 
@@ -73,8 +73,8 @@ function MeshModelContructs() {
       style={{
         textDecoration: 'none',
         pointerEvents: !CAN(
-          keys.MesherySystemViewRegistry.action,
-          keys.MesherySystemViewRegistry.subject,
+          Keys.MesherySystemViewRegistry.id,
+          Keys.MesherySystemViewRegistry.function,
         )
           ? 'none'
           : 'auto',

@@ -14,7 +14,7 @@ import { Close as CloseIcon, Delete as DeleteIcon, Save as SaveIcon } from '@/as
 import { UnControlled as CodeMirror } from '../../CodeMirror';
 import { FILE_OPS } from '../../../utils/Enum';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import { YamlDialogTitle, YamlDialogTitleText } from './MesheryPatterns.styled';
 
 function YAMLEditor({ pattern, onClose, onSubmit, isReadOnly = false }) {
@@ -91,8 +91,8 @@ function YAMLEditor({ pattern, onClose, onSubmit, isReadOnly = false }) {
                 aria-label="Update"
                 disabled={
                   !CAN(
-                    keys.CatalogManagementEditDesign.action,
-                    keys.CatalogManagementEditDesign.subject,
+                    Keys.CatalogManagementEditDesign.id,
+                    Keys.CatalogManagementEditDesign.function,
                   )
                 }
                 onClick={() =>
@@ -113,8 +113,8 @@ function YAMLEditor({ pattern, onClose, onSubmit, isReadOnly = false }) {
                 aria-label="Delete"
                 disabled={
                   !CAN(
-                    keys.CatalogManagementDeleteADesign.action,
-                    keys.CatalogManagementDeleteADesign.subject,
+                    Keys.CatalogManagementDeleteADesign.id,
+                    Keys.CatalogManagementDeleteADesign.function,
                   )
                 }
                 onClick={() =>

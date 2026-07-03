@@ -73,20 +73,7 @@ vi.mock('../../../css/icons.styles', () => ({
   iconSmall: {},
 }));
 
-vi.mock('@/utils/permission_constants', () => ({
-  keys: {
-    WorkspaceManagementViewConnections: { action: 'view', subject: 'connection' },
-    SecurityManagementViewCredentials: { action: 'view', subject: 'credential' },
-    WorkspaceManagementViewEnvironment: { action: 'view', subject: 'environment' },
-    WorkspaceManagementViewWorkspace: { action: 'view', subject: 'workspace' },
-    InfrastructureManagementViewCloudNativeInfrastructure: { action: 'view', subject: 'infra' },
-    CatalogManagementViewCatalog: { action: 'view', subject: 'catalog' },
-    CatalogManagementViewDesigns: { action: 'view', subject: 'design' },
-    PerformanceManagementViewPerformanceProfiles: { action: 'view', subject: 'profile' },
-    ExtensibilityViewExtensions: { action: 'view', subject: 'extension' },
-  },
-}));
-
+import { Keys } from '@/utils/permission_constants';
 import { drawerIconsStyle, getNavigatorComponents } from './navigatorComponents';
 
 const fakeProviderUiAccessControl = (allowed: Record<string, boolean>) => ({
@@ -193,7 +180,10 @@ describe('navigatorComponents', () => {
     const items = getNavigatorComponents(fakeProviderUiAccessControl({ LIFECYCLE: true }), theme);
     const lifecycle = items.find((i: any) => i.id === 'LIFECYCLE');
     const connection = lifecycle?.children?.find((c: any) => c.id === 'CONNECTION');
-    expect(connection?.permission).toEqual({ action: 'view', subject: 'connection' });
+    expect(connection?.permission).toEqual({
+      action: Keys.WorkspaceManagementViewConnections.id,
+      subject: Keys.WorkspaceManagementViewConnections.function,
+    });
   });
 
   it('passes white fills to CatalogIcon when on the catalog route', () => {

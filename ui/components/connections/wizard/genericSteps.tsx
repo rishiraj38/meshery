@@ -12,7 +12,7 @@ import {
 import { alpha, styled } from '@/theme';
 import { EVENT_TYPES } from 'lib/event-types';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import {
   buildCredentialSecret,
   filterCredentialsForKind,
@@ -34,8 +34,8 @@ export const kindPermission = (config?: ConnectionWizardKindConfig | null) => {
   }
 
   return config.flow === 'kubernetes'
-    ? CAN(keys.LifecycleManagementAddCluster.action, keys.LifecycleManagementAddCluster.subject)
-    : CAN(keys.MesherySystemConnectMetrics.action, keys.MesherySystemConnectMetrics.subject);
+    ? CAN(Keys.LifecycleManagementAddCluster.id, Keys.LifecycleManagementAddCluster.function)
+    : CAN(Keys.MesherySystemConnectMetrics.id, Keys.MesherySystemConnectMetrics.function);
 };
 
 const existingCredentialsFor = (ctx: WizardContext) =>

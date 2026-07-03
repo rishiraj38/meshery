@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, CircularProgress } from '@sistent/sistent';
 import { SaveOutlined as SaveOutlinedIcon } from '@/assets/icons';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 
 interface PerformanceFormActionsProps {
   disableTest: boolean;
@@ -79,7 +79,7 @@ const PerformanceFormActions: React.FC<PerformanceFormActionsProps> = ({
         disabled={
           blockRunTest ||
           disableTest ||
-          !CAN(keys.PerformanceManagementRunTest.action, keys.PerformanceManagementRunTest.subject)
+          !CAN(Keys.PerformanceManagementRunTest.id, Keys.PerformanceManagementRunTest.function)
         }
       >
         {blockRunTest ? <CircularProgress size={30} /> : 'Run Test'}

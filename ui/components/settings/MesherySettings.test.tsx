@@ -95,16 +95,6 @@ vi.mock('@/utils/can', () => ({
   default: () => canMockReturn,
 }));
 
-vi.mock('@/utils/permission_constants', () => ({
-  keys: {
-    MesherySystemViewSettings: { action: 'a', subject: 's' },
-    InfrastructureManagementViewCloudNativeInfrastructure: { action: 'a', subject: 's' },
-    MesherySystemViewMetrics: { action: 'a', subject: 's' },
-    MesherySystemViewRegistry: { action: 'a', subject: 's' },
-    VIEW_OVERVIEW: { action: 'a', subject: 's' },
-  },
-}));
-
 vi.mock('@/constants/navigator', () => ({
   METRICS: 'Metrics',
   ADAPTERS: 'Adapters',

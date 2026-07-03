@@ -1,5 +1,5 @@
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import { Box, FormControl, Grid2, InputLabel, MenuItem, Select, useTheme } from '@sistent/sistent';
 import React, { useCallback, useState } from 'react';
 import { StyledSearchBar } from '@sistent/sistent';
@@ -18,7 +18,7 @@ import {
 import { getDefaultFilterType } from './hooks';
 
 const RecentContent = () => {
-  const isViewVisible = CAN(keys.KanvasViewViews.action, keys.KanvasViewViews.subject);
+  const isViewVisible = CAN(Keys.KanvasViewViews.id, Keys.KanvasViewViews.function);
   const visibilityItems = [VISIBILITY.PUBLIC, VISIBILITY.PRIVATE];
 
   const [filters, setFilters] = useState({

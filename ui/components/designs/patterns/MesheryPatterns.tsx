@@ -23,7 +23,7 @@ import { useColumnVisibilityPreference } from '@/utils/hooks/useColumnVisibility
 import InfoModal from '../../shared/Modal/Information/InfoModal';
 import DefaultError from '../../general/error-404/index';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import ExportDesignModal from '../export/ExportDesignModal';
 import { useModal, Modal as SistentModal } from '@sistent/sistent';
 import PatternIcon from '@/assets/icons/Pattern';
@@ -414,7 +414,7 @@ function MesheryPatterns({
 
   const userCanEdit = (pattern) => {
     return (
-      CAN(keys.CatalogManagementEditDesign.action, keys.CatalogManagementEditDesign.subject) &&
+      CAN(Keys.CatalogManagementEditDesign.id, Keys.CatalogManagementEditDesign.function) &&
       user?.userId == pattern?.userId
     );
   };
@@ -521,10 +521,7 @@ function MesheryPatterns({
   return (
     <>
       <NoSsr>
-        {CAN(
-          keys.CatalogManagementViewDesigns.action,
-          keys.CatalogManagementViewDesigns.subject,
-        ) ? (
+        {CAN(Keys.CatalogManagementViewDesigns.id, Keys.CatalogManagementViewDesigns.function) ? (
           <>
             {selectedRowData && Object.keys(selectedRowData).length > 0 && (
               <YAMLEditor
@@ -617,8 +614,8 @@ function MesheryPatterns({
             <SistentModal maxWidth="sm" {...designLifecycleModal}></SistentModal>
             <SistentModal {...sistentInfoModal}>
               {CAN(
-                keys.CatalogManagementDetailsOfDesign.action,
-                keys.CatalogManagementDetailsOfDesign.subject,
+                Keys.CatalogManagementDetailsOfDesign.id,
+                Keys.CatalogManagementDetailsOfDesign.function,
               ) &&
                 infoModal.open && (
                   <InfoModal
@@ -634,8 +631,8 @@ function MesheryPatterns({
             {canPublishPattern &&
               publishModal.open &&
               CAN(
-                keys.CatalogManagementPublishDesign.action,
-                keys.CatalogManagementPublishDesign.subject,
+                Keys.CatalogManagementPublishDesign.id,
+                Keys.CatalogManagementPublishDesign.function,
               ) && (
                 <PublishDesignModal
                   publishFormSchema={publishSchema}
@@ -646,8 +643,8 @@ function MesheryPatterns({
               )}
             {importModal.open &&
               CAN(
-                keys.CatalogManagementImportDesign.action,
-                keys.CatalogManagementImportDesign.subject,
+                Keys.CatalogManagementImportDesign.id,
+                Keys.CatalogManagementImportDesign.function,
               ) && (
                 <ImportDesignModal
                   handleClose={handleUploadImportClose}

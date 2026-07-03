@@ -8,7 +8,7 @@ import SearchBar from '../utils/custom-search';
 import { ToolWrapper } from '@/assets/styles/general/tool.styles';
 import { useGetDatabaseSummaryQuery } from '@/rtk-query/system';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import { PROMPT_VARIANTS } from '@sistent/sistent';
 import { updateProgress } from '@/store/slices/mesheryUi';
 
@@ -144,7 +144,7 @@ const DatabaseSummary: FC<DatabaseSummaryProps> = (props) => {
             }}
             size="medium"
             disabled={
-              !CAN(keys.MesherySystemResetDatabase.action, keys.MesherySystemResetDatabase.subject)
+              !CAN(Keys.MesherySystemResetDatabase.id, Keys.MesherySystemResetDatabase.function)
             }
             onClick={handleResetDatabase()}
             data-cy="btnResetDatabase"

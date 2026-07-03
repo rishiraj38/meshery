@@ -28,7 +28,7 @@ import {
   getMeshModelRegistrants,
 } from '../../api/meshmodel';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import { ADAPTERS, RESET, OVERVIEW, REGISTRY } from '@/constants/navigator';
 import { removeDuplicateVersions } from '../registry/helper';
 import MeshModelComponent from '../registry/MeshModelComponent';
@@ -198,7 +198,7 @@ const MesherySettings = () => {
   }
   return (
     <>
-      {CAN(keys.MesherySystemViewSettings.action, keys.MesherySystemViewSettings.subject) ? (
+      {CAN(Keys.MesherySystemViewSettings.id, Keys.MesherySystemViewSettings.function) ? (
         <>
           <div sx={{ flexGrow: 1, maxWidth: '100%', height: 'auto' }}>
             <StyledPaper square>
@@ -224,7 +224,7 @@ const MesherySettings = () => {
                     label="Overview"
                     // tab="Overview"
                     value={OVERVIEW}
-                    // disabled={!CAN(keys.VIEW_OVERVIEW.action, keys.VIEW_OVERVIEW.subject)}
+                    // disabled={!CAN(Keys.VIEW_OVERVIEW.id, Keys.VIEW_OVERVIEW.function)}
                   />
                 </CustomTooltip>
                 <CustomTooltip
@@ -240,8 +240,8 @@ const MesherySettings = () => {
                     value={ADAPTERS}
                     disabled={
                       !CAN(
-                        keys.InfrastructureManagementViewCloudNativeInfrastructure.action,
-                        keys.InfrastructureManagementViewCloudNativeInfrastructure.subject,
+                        Keys.InfrastructureManagementViewCloudNativeInfrastructure.id,
+                        Keys.InfrastructureManagementViewCloudNativeInfrastructure.function,
                       )
                     }
                   />
@@ -254,8 +254,8 @@ const MesherySettings = () => {
                     value={REGISTRY}
                     disabled={
                       !CAN(
-                        keys.MesherySystemViewRegistry.action,
-                        keys.MesherySystemViewRegistry.subject,
+                        Keys.MesherySystemViewRegistry.id,
+                        Keys.MesherySystemViewRegistry.function,
                       )
                     }
                   />
@@ -268,7 +268,7 @@ const MesherySettings = () => {
                     data-testid="settings-tab-reset"
                     // tab="systemReset"
                     value={RESET}
-                    // disabled={!CAN(keys.VIEW_SYSTEM_RESET.action, keys.VIEW_SYSTEM_RESET.subject)} TODO: uncomment when key get seeded
+                    // disabled={!CAN(Keys.VIEW_SYSTEM_RESET.id, Keys.VIEW_SYSTEM_RESET.function)} TODO: uncomment when key get seeded
                   />
                 </CustomTooltip>
               </Tabs>
@@ -324,8 +324,8 @@ const MesherySettings = () => {
             )}
             {tabVal === ADAPTERS &&
               CAN(
-                keys.InfrastructureManagementViewCloudNativeInfrastructure.action,
-                keys.InfrastructureManagementViewCloudNativeInfrastructure.subject,
+                Keys.InfrastructureManagementViewCloudNativeInfrastructure.id,
+                Keys.InfrastructureManagementViewCloudNativeInfrastructure.function,
               ) && (
                 <TabContainer>
                   <MeshAdapterConfigComponent />

@@ -15,7 +15,7 @@ import { UnControlled as CodeMirror } from '../CodeMirror';
 import { FILE_OPS } from '../../utils/Enum';
 import { iconMedium } from '../../css/icons.styles';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import TooltipIcon from './TooltipIcon';
 import { YmlDialogTitle, YmlDialogTitleText } from './Filters.styled';
 import type { YAMLEditorProps } from './Filters.types';
@@ -100,8 +100,8 @@ function YAMLEditor({ filter, onClose, onSubmit }: YAMLEditorProps) {
             aria-label="Update"
             disabled={
               !CAN(
-                keys.CatalogManagementEditWasmFilter.action,
-                keys.CatalogManagementEditWasmFilter.subject,
+                Keys.CatalogManagementEditWasmFilter.id,
+                Keys.CatalogManagementEditWasmFilter.function,
               )
             }
             onClick={() =>
@@ -122,8 +122,8 @@ function YAMLEditor({ filter, onClose, onSubmit }: YAMLEditorProps) {
             aria-label="Delete"
             disabled={
               !CAN(
-                keys.CatalogManagementDeleteWasmFilter.action,
-                keys.CatalogManagementDeleteWasmFilter.subject,
+                Keys.CatalogManagementDeleteWasmFilter.id,
+                Keys.CatalogManagementDeleteWasmFilter.function,
               )
             }
             onClick={() =>

@@ -10,13 +10,6 @@ vi.mock('@/utils/can', () => ({
   default: (...args: unknown[]) => can(...args),
 }));
 
-vi.mock('@/utils/permission_constants', () => ({
-  keys: {
-    WorkspaceManagementEditWorkspace: { action: 'edit', subject: 'workspace' },
-    WorkspaceManagementDeleteWorkspace: { action: 'delete', subject: 'workspace' },
-  },
-}));
-
 vi.mock('@sistent/sistent', () => ({
   AccessTimeFilledIcon: () => <svg data-testid="time-icon" />,
   CustomTooltip: ({ children, title }: any) => (

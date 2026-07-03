@@ -30,7 +30,7 @@ import WorkspaceContent from './SpacesSwitcher/WorkspaceContent';
 import { useGetProviderCapabilitiesQuery, useGetSelectedOrganization } from '@/rtk-query/user';
 import SharedContent from './SpacesSwitcher/SharedContent';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import { WorkspaceModalContext } from '@/utils/context/WorkspaceModalContextProvider';
 import type { Theme } from '@/theme';
 import { NavItem, WorkspacesSection, NavConfigItem } from './WorkspaceFormModalSections';
@@ -71,7 +71,7 @@ const getNavItem = (theme: Theme): NavConfigItem[] => {
       id: 'My-Views',
       label: 'My Views',
       icon: <ViewIcon {...iconSmall} fill={theme.palette.icon.default} />,
-      enabled: CAN(keys.KanvasViewViews.action, keys.KanvasViewViews.subject),
+      enabled: CAN(Keys.KanvasViewViews.id, Keys.KanvasViewViews.function),
       content: <MyViewsContent />,
     },
     {

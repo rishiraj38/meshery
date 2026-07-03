@@ -16,12 +16,6 @@ vi.mock('@/utils/can', () => ({
   default: (...args: unknown[]) => can(...args),
 }));
 
-vi.mock('@/utils/permission_constants', () => ({
-  keys: {
-    WorkspaceManagementDeleteWorkspace: { action: 'delete', subject: 'workspace' },
-  },
-}));
-
 vi.mock('@/utils/hooks/useNotification', () => ({
   useNotificationHandlers: () => ({ handleSuccess, handleError }),
 }));

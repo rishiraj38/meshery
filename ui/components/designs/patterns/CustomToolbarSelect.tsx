@@ -1,7 +1,7 @@
 import React from 'react';
 import { CustomTooltip, DeleteIcon, IconButton } from '@sistent/sistent';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 
 const CustomToolbarSelect = ({
   selectedRows,
@@ -35,8 +35,8 @@ const CustomToolbarSelect = ({
             onClick={handleClickDelete}
             disabled={
               !CAN(
-                keys.CatalogManagementDeleteADesign.action,
-                keys.CatalogManagementDeleteADesign.subject,
+                Keys.CatalogManagementDeleteADesign.id,
+                Keys.CatalogManagementDeleteADesign.function,
               )
             }
           >

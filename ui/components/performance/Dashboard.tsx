@@ -5,7 +5,7 @@ import MesheryPerformanceComponent from './index';
 import { useNotification } from '../../utils/hooks/useNotification';
 import { EVENT_TYPES } from '../../lib/event-types';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import DefaultError from '@/components/general/error-404/index';
 import { Modal, Button, Grid2, Paper, Typography, useTheme, styled } from '@sistent/sistent';
 import { updateProgressAction } from '@/store/slices/mesheryUi';
@@ -132,8 +132,8 @@ function Dashboard() {
   return (
     <>
       {CAN(
-        keys.PerformanceManagementViewPerformanceProfiles.action,
-        keys.PerformanceManagementViewPerformanceProfiles.subject,
+        Keys.PerformanceManagementViewPerformanceProfiles.id,
+        Keys.PerformanceManagementViewPerformanceProfiles.function,
       ) ? (
         <>
           <Grid2
@@ -177,8 +177,8 @@ function Dashboard() {
                           onClick={() => setRunTest(true)}
                           disabled={
                             !CAN(
-                              keys.PerformanceManagementRunTest.action,
-                              keys.PerformanceManagementRunTest.subject,
+                              Keys.PerformanceManagementRunTest.id,
+                              Keys.PerformanceManagementRunTest.function,
                             )
                           }
                           variant="contained"

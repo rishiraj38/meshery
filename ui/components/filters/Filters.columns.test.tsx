@@ -9,17 +9,6 @@ vi.mock('@/utils/can', () => ({
   default: (...args: unknown[]) => can(...args),
 }));
 
-vi.mock('@/utils/permission_constants', () => ({
-  keys: {
-    CatalogManagementCloneWasmFilter: { action: 'clone', subject: 'wasm-filter' },
-    CatalogManagementEditWasmFilter: { action: 'edit', subject: 'wasm-filter' },
-    CatalogManagementDownloadAWasmFilter: { action: 'download', subject: 'wasm-filter' },
-    CatalogManagementDetailsOfWasmFilter: { action: 'details', subject: 'wasm-filter' },
-    CatalogManagementPublishWasmFilter: { action: 'publish', subject: 'wasm-filter' },
-    CatalogManagementUnpublishWasmFilter: { action: 'unpublish', subject: 'wasm-filter' },
-  },
-}));
-
 vi.mock('@/assets/icons', () => ({
   GetApp: ({ ...props }: any) => <svg data-testid="download-icon" {...props} />,
   Public: ({ ...props }: any) => <svg data-testid="public-icon" {...props} />,

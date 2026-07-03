@@ -1,5 +1,5 @@
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import {
   Box,
   FormControl,
@@ -38,7 +38,7 @@ import { useSelector } from 'react-redux';
 import { useNotification } from '@/utils/hooks/useNotification';
 
 const WorkspaceContent = ({ workspace }) => {
-  const isViewVisible = CAN(keys.KanvasViewViews.action, keys.KanvasViewViews.subject);
+  const isViewVisible = CAN(Keys.KanvasViewViews.id, Keys.KanvasViewViews.function);
   const visibilityItems = [VISIBILITY.PUBLIC, VISIBILITY.PRIVATE];
 
   const [filters, setFilters] = useState({
@@ -247,8 +247,8 @@ const WorkspaceContent = ({ workspace }) => {
                 workspaceId={workspace?.id}
                 disabled={
                   !CAN(
-                    keys.WorkspaceManagementAssignDesignsToWorkspaces.action,
-                    keys.WorkspaceManagementAssignDesignsToWorkspaces.subject,
+                    Keys.WorkspaceManagementAssignDesignsToWorkspaces.id,
+                    Keys.WorkspaceManagementAssignDesignsToWorkspaces.function,
                   )
                 }
               />
@@ -276,16 +276,16 @@ const WorkspaceContent = ({ workspace }) => {
             assignDesignToWorkspace={assignDesignToWorkspace}
             assignViewToWorkspace={assignViewToWorkspace}
             isCreateWorkspaceAllowed={CAN(
-              keys.WorkspaceManagementCreateWorkspace.action,
-              keys.WorkspaceManagementCreateWorkspace.subject,
+              Keys.WorkspaceManagementCreateWorkspace.id,
+              Keys.WorkspaceManagementCreateWorkspace.function,
             )}
             isMoveDesignAllowed={CAN(
-              keys.WorkspaceManagementAssignDesignsToWorkspaces.action,
-              keys.WorkspaceManagementAssignDesignsToWorkspaces.subject,
+              Keys.WorkspaceManagementAssignDesignsToWorkspaces.id,
+              Keys.WorkspaceManagementAssignDesignsToWorkspaces.function,
             )}
             isMoveViewAllowed={CAN(
-              keys.KanvasAssignViewsToWorkspace.action,
-              keys.KanvasAssignViewsToWorkspace.subject,
+              Keys.KanvasAssignViewsToWorkspace.id,
+              Keys.KanvasAssignViewsToWorkspace.function,
             )}
             currentOrgId={currentOrganization?.id}
             notify={notify}

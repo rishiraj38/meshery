@@ -11,7 +11,7 @@ import {
   PlayArrowIcon as PlayIcon,
 } from '@sistent/sistent';
 import { iconMedium } from '../css/icons.styles';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import CAN from '@/utils/can';
 import { AdapterCard } from './adapter-play-styled';
 
@@ -48,40 +48,40 @@ const CATEGORY_DEFS: Record<number, CategoryContent> = {
     content: 'Manage Cloud Native Infrastructure Lifecycle',
     description: 'Deploy cloud native infrastructure or SMI adapter on your cluster.',
     permission: {
-      action: keys.InfrastructureManagementManageCloudNativeInfrastructureLifeCycle.action,
-      subject: keys.InfrastructureManagementManageCloudNativeInfrastructureLifeCycle.subject,
+      action: Keys.InfrastructureManagementManageCloudNativeInfrastructureLifeCycle.id,
+      subject: Keys.InfrastructureManagementManageCloudNativeInfrastructureLifeCycle.function,
     },
   },
   1: {
     content: 'Manage Sample Application Lifecycle',
     description: 'Deploy sample applications on/off the service mesh.',
     permission: {
-      action: keys.InfrastructureManagementManageCloudNativeInfrastructureLifeCycle.action,
-      subject: keys.InfrastructureManagementManageCloudNativeInfrastructureLifeCycle.subject,
+      action: Keys.InfrastructureManagementManageCloudNativeInfrastructureLifeCycle.id,
+      subject: Keys.InfrastructureManagementManageCloudNativeInfrastructureLifeCycle.function,
     },
   },
   2: {
     content: 'Apply Cloud Native Infrastructure Configuration',
     description: 'Configure your cloud native infrastructure using some pre-defined options.',
     permission: {
-      action: keys.InfrastructureManagementApplyCloudNativeInfrastructureConfiguration.action,
-      subject: keys.InfrastructureManagementApplyCloudNativeInfrastructureConfiguration.subject,
+      action: Keys.InfrastructureManagementApplyCloudNativeInfrastructureConfiguration.id,
+      subject: Keys.InfrastructureManagementApplyCloudNativeInfrastructureConfiguration.function,
     },
   },
   3: {
     content: 'Validate Cloud Native Infrastructure Configuration',
     description: 'Validate your cloud native infrastructure configuration against best practices.',
     permission: {
-      action: keys.InfrastructureManagementValidateCloudNativeInfrastructureConfiguration.action,
-      subject: keys.InfrastructureManagementValidateCloudNativeInfrastructureConfiguration.subject,
+      action: Keys.InfrastructureManagementValidateCloudNativeInfrastructureConfiguration.id,
+      subject: Keys.InfrastructureManagementValidateCloudNativeInfrastructureConfiguration.function,
     },
   },
   4: {
     content: 'Apply Custom Configuration',
     description: 'Customize the configuration of your cloud native infrastructure.',
     permission: {
-      action: keys.InfrastructureManagementApplyCustomCloudNativeConfiguration.action,
-      subject: keys.InfrastructureManagementApplyCustomCloudNativeConfiguration.subject,
+      action: Keys.InfrastructureManagementApplyCustomCloudNativeConfiguration.id,
+      subject: Keys.InfrastructureManagementApplyCustomCloudNativeConfiguration.function,
     },
   },
 };

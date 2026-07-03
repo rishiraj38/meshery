@@ -3,7 +3,7 @@ import { usePublishPatternMutation, useUpdatePatternFileMutation } from '@/rtk-q
 import TooltipButton from '@/utils/TooltipButton';
 import CAN from '@/utils/can';
 import { filterEmptyFields } from '@/utils/objects';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import {
   Avatar,
   Box,
@@ -480,8 +480,8 @@ const InfoModal_: FC<InfoModalProps> = React.memo((props) => {
                   ? false
                   : !(
                       CAN(
-                        keys.CatalogManagementPublishDesign.action,
-                        keys.CatalogManagementPublishDesign.subject,
+                        Keys.CatalogManagementPublishDesign.id,
+                        Keys.CatalogManagementPublishDesign.function,
                       ) && currentUser?.id === selectedResource?.userId
                     ) || isPublished
               }

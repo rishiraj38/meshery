@@ -9,13 +9,6 @@ vi.mock('@/utils/can', () => ({
   default: (...args: unknown[]) => can(...args),
 }));
 
-vi.mock('@/utils/permission_constants', () => ({
-  keys: {
-    CatalogManagementEditWasmFilter: { action: 'edit', subject: 'wasm-filter' },
-    CatalogManagementDeleteWasmFilter: { action: 'delete', subject: 'wasm-filter' },
-  },
-}));
-
 vi.mock('@/assets/icons', () => ({
   Close: () => <svg data-testid="close-icon" />,
   Delete: () => <svg data-testid="delete-icon" />,

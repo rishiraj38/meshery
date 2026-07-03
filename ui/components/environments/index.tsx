@@ -46,7 +46,7 @@ import {
   useUpdateEnvironmentMutation,
   useDeleteEnvironmentMutation,
 } from '../../rtk-query/environments';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import CAN from '@/utils/can';
 import DefaultError from '../general/error-404/index';
 import { useSelector } from 'react-redux';
@@ -399,12 +399,12 @@ const Environments = () => {
       getAddedAndRemovedConnection(updatedAssignedData);
     (addedConnectionsIds.length > 0 || removedConnectionsIds.length) > 0 &&
     (CAN(
-      keys.WorkspaceManagementAssignConnectionsToEnvironment.action,
-      keys.WorkspaceManagementAssignConnectionsToEnvironment.subject,
+      Keys.WorkspaceManagementAssignConnectionsToEnvironment.id,
+      Keys.WorkspaceManagementAssignConnectionsToEnvironment.function,
     ) ||
       CAN(
-        keys.WorkspaceManagementRemoveConnectionsFromEnvironments.action,
-        keys.WorkspaceManagementRemoveConnectionsFromEnvironments.subject,
+        Keys.WorkspaceManagementRemoveConnectionsFromEnvironments.id,
+        Keys.WorkspaceManagementRemoveConnectionsFromEnvironments.function,
       ))
       ? setDisableTranferButton(false)
       : setDisableTranferButton(true);
@@ -450,8 +450,8 @@ const Environments = () => {
   return (
     <NoSsr>
       {CAN(
-        keys.WorkspaceManagementViewEnvironment.action,
-        keys.WorkspaceManagementViewEnvironment.subject,
+        Keys.WorkspaceManagementViewEnvironment.id,
+        Keys.WorkspaceManagementViewEnvironment.function,
       ) ? (
         <>
           <ToolWrapper>
@@ -469,8 +469,8 @@ const Environments = () => {
                 }}
                 disabled={
                   !CAN(
-                    keys.WorkspaceManagementCreateEnvironment.action,
-                    keys.WorkspaceManagementCreateEnvironment.subject,
+                    Keys.WorkspaceManagementCreateEnvironment.id,
+                    Keys.WorkspaceManagementCreateEnvironment.function,
                   )
                 }
                 data-cy="btnResetDatabase"
@@ -507,8 +507,8 @@ const Environments = () => {
                 disabled={
                   selectedEnvironments.length > 0
                     ? !CAN(
-                        keys.WorkspaceManagementDeleteEnvironment.action,
-                        keys.WorkspaceManagementDeleteEnvironment.subject,
+                        Keys.WorkspaceManagementDeleteEnvironment.id,
+                        Keys.WorkspaceManagementDeleteEnvironment.function,
                       )
                     : true
                 }
@@ -571,12 +571,12 @@ const Environments = () => {
             />
           )}
           {(CAN(
-            keys.WorkspaceManagementCreateEnvironment.action,
-            keys.WorkspaceManagementCreateEnvironment.subject,
+            Keys.WorkspaceManagementCreateEnvironment.id,
+            Keys.WorkspaceManagementCreateEnvironment.function,
           ) ||
             CAN(
-              keys.WorkspaceManagementEditEnvironment.action,
-              keys.WorkspaceManagementEditEnvironment.subject,
+              Keys.WorkspaceManagementEditEnvironment.id,
+              Keys.WorkspaceManagementEditEnvironment.function,
             )) &&
             environmentModal.open && (
               <SisitentModal
@@ -635,12 +635,12 @@ const Environments = () => {
                 originalLeftCount={connections?.totalCount}
                 originalRightCount={environmentConnections?.totalCount}
                 leftPermission={CAN(
-                  keys.WorkspaceManagementRemoveConnectionsFromEnvironments.action,
-                  keys.WorkspaceManagementRemoveConnectionsFromEnvironments.subject,
+                  Keys.WorkspaceManagementRemoveConnectionsFromEnvironments.id,
+                  Keys.WorkspaceManagementRemoveConnectionsFromEnvironments.function,
                 )}
                 rightPermission={CAN(
-                  keys.WorkspaceManagementAssignConnectionsToEnvironment.action,
-                  keys.WorkspaceManagementAssignConnectionsToEnvironment.subject,
+                  Keys.WorkspaceManagementAssignConnectionsToEnvironment.id,
+                  Keys.WorkspaceManagementAssignConnectionsToEnvironment.function,
                 )}
               />
             </ModalBody>

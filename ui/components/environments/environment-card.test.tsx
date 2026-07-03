@@ -15,15 +15,6 @@ vi.mock('@/utils/can', () => ({
   default: (...args: unknown[]) => can(...args),
 }));
 
-vi.mock('@/utils/permission_constants', () => ({
-  keys: {
-    WorkspaceManagementViewConnections: { action: 'view', subject: 'connections' },
-    WorkspaceManagementViewWorkspace: { action: 'view', subject: 'workspace' },
-    WorkspaceManagementEditEnvironment: { action: 'edit', subject: 'environment' },
-    WorkspaceManagementDeleteEnvironment: { action: 'delete', subject: 'environment' },
-  },
-}));
-
 vi.mock('@sistent/sistent', () => ({
   DeleteIcon: () => <svg data-testid="delete-icon" />,
   EditIcon: () => <svg data-testid="edit-icon" />,

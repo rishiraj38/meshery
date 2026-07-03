@@ -43,7 +43,7 @@ import { useRouter } from 'next/router';
 import { MESHERY_CLOUD_PROD } from '../../../constants/endpoints';
 import { useGetUserByIdQuery } from '../../../rtk-query/user';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import ActionButton from './ActionButton';
 import DryRunIcon from '@/assets/icons/DryRunIcon';
 import CheckIcon from '@/assets/icons/CheckIcon';
@@ -103,8 +103,7 @@ function MesheryPatternCard_({
   };
   const isOwner = user?.userId == pattern?.userId;
   const userCanEdit =
-    CAN(keys.CatalogManagementEditDesign.action, keys.CatalogManagementEditDesign.subject) ||
-    isOwner;
+    CAN(Keys.CatalogManagementEditDesign.id, Keys.CatalogManagementEditDesign.function) || isOwner;
 
   const formatPatternFile = (file) => {
     try {
@@ -208,8 +207,8 @@ function MesheryPatternCard_({
                   onClick={(ev) => genericClickHandler(ev, handleUnpublishModal)}
                   disabled={
                     !CAN(
-                      keys.CatalogManagementUnpublishDesign.action,
-                      keys.CatalogManagementUnpublishDesign.subject,
+                      Keys.CatalogManagementUnpublishDesign.id,
+                      Keys.CatalogManagementUnpublishDesign.function,
                     )
                   }
                   data-testid="pattern-btn-unpublish"
@@ -226,8 +225,8 @@ function MesheryPatternCard_({
                     icon: <CheckIcon style={iconMedium} />,
                     onClick: (e) => genericClickHandler(e, handleVerify),
                     disabled: !CAN(
-                      keys.CatalogManagementValidateDesign.action,
-                      keys.CatalogManagementValidateDesign.subject,
+                      Keys.CatalogManagementValidateDesign.id,
+                      Keys.CatalogManagementValidateDesign.function,
                     ),
                     'data-testid': 'pattern-btn-validate',
                   },
@@ -236,8 +235,8 @@ function MesheryPatternCard_({
                     icon: <DryRunIcon style={iconMedium} />,
                     onClick: (e) => genericClickHandler(e, handleDryRun),
                     disabled: !CAN(
-                      keys.CatalogManagementValidateDesign.action,
-                      keys.CatalogManagementValidateDesign.subject,
+                      Keys.CatalogManagementValidateDesign.id,
+                      Keys.CatalogManagementValidateDesign.function,
                     ),
                     'data-testid': 'pattern-btn-dryrun',
                   },
@@ -246,8 +245,8 @@ function MesheryPatternCard_({
                     icon: <DoneAllIcon fill="currentColor" style={iconMedium} />,
                     onClick: (e) => genericClickHandler(e, handleDeploy),
                     disabled: !CAN(
-                      keys.CatalogManagementDeployDesign.action,
-                      keys.CatalogManagementDeployDesign.subject,
+                      Keys.CatalogManagementDeployDesign.id,
+                      Keys.CatalogManagementDeployDesign.function,
                     ),
                     'data-testid': 'pattern-btn-deploy',
                   },
@@ -256,8 +255,8 @@ function MesheryPatternCard_({
                     icon: <UndeployIcon fill={crimson[40]} style={iconMedium} />,
                     onClick: (e) => genericClickHandler(e, handleUnDeploy),
                     disabled: !CAN(
-                      keys.CatalogManagementDeployDesign.action,
-                      keys.CatalogManagementDeployDesign.subject,
+                      Keys.CatalogManagementDeployDesign.id,
+                      Keys.CatalogManagementDeployDesign.function,
                     ),
                     'data-testid': 'pattern-btn-undeploy',
                   },
@@ -266,8 +265,8 @@ function MesheryPatternCard_({
                     icon: <AccountTreeIcon fill={'currentColor'} style={iconMedium} />,
                     onClick: (e) => genericClickHandler(e, handleEvaluate),
                     disabled: !CAN(
-                      keys.CatalogManagementEvaluateRelationships.action,
-                      keys.CatalogManagementEvaluateRelationships.subject,
+                      Keys.CatalogManagementEvaluateRelationships.id,
+                      Keys.CatalogManagementEvaluateRelationships.function,
                     ),
                     'data-testid': 'pattern-btn-evaluate',
                   },
@@ -303,8 +302,8 @@ function MesheryPatternCard_({
                   }}
                   disabled={
                     !CAN(
-                      keys.CatalogManagementEditDesign.action,
-                      keys.CatalogManagementEditDesign.subject,
+                      Keys.CatalogManagementEditDesign.id,
+                      Keys.CatalogManagementEditDesign.function,
                     )
                   }
                   data-testid="pattern-btn-design"
@@ -328,8 +327,8 @@ function MesheryPatternCard_({
                   }}
                   disabled={
                     !CAN(
-                      keys.CatalogManagementCloneDesign.action,
-                      keys.CatalogManagementCloneDesign.subject,
+                      Keys.CatalogManagementCloneDesign.id,
+                      Keys.CatalogManagementCloneDesign.function,
                     )
                   }
                   data-testid="pattern-btn-clone"
@@ -347,8 +346,8 @@ function MesheryPatternCard_({
                   onClick={(ev) => genericClickHandler(ev, editInConfigurator)}
                   disabled={
                     !CAN(
-                      keys.CatalogManagementEditDesign.action,
-                      keys.CatalogManagementEditDesign.subject,
+                      Keys.CatalogManagementEditDesign.id,
+                      Keys.CatalogManagementEditDesign.function,
                     )
                   }
                   style={{ padding: '6px 9px', borderRadius: '8px' }}
@@ -369,8 +368,8 @@ function MesheryPatternCard_({
                 }}
                 disabled={
                   !CAN(
-                    keys.CatalogManagementDetailsOfDesign.action,
-                    keys.CatalogManagementDetailsOfDesign.subject,
+                    Keys.CatalogManagementDetailsOfDesign.id,
+                    Keys.CatalogManagementDetailsOfDesign.function,
                   )
                 }
                 data-testid="pattern-btn-info"
@@ -473,8 +472,8 @@ function MesheryPatternCard_({
                     <IconButton
                       disabled={
                         !CAN(
-                          keys.CatalogManagementEditDesign.action,
-                          keys.CatalogManagementEditDesign.subject,
+                          Keys.CatalogManagementEditDesign.id,
+                          Keys.CatalogManagementEditDesign.function,
                         )
                       }
                       onClick={(ev) => genericClickHandler(ev, updateHandler)}
@@ -489,8 +488,8 @@ function MesheryPatternCard_({
                     <IconButton
                       disabled={
                         !CAN(
-                          keys.CatalogManagementDeleteADesign.action,
-                          keys.CatalogManagementDeleteADesign.subject,
+                          Keys.CatalogManagementDeleteADesign.id,
+                          Keys.CatalogManagementDeleteADesign.function,
                         )
                       }
                       onClick={(ev) => genericClickHandler(ev, deleteHandler)}

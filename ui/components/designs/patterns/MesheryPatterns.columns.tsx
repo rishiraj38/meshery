@@ -8,7 +8,7 @@ import CloneIcon from '../../../public/static/img/CloneIcon';
 
 import { DefaultTableCell, SortableTableCell } from '../../connections/common';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import CheckIcon from '@/assets/icons/CheckIcon';
 import DryRunIcon from '@/assets/icons/DryRunIcon';
 import PatternConfigureIcon from '@/assets/icons/PatternConfigure';
@@ -48,8 +48,8 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
         handleOpenInConfigurator(rowData.id);
       },
       disabled: !CAN(
-        keys.CatalogManagementEditDesign.action,
-        keys.CatalogManagementEditDesign.subject,
+        Keys.CatalogManagementEditDesign.id,
+        Keys.CatalogManagementEditDesign.function,
       ),
       condition: userCanEdit(rowData),
     },
@@ -61,8 +61,8 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
         handleClone(rowData.id, rowData.name);
       },
       disabled: !CAN(
-        keys.CatalogManagementCloneDesign.action,
-        keys.CatalogManagementCloneDesign.subject,
+        Keys.CatalogManagementCloneDesign.id,
+        Keys.CatalogManagementCloneDesign.function,
       ),
       condition: visibility === VISIBILITY.PUBLISHED,
     },
@@ -74,8 +74,8 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
         handleOpenInConfigurator(patterns[tableMeta.rowIndex].id);
       },
       disabled: !CAN(
-        keys.CatalogManagementEditDesign.action,
-        keys.CatalogManagementEditDesign.subject,
+        Keys.CatalogManagementEditDesign.id,
+        Keys.CatalogManagementEditDesign.function,
       ),
       condition: visibility !== VISIBILITY.PUBLISHED,
     },
@@ -86,8 +86,8 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
         openValidateModal(e, rowData.patternFile, rowData.name, rowData.id);
       },
       disabled: !CAN(
-        keys.CatalogManagementValidateDesign.action,
-        keys.CatalogManagementValidateDesign.subject,
+        Keys.CatalogManagementValidateDesign.id,
+        Keys.CatalogManagementValidateDesign.function,
       ),
     },
     {
@@ -97,8 +97,8 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
         openDryRunModal(e, rowData.patternFile, rowData.name, rowData.id);
       },
       disabled: !CAN(
-        keys.CatalogManagementValidateDesign.action,
-        keys.CatalogManagementValidateDesign.subject,
+        Keys.CatalogManagementValidateDesign.id,
+        Keys.CatalogManagementValidateDesign.function,
       ),
     },
     {
@@ -109,8 +109,8 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
         handleEvaluateRelationship(rowData);
       },
       disabled: !CAN(
-        keys.CatalogManagementEvaluateRelationships.action,
-        keys.CatalogManagementEvaluateRelationships.subject,
+        Keys.CatalogManagementEvaluateRelationships.id,
+        Keys.CatalogManagementEvaluateRelationships.function,
       ),
     },
     {
@@ -120,8 +120,8 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
         openUndeployModal(e, rowData.patternFile, rowData.name, rowData.id);
       },
       disabled: !CAN(
-        keys.CatalogManagementUndeployDesign.action,
-        keys.CatalogManagementUndeployDesign.subject,
+        Keys.CatalogManagementUndeployDesign.id,
+        Keys.CatalogManagementUndeployDesign.function,
       ),
     },
     {
@@ -131,8 +131,8 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
         openDeployModal(e, rowData.patternFile, rowData.name, rowData.id);
       },
       disabled: !CAN(
-        keys.CatalogManagementDeployDesign.action,
-        keys.CatalogManagementDeployDesign.subject,
+        Keys.CatalogManagementDeployDesign.id,
+        Keys.CatalogManagementDeployDesign.function,
       ),
     },
     {
@@ -142,8 +142,8 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
         handleDesignDownloadModal(e, rowData);
       },
       disabled: !CAN(
-        keys.CatalogManagementDownloadADesign.action,
-        keys.CatalogManagementDownloadADesign.subject,
+        Keys.CatalogManagementDownloadADesign.id,
+        Keys.CatalogManagementDownloadADesign.function,
       ),
     },
     {
@@ -153,8 +153,8 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
         genericClickHandler(e, () => handleInfoModal(rowData));
       },
       disabled: !CAN(
-        keys.CatalogManagementDetailsOfDesign.action,
-        keys.CatalogManagementDetailsOfDesign.subject,
+        Keys.CatalogManagementDetailsOfDesign.id,
+        Keys.CatalogManagementDetailsOfDesign.function,
       ),
     },
 
@@ -163,7 +163,7 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
       label="Publish",
       icon: <PublicIcon fill="#F91313" data-cy="publish-button" />,
       onClick: (e) => handlePublishModal(e, rowData)(),
-      disabled: !CAN(keys.CatalogManagementPublishDesign.action, keys.CatalogManagementPublishDesign.subject),
+      disabled: !CAN(Keys.CatalogManagementPublishDesign.id, Keys.CatalogManagementPublishDesign.function),
       condition: canPublishPattern && visibility !== VISIBILITY.PUBLISHED,
     },*/
 
@@ -174,8 +174,8 @@ export function buildPatternActions({ rowData, visibility, patterns, tableMeta, 
         handleUnpublishModal(e, rowData)();
       },
       disabled: !CAN(
-        keys.CatalogManagementUnpublishDesign.action,
-        keys.CatalogManagementUnpublishDesign.subject,
+        Keys.CatalogManagementUnpublishDesign.id,
+        Keys.CatalogManagementUnpublishDesign.function,
       ),
       condition: visibility === VISIBILITY.PUBLISHED,
     },

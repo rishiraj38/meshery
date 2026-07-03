@@ -6,7 +6,7 @@ import CloneIcon from '../../public/static/img/CloneIcon';
 import { iconMedium } from '../../css/icons.styles';
 import { VISIBILITY } from '../../utils/Enum';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import { DefaultTableCell, SortableTableCell } from '../connections/common/index';
 import TooltipIcon from './TooltipIcon';
 import { ActionsBox } from './Filters.styled';
@@ -139,8 +139,8 @@ export function buildFiltersColumns({
                   }}
                   disabled={
                     !CAN(
-                      keys.CatalogManagementCloneWasmFilter.action,
-                      keys.CatalogManagementCloneWasmFilter.subject,
+                      Keys.CatalogManagementCloneWasmFilter.id,
+                      Keys.CatalogManagementCloneWasmFilter.function,
                     )
                   }
                 >
@@ -155,8 +155,8 @@ export function buildFiltersColumns({
                   }}
                   disabled={
                     !CAN(
-                      keys.CatalogManagementEditWasmFilter.action,
-                      keys.CatalogManagementEditWasmFilter.subject,
+                      Keys.CatalogManagementEditWasmFilter.id,
+                      Keys.CatalogManagementEditWasmFilter.function,
                     )
                   }
                 >
@@ -168,8 +168,8 @@ export function buildFiltersColumns({
                 onClick={(e) => handleDownload(e, rowData.id, rowData.name)}
                 disabled={
                   !CAN(
-                    keys.CatalogManagementDownloadAWasmFilter.action,
-                    keys.CatalogManagementDownloadAWasmFilter.subject,
+                    Keys.CatalogManagementDownloadAWasmFilter.id,
+                    Keys.CatalogManagementDownloadAWasmFilter.function,
                   )
                 }
               >
@@ -180,8 +180,8 @@ export function buildFiltersColumns({
                 onClick={() => handleInfoModal(rowData)}
                 disabled={
                   !CAN(
-                    keys.CatalogManagementDetailsOfWasmFilter.action,
-                    keys.CatalogManagementDetailsOfWasmFilter.subject,
+                    Keys.CatalogManagementDetailsOfWasmFilter.id,
+                    Keys.CatalogManagementDetailsOfWasmFilter.function,
                   )
                 }
               >
@@ -193,8 +193,8 @@ export function buildFiltersColumns({
                   onClick={(ev) => handlePublishModal(ev, rowData)}
                   disabled={
                     !CAN(
-                      keys.CatalogManagementPublishWasmFilter.action,
-                      keys.CatalogManagementPublishWasmFilter.subject,
+                      Keys.CatalogManagementPublishWasmFilter.id,
+                      Keys.CatalogManagementPublishWasmFilter.function,
                     )
                   }
                 >
@@ -206,8 +206,8 @@ export function buildFiltersColumns({
                   onClick={(ev) => handleUnpublishModal(ev, rowData)?.()}
                   disabled={
                     !CAN(
-                      keys.CatalogManagementUnpublishWasmFilter.action,
-                      keys.CatalogManagementUnpublishWasmFilter.subject,
+                      Keys.CatalogManagementUnpublishWasmFilter.id,
+                      Keys.CatalogManagementUnpublishWasmFilter.function,
                     )
                   }
                 >

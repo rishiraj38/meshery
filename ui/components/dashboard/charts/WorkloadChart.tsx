@@ -5,7 +5,7 @@ import { dataToColors, isValidColumnName } from '../../../utils/charts';
 import ConnectClustersBtn from '../../general/ConnectClustersBtn';
 import Link from 'next/link';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import { Box, MenuItem, Select, Typography } from '@sistent/sistent';
 import { useTheme } from '@/theme';
 
@@ -70,8 +70,8 @@ export default function WorkloadChart({
     [chartData, theme],
   );
   const canViewConnections = CAN(
-    keys.WorkspaceManagementViewConnections.action,
-    keys.WorkspaceManagementViewConnections.subject,
+    Keys.WorkspaceManagementViewConnections.id,
+    Keys.WorkspaceManagementViewConnections.function,
   );
 
   return (

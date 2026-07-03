@@ -1,7 +1,7 @@
 import React from 'react';
 import { VISIBILITY } from '../../utils/Enum';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import DefaultError from '@/components/general/error-404/index';
 import MesheryPatterns from '@/components/designs/patterns/MesheryPatterns';
 import { MesheryPage } from '@/components/MesheryPage';
@@ -9,7 +9,7 @@ import { MesheryPage } from '@/components/MesheryPage';
 function CatalogPage() {
   return (
     <MesheryPage title="Catalog">
-      {CAN(keys.CatalogManagementViewCatalog.action, keys.CatalogManagementViewCatalog.subject) ||
+      {CAN(Keys.CatalogManagementViewCatalog.id, Keys.CatalogManagementViewCatalog.function) ||
       false ? (
         <MesheryPatterns
           disableCreateImportDesignButton={true}

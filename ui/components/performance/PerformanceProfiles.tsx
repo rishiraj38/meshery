@@ -35,7 +35,7 @@ import { updateVisibleColumns } from '@/utils/responsive-column';
 import { useWindowDimensions } from '@/utils/dimension';
 import { ConditionalTooltip } from '@/utils/utils';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import { ButtonTextWrapper, ProfileContainer, ViewSwitchBUtton } from './style';
 import { DefaultTableCell, SortableTableCell } from '../connections/common';
 import { useDispatch, useSelector } from 'react-redux';
@@ -287,8 +287,8 @@ function PerformanceProfile({ handleDelete }) {
                     aria-label="edit"
                     disabled={
                       !CAN(
-                        keys.PerformanceManagementEditPerformanceTest.action,
-                        keys.PerformanceManagementEditPerformanceTest.subject,
+                        Keys.PerformanceManagementEditPerformanceTest.id,
+                        Keys.PerformanceManagementEditPerformanceTest.function,
                       )
                     }
                   >
@@ -313,8 +313,8 @@ function PerformanceProfile({ handleDelete }) {
                     aria-label="run"
                     disabled={
                       !CAN(
-                        keys.PerformanceManagementRunTest.action,
-                        keys.PerformanceManagementRunTest.subject,
+                        Keys.PerformanceManagementRunTest.id,
+                        Keys.PerformanceManagementRunTest.function,
                       )
                     }
                   >
@@ -457,8 +457,8 @@ function PerformanceProfile({ handleDelete }) {
                     onClick={() => setProfileForModal({})}
                     disabled={
                       !CAN(
-                        keys.PerformanceManagementAddPerformaceProfile.action,
-                        keys.PerformanceManagementAddPerformaceProfile.subject,
+                        Keys.PerformanceManagementAddPerformaceProfile.id,
+                        Keys.PerformanceManagementAddPerformaceProfile.function,
                       )
                     }
                   >
@@ -522,8 +522,8 @@ function PerformanceProfile({ handleDelete }) {
                 onClick={() => setProfileForModal({})}
                 disabled={
                   !CAN(
-                    keys.PerformanceManagementAddPerformaceProfile.action,
-                    keys.PerformanceManagementAddPerformaceProfile.subject,
+                    Keys.PerformanceManagementAddPerformaceProfile.id,
+                    Keys.PerformanceManagementAddPerformaceProfile.function,
                   )
                 }
               >

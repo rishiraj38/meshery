@@ -30,7 +30,7 @@ import { useNotification } from '@/utils/hooks/useNotification';
 import { EVENT_TYPES } from 'lib/event-types';
 import { Router, useRouter } from 'next/router';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import MoveFileIcon from '@/assets/icons/MoveFileIcon';
 import { useSelector } from 'react-redux';
 import { WorkspaceModalContext } from '@/utils/context/WorkspaceModalContextProvider';
@@ -121,7 +121,7 @@ const MainViewsContent = ({
       title: 'Move View',
       icon: <MoveFileIcon fill={theme.palette.icon.default} />,
       enabled: () =>
-        CAN(keys.KanvasAssignViewsToWorkspace.action, keys.KanvasAssignViewsToWorkspace.subject),
+        CAN(Keys.KanvasAssignViewsToWorkspace.id, Keys.KanvasAssignViewsToWorkspace.function),
     },
 
     VIEW_INFO: {
@@ -141,7 +141,7 @@ const MainViewsContent = ({
       title: 'Delete View',
       icon: <DeleteIcon fill={theme.palette.icon.default} />,
       enabled: ({ view, userId }) =>
-        CAN(keys.KanvasDeleteView.action, keys.KanvasDeleteView.subject) && view.userId === userId,
+        CAN(Keys.KanvasDeleteView.id, Keys.KanvasDeleteView.function) && view.userId === userId,
     },
   };
   const getMenuOptions = ({
@@ -315,16 +315,16 @@ const MainViewsContent = ({
           assignDesignToWorkspace={assignDesignToWorkspace}
           assignViewToWorkspace={assignViewToWorkspace}
           isCreateWorkspaceAllowed={CAN(
-            keys.WorkspaceManagementCreateWorkspace.action,
-            keys.WorkspaceManagementCreateWorkspace.subject,
+            Keys.WorkspaceManagementCreateWorkspace.id,
+            Keys.WorkspaceManagementCreateWorkspace.function,
           )}
           isMoveDesignAllowed={CAN(
-            keys.WorkspaceManagementAssignDesignsToWorkspaces.action,
-            keys.WorkspaceManagementAssignDesignsToWorkspaces.subject,
+            Keys.WorkspaceManagementAssignDesignsToWorkspaces.id,
+            Keys.WorkspaceManagementAssignDesignsToWorkspaces.function,
           )}
           isMoveViewAllowed={CAN(
-            keys.KanvasAssignViewsToWorkspace.action,
-            keys.KanvasAssignViewsToWorkspace.subject,
+            Keys.KanvasAssignViewsToWorkspace.id,
+            Keys.KanvasAssignViewsToWorkspace.function,
           )}
           currentOrgId={currentOrganization?.id}
           notify={notify}

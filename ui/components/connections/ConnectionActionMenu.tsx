@@ -10,7 +10,7 @@ import {
 import { ActionListItem } from './styles';
 import { iconMedium } from '../../css/icons.styles';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import { MESHSYNC_DEPLOYMENT_TYPE } from '../../utils/Enum';
 
 type ConnectionActionMenuProps = {
@@ -76,8 +76,8 @@ export const ConnectionActionMenu = ({
           data-cy="btnResetDatabase"
           disabled={
             !CAN(
-              keys.LifecycleManagementFlushMeshsyncData.action,
-              keys.LifecycleManagementFlushMeshsyncData.subject,
+              Keys.LifecycleManagementFlushMeshsyncData.id,
+              Keys.LifecycleManagementFlushMeshsyncData.function,
             )
           }
         >

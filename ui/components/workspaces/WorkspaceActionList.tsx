@@ -17,7 +17,7 @@ import { TableIconsContainer, IconWrapper } from './styles';
 import { iconMedium } from 'css/icons.styles';
 import { WORKSPACE_ACTION_TYPES } from '.';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 
 const WorkspaceActionList = ({
   handleTeamsModalOpen,
@@ -66,8 +66,8 @@ const WorkspaceActionList = ({
       icon: <EditIcon style={{ fill: theme.palette.icon.default, ...iconMedium }} />,
       onClick: (e) => handleWorkspaceModalOpen(e, WORKSPACE_ACTION_TYPES.EDIT, selectedWorkspace),
       disabled: !CAN(
-        keys.WorkspaceManagementEditWorkspace.action,
-        keys.WorkspaceManagementEditWorkspace.subject,
+        Keys.WorkspaceManagementEditWorkspace.id,
+        Keys.WorkspaceManagementEditWorkspace.function,
       ),
     },
     {
@@ -76,8 +76,8 @@ const WorkspaceActionList = ({
       icon: <DeleteIcon style={{ fill: theme.palette.icon.default, ...iconMedium }} />,
       onClick: (e) => handleDeleteWorkspaceConfirm(e, selectedWorkspace),
       disabled: !CAN(
-        keys.WorkspaceManagementDeleteWorkspace.action,
-        keys.WorkspaceManagementDeleteWorkspace.subject,
+        Keys.WorkspaceManagementDeleteWorkspace.id,
+        Keys.WorkspaceManagementDeleteWorkspace.function,
       ),
     },
   ];

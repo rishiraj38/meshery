@@ -7,7 +7,7 @@ import MeshSyncTable from './meshSync';
 import ConnectionIcon from '../../assets/icons/Connection';
 import MeshsyncIcon from '../../assets/icons/Meshsync';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@/utils/permission_constants';
 import DefaultError from '../general/error-404/index';
 import { useGetSchemaQuery } from '@/rtk-query/schema';
 import CustomErrorFallback from '../shared/ErrorBoundary/ErrorBoundary';
@@ -145,8 +145,8 @@ function Connections() {
   return (
     <NoSsr>
       {CAN(
-        keys.WorkspaceManagementViewConnections.action,
-        keys.WorkspaceManagementViewConnections.subject,
+        Keys.WorkspaceManagementViewConnections.id,
+        Keys.WorkspaceManagementViewConnections.function,
       ) ? (
         <>
           <AppBar position="static" color="default" style={{ marginBottom: '3rem' }}>
@@ -181,8 +181,8 @@ function Connections() {
 
           {tab === 0 &&
             CAN(
-              keys.WorkspaceManagementViewConnections.action,
-              keys.WorkspaceManagementViewConnections.subject,
+              Keys.WorkspaceManagementViewConnections.id,
+              Keys.WorkspaceManagementViewConnections.function,
             ) && (
               <ConnectionTable
                 selectedConnectionId={connectionId}
