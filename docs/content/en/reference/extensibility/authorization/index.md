@@ -11,6 +11,20 @@ Meshery features an extensible authorization system that offers the ability to d
 
 The extensible authorization system consists of a large set of keys. Each key uniquely represents a specific capability, for example, the ability to view a [Connection]({{< ref "concepts/logical/connections/index.md" >}}), edit or delete a Connection. With the help of these keys, the system evaluates the permissions during runtime and renders the UI, helping to offer both a secure management system and a customizable user experience.
 
+### Key Naming and Scoping Conventions
+
+Permission keys in `@meshery/schemas` are generated dynamically using the following formula:
+`PascalCase(Theme) + PascalCase(Function)`
+
+*   **Theme (Domain Capability)**: Represents the high-level business domain/capability that governs the action (e.g. `Catalog Management`, `Lifecycle Management`).
+*   **Function (Operation)**: Represents the specific operation being performed (e.g. `Unpublish Design`, `Evaluate Relationships`).
+
+#### Domain Scoping vs. UI Layout
+
+Keys are categorized by their **domain of authority** rather than the UI component or file path where they are used. 
+
+For example, the component `MesheryPatternCard` (which resides in the designs/patterns directory) uses the key `CatalogManagementUnpublishDesign` because publishing/unpublishing a design is a **Catalog Management** action (making it public or private in the catalog), even though the card itself represents a pattern/design UI element.
+
 {{% alert color="info" title="Note" %}}
 The extensible authorization system is available to both Local and Remote Providers. Depending on your chosen [Remote Provider]({{< ref "reference/extensibility/providers/index.md" >}}), you may be offered features such as grouping keys, assigning them to user groups, or assigning them to user roles rather than just individual users.
 {{% /alert %}}
