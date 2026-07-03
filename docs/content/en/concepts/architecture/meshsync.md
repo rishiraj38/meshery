@@ -82,7 +82,7 @@ In operator (broker) mode, MeshSync publishes resource events to the NATS subjec
 When it starts, MeshSync serves two HTTP endpoints on port `11000`:
 
 - `GET /healthz` - liveness; always returns `200` while the process is alive.
-- `GET /readyz` - readiness; returns `200` once the broker handler has been created (broker mode) and `503` before that.
+- `GET /readyz` - readiness; returns `200` once MeshSync has established its connection to the Broker (broker mode), and `503` before that.
 
 {{% alert color="info" title="Readiness caveat" %}}
 `/readyz` reflects that MeshSync has <strong>connected to the Broker</strong>, not that its informer caches have finished syncing. A <code>200</code> from <code>/readyz</code> therefore means "connected", not necessarily "cluster snapshot fully primed".
