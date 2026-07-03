@@ -261,18 +261,15 @@ const ConnectionTable = ({
     // only populated after `_app.tsx`'s async `loadMeshModelComponent`
     // completes. The pages-router routes to /management/connections before
     // that promise resolves, so this memo must tolerate a null map.
-    // A connection only needs a kind and a status to render; the display name
-    // falls back to `metadata.name`/kind in the Name column. Requiring a
-    // top-level `name` here wrongly hid connections (e.g. kubernetes, grafana)
-    // whose name lives only in `metadata.name`.
-    return connectionData.connections
-      .filter((conn) => conn && conn.kind && conn.status)
-      .map((connection) => ({
-        ...connection,
-        nextStatus:
-          connection.nextStatus || connectionMetadataState?.[connection.kind]?.transitions,
-        kindLogo: connection.kindLogo || connectionMetadataState?.[connection.kind]?.icon,
-      }));
+    // Render every connection the API returns — the columns already fall back
+    // for missing fields (the Name column uses `metadata.name`/kind, etc.).
+    // Do NOT drop connections for a missing name/kind/status: that wrongly hid
+    // real connections. The only guard is against null/undefined array entries.
+    return connectionData.connections.filter(Boolean).map((connection) => ({
+      ...connection,
+      nextStatus: connection.nextStatus || connectionMetadataState?.[connection.kind]?.transitions,
+      kindLogo: connection.kindLogo || connectionMetadataState?.[connection.kind]?.icon,
+    }));
   }, [connectionData?.connections, connectionMetadataState]) as ConnectionRow[];
 
   const filteredConnections = useMemo(
