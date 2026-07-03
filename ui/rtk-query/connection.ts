@@ -94,30 +94,6 @@ const connectionsApi = api.injectEndpoints({
         credentials: 'include',
       }),
     }),
-    // One-shot controller status pings (replace the getOperatorStatus /
-    // getMeshsyncStatus / getNatsStatus GraphQL queries). Live status is
-    // delivered via the SSE stream in lib/controllersStatusSubscription.ts.
-    getOperatorStatus: builder.query({
-      query: (connectionId) => ({
-        url: mesheryApiPath(`system/controllers/operator/status`),
-        params: { connectionId },
-        credentials: 'include',
-      }),
-    }),
-    getMeshsyncStatus: builder.query({
-      query: (connectionId) => ({
-        url: mesheryApiPath(`system/controllers/meshsync/status`),
-        params: { connectionId },
-        credentials: 'include',
-      }),
-    }),
-    getBrokerStatus: builder.query({
-      query: (connectionId) => ({
-        url: mesheryApiPath(`system/controllers/broker/status`),
-        params: { connectionId },
-        credentials: 'include',
-      }),
-    }),
     updateConnectionStatus: builder.mutation({
       query: ({ kind, body }) => ({
         url: mesheryApiPath(`integrations/connections/${kind}/status`),
@@ -163,18 +139,49 @@ export const {
   useDiscoverKubernetesContextsMutation,
   useLazyPingKubernetesQuery,
   useUpdateConnectionStatusMutation,
-  useLazyGetOperatorStatusQuery,
-  useLazyGetMeshsyncStatusQuery,
-  useLazyGetBrokerStatusQuery,
 } = connectionsApi;
+
+// One-shot controller status pings, backed by the schemas-generated endpoints
+// (getOperatorControllerStatus / getMeshsyncControllerStatus /
+// getBrokerControllerStatus). Live status is delivered via the SSE stream in
+// lib/controllersStatusSubscription.ts. The schemas trigger takes
+// `{ connectionId }`; these wrappers accept a bare id so callers stay simple.
+const wrapControllerStatusLazyQuery = (endpoint: {
+  useLazyQuery: () => readonly [
+    (arg: { connectionId: string }, preferCacheValue?: boolean) => unknown,
+    ...unknown[],
+  ];
+}) => {
+  return () => {
+    const [trigger, ...rest] = endpoint.useLazyQuery();
+    const wrappedTrigger = (connectionId: string, preferCacheValue?: boolean) =>
+      trigger({ connectionId }, preferCacheValue);
+    return [wrappedTrigger, ...rest] as const;
+  };
+};
+
+export const useLazyGetOperatorStatusQuery = wrapControllerStatusLazyQuery(
+  mesheryApi.endpoints.getOperatorControllerStatus,
+);
+export const useLazyGetMeshsyncStatusQuery = wrapControllerStatusLazyQuery(
+  mesheryApi.endpoints.getMeshsyncControllerStatus,
+);
+export const useLazyGetBrokerStatusQuery = wrapControllerStatusLazyQuery(
+  mesheryApi.endpoints.getBrokerControllerStatus,
+);
 
 export const useGetConnectionsQuery = (queryArg, options) =>
   useSchemasGetConnectionsQuery(
     {
       page: queryArg?.page?.toString(),
-      pagesize: queryArg?.pagesize?.toString(),
+      // Schemas uses camelCase `pageSize` on the wire; accept either spelling
+      // from callers but always forward the canonical one so it reaches the
+      // server (which reads `pageSize`).
+      pageSize: (queryArg?.pageSize ?? queryArg?.pagesize)?.toString(),
       search: queryArg?.search,
       order: queryArg?.order,
+      // Filters are repeated query params (kind=a&kind=b); pass the value(s)
+      // straight through — no JSON encoding.
       status: queryArg?.status,
       kind: queryArg?.kind,
       type: queryArg?.type,

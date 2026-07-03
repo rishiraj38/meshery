@@ -198,7 +198,12 @@ func (h *Handler) GetConnections(w http.ResponseWriter, req *http.Request, prefO
 	page, _ := strconv.Atoi(q.Get("page"))
 	order := q.Get("order")
 	search := q.Get("search")
-	pageSizeStr := q.Get("pagesize")
+	// Canonical camelCase `pageSize` (matches the schemas wire contract); fall
+	// back to legacy lowercase `pagesize` for older clients.
+	pageSizeStr := q.Get("pageSize")
+	if pageSizeStr == "" {
+		pageSizeStr = q.Get("pagesize")
+	}
 	filter := q.Get("filter")
 	name := q.Get("name")
 
@@ -229,40 +234,17 @@ func (h *Handler) GetConnections(w http.ResponseWriter, req *http.Request, prefO
 		return
 	}
 
+	// Filters are passed as repeated query params — the standard convention
+	// across the API (e.g. ?kind=kubernetes&kind=meshery&status=connected). No
+	// per-param JSON decoding.
 	queryParam := struct {
-		Status []string `json:"status"`
-		Kind   []string `json:"kind"`
-		Type   []string `json:"type"`
-	}{}
-
-	status := q.Get("status")
-	kind := q.Get("kind")
-	connType := q.Get("type")
-	if status != "" {
-		err := json.Unmarshal([]byte(status), &queryParam.Status)
-		if err != nil {
-			h.log.Error(ErrGetConnections(err))
-			writeMeshkitError(w, ErrGetConnections(err), http.StatusInternalServerError)
-			return
-		}
-	}
-
-	if kind != "" {
-		err := json.Unmarshal([]byte(kind), &queryParam.Kind)
-		if err != nil {
-			h.log.Error(ErrGetConnections(err))
-			writeMeshkitError(w, ErrGetConnections(err), http.StatusInternalServerError)
-			return
-		}
-	}
-
-	if connType != "" {
-		err := json.Unmarshal([]byte(connType), &queryParam.Type)
-		if err != nil {
-			h.log.Error(ErrGetConnections(err))
-			writeMeshkitError(w, ErrGetConnections(err), http.StatusInternalServerError)
-			return
-		}
+		Status []string
+		Kind   []string
+		Type   []string
+	}{
+		Status: q["status"],
+		Kind:   q["kind"],
+		Type:   q["type"],
 	}
 
 	connectionsPage, err := provider.GetConnections(req, user.ID.String(), page, pageSize, search, order, filter, queryParam.Status, queryParam.Kind, queryParam.Type, name)

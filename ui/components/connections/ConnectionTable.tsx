@@ -185,15 +185,12 @@ const ConnectionTable = ({
   } = useGetConnectionsQuery(
     {
       page: page,
-      pagesize: pageSize,
+      pageSize: pageSize,
       search: search,
       order: sortOrder,
-      status: statusFilter ? JSON.stringify([statusFilter]) : '',
-      kind: selectedFilter
-        ? JSON.stringify([selectedFilter])
-        : kindFilter
-          ? JSON.stringify([kindFilter])
-          : '',
+      // Repeated query params (?status=connected, ?kind=kubernetes) — no JSON.
+      status: statusFilter || undefined,
+      kind: selectedFilter || kindFilter || undefined,
     },
     undefined,
   );

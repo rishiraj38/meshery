@@ -76,7 +76,9 @@ export const KubernetesSubscription = ({ setAppState }: { setAppState: SetAppSta
   );
 
   const { data: connectionData } = useGetConnectionsQuery(
-    { kind: CONNECTION_KINDS.KUBERNETES, pagesize: 'all' },
+    // Filter by kind via a plain repeated query param (?kind=kubernetes);
+    // pageSize=all fetches every cluster in one shot.
+    { kind: CONNECTION_KINDS.KUBERNETES, pageSize: 'all' },
     { skip: !canViewClusters },
   );
 
