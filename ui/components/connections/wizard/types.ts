@@ -88,6 +88,8 @@ export type WizardServices = {
   uploadKubeconfig: (file: File, options?: KubeconfigImportOptions) => Promise<GenericRecord>;
   /** PUT /integrations/connections/{id} { status }. */
   updateConnectionById: (connectionId: string, body: GenericRecord) => Promise<GenericRecord>;
+  /** POST /integrations/connections/{id}/actions { setMeshsyncMode }. */
+  setMeshsyncMode: (connectionId: string, mode: 'operator' | 'embedded') => Promise<GenericRecord>;
   credentials: CredentialRecord[];
 };
 

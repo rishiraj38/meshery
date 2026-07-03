@@ -191,6 +191,7 @@ vi.mock('@/utils/permission_constants', () => ({
 vi.mock('@/rtk-query/connection', () => ({
   useGetConnectionsQuery: (...args) => getConnectionsQuery(...args),
   useUpdateConnectionByIdMutation: () => [updateConnectionByIdMutator],
+  usePerformConnectionActionMutation: () => [vi.fn(() => ({ unwrap: () => Promise.resolve({}) }))],
 }));
 
 vi.mock('../../assets/icons/disconnect', () => ({

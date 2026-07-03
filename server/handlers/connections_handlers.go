@@ -360,52 +360,11 @@ func (h *Handler) UpdateConnectionById(w http.ResponseWriter, req *http.Request,
 		return
 	}
 
-	// Check if meshsync deployment mode is specified in the payload metadata.
-	// Only handle mode changes if a mode is explicitly provided (not undefined).
-	// In fact this method is used (for now) only for perform meshsync deployment mode change.
-	// If mode change fails return error.
-	// TODO: also check that kind = "kubernetes" (when client starts to send full connection object)
-	if connections.MeshsyncDeploymentModeFromMetadata(connection.MetaData) != connections.MeshsyncDeploymentModeUndefined {
-		// Handle meshsync deployment mode changes before connection update
-		token, _ := req.Context().Value(models.TokenCtxKey).(string)
-		oldMode, newMode, modeChanged, err := h.handleMeshSyncDeploymentModeChange(
-			req.Context(),
-			connectionID,
-			connection,
-			token,
-			userID,
-			provider,
-		)
-		if err != nil {
-			meshSyncErr := fmt.Errorf("error handling meshsync deployment mode change: %w", err)
-			metadata := map[string]any{
-				"error":        meshSyncErr,
-				"connectionId": connectionID,
-			}
-			event := eventBuilder.WithSeverity(events.Error).WithDescription("Failed to handle meshsync deployment mode change").WithMetadata(metadata).Build()
-			_ = provider.PersistEvent(*event, token)
-			go h.config.EventBroadcaster.Publish(userID, event)
-
-			h.log.Error(meshSyncErr)
-			writeMeshkitError(w, meshSyncErr, http.StatusInternalServerError)
-			return
-		}
-
-		// Log and emit event if mode actually changed
-		if modeChanged {
-			description := fmt.Sprintf("MeshSync deployment mode changed from '%s' to '%s' for connection %s", oldMode, newMode, connectionID)
-			metadata := map[string]any{
-				"meshsyncDeploymentModeOld": oldMode,
-				"meshsyncDeploymentModeNew": newMode,
-				"connectionId":              connectionID,
-			}
-			event := eventBuilder.WithSeverity(events.Informational).WithDescription(description).WithMetadata(metadata).Build()
-			_ = provider.PersistEvent(*event, token)
-			go h.config.EventBroadcaster.Publish(userID, event)
-
-			h.log.Info(description)
-		}
-	}
+	// MeshSync deployment-mode changes are handled by the dedicated
+	// POST /api/integrations/connections/{connectionId}/actions endpoint
+	// (PerformConnectionAction), which owns the metadata merge and cluster-side
+	// redeploy. PUT here only updates connection fields; it no longer sniffs the
+	// metadata for a mode change.
 
 	token, err := provider.GetProviderToken(req)
 	if err != nil {
@@ -566,97 +525,4 @@ func (h *Handler) DeleteConnection(w http.ResponseWriter, req *http.Request, _ *
 
 	h.log.Info("connection deleted.")
 	w.WriteHeader(http.StatusOK)
-}
-
-// handleMeshSyncDeploymentModeChange retrieves existing connection, compares meshsync deployment modes
-// between existing and new connections, and performs necessary actions when they differ
-// Returns: oldMode, newMode, changed, error
-func (h *Handler) handleMeshSyncDeploymentModeChange(
-	ctx context.Context,
-	connectionID core.Uuid,
-	newConnection *connections.ConnectionPayload,
-	token string,
-	userID core.Uuid,
-	provider models.Provider,
-) (connections.MeshsyncDeploymentMode, connections.MeshsyncDeploymentMode, bool, error) {
-	if newConnection == nil {
-		return connections.MeshsyncDeploymentModeUndefined, connections.MeshsyncDeploymentModeUndefined, false, fmt.Errorf("new connection is nil, cannot compare meshsync deployment modes")
-	}
-
-	if h.SystemID == nil {
-		return connections.MeshsyncDeploymentModeUndefined, connections.MeshsyncDeploymentModeUndefined, false, fmt.Errorf("system ID is not configured in handler")
-	}
-	// TODO is h.SystemID a correct instance id here?
-	mesheryInstanceID := *h.SystemID
-
-	// Retrieve existing connection for mode comparison
-	existingConnection, statusCode, err := provider.GetConnectionByID(token, connectionID)
-	if err != nil {
-		return connections.MeshsyncDeploymentModeUndefined, connections.MeshsyncDeploymentModeUndefined, false, fmt.Errorf("failed to retrieve existing connection (status %d): %w", statusCode, err)
-	}
-
-	if existingConnection == nil {
-		return connections.MeshsyncDeploymentModeUndefined, connections.MeshsyncDeploymentModeUndefined, false, fmt.Errorf("existing connection is nil, cannot compare meshsync deployment modes")
-	}
-
-	if existingConnection.Kind != "kubernetes" {
-		return connections.MeshsyncDeploymentModeUndefined, connections.MeshsyncDeploymentModeUndefined, false, fmt.Errorf("connection is not of kind kubernetes")
-	}
-
-	existingMeshSyncMode := connections.MeshsyncDeploymentModeFromMetadata(existingConnection.Metadata)
-	newMeshSyncMode := connections.MeshsyncDeploymentModeFromMetadata(newConnection.MetaData)
-
-	// draw back to default mode
-	if newMeshSyncMode == connections.MeshsyncDeploymentModeUndefined {
-		newMeshSyncMode = h.MeshsyncDefaultDeploymentMode
-	}
-
-	meshSyncModeChanged := existingMeshSyncMode != newMeshSyncMode
-	if meshSyncModeChanged {
-		instanceTracker := h.ConnectionToStateMachineInstanceTracker
-		if instanceTracker == nil {
-			return existingMeshSyncMode, newMeshSyncMode, false, fmt.Errorf("instance tracker is nil in handler instance")
-		}
-
-		machine, ok := instanceTracker.Get(connectionID)
-		if !ok || machine == nil {
-			return existingMeshSyncMode, newMeshSyncMode, false, fmt.Errorf("instance tracker does not contain machine for connection %s", connectionID)
-		}
-
-		machineCtx, err := kubernetes.GetMachineCtx(machine.Context, nil)
-		if err != nil {
-			return existingMeshSyncMode, newMeshSyncMode, false, fmt.Errorf("failed to get machine context for connection %s: %w", connectionID, err)
-		}
-
-		if machineCtx == nil {
-			return existingMeshSyncMode, newMeshSyncMode, false, fmt.Errorf("machine context is nil for connection %s", connectionID)
-		}
-
-		ctrlHelper := machineCtx.MesheryCtrlsHelper
-		if ctrlHelper == nil {
-			return existingMeshSyncMode, newMeshSyncMode, false, fmt.Errorf("machine context does not contain reference to MesheryCtrlsHelper for connection %s", connectionID)
-		}
-
-		// disconnect
-		{
-			contextID := machineCtx.K8sContext.ID
-			ctrlHelper.
-				UpdateOperatorsStatusMap(machineCtx.OperatorTracker).
-				UndeployDeployedOperators(machineCtx.OperatorTracker).
-				RemoveCtxControllerHandler(ctx, contextID)
-			ctrlHelper.RemoveMeshSyncDataHandler(ctx, contextID)
-		}
-		// connect
-		{
-			ctrlHelper.
-				AddCtxControllerHandlers(machineCtx.K8sContext).
-				SetMeshsyncDeploymentMode(newMeshSyncMode).
-				UpdateOperatorsStatusMap(machineCtx.OperatorTracker).
-				DeployUndeployedOperators(machineCtx.OperatorTracker).
-				AddMeshsynDataHandlers(ctx, machineCtx.K8sContext, userID, mesheryInstanceID, provider)
-		}
-
-	}
-
-	return existingMeshSyncMode, newMeshSyncMode, meshSyncModeChanged, nil
 }

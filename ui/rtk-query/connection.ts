@@ -160,6 +160,18 @@ const wrapControllerStatusLazyQuery = (endpoint: {
   };
 };
 
+// The generated performConnectionAction mutation (POST /connections/{id}/actions)
+// returns the updated connection; adding invalidatesTags makes the connections
+// list refetch so the new MeshSync mode is reflected immediately.
+const connectionActionsApi = api.enhanceEndpoints({
+  endpoints: {
+    performConnectionAction: {
+      invalidatesTags: [TAGS.CONNECTIONS],
+    },
+  },
+});
+export const { usePerformConnectionActionMutation } = connectionActionsApi;
+
 export const useLazyGetOperatorStatusQuery = wrapControllerStatusLazyQuery(
   mesheryApi.endpoints.getOperatorControllerStatus,
 );

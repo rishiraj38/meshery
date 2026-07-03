@@ -1397,9 +1397,18 @@ func (l *DefaultLocalProvider) UpdateConnectionStatusByID(token string, connecti
 	return updatedConnection, http.StatusOK, nil
 }
 
-func (l *DefaultLocalProvider) UpdateConnectionById(token string, conn *connections.ConnectionPayload, _ string) (*connections.Connection, error) {
+func (l *DefaultLocalProvider) UpdateConnectionById(token string, conn *connections.ConnectionPayload, connId string) (*connections.Connection, error) {
+	// Always persist against the connection identified by the URL id. A payload
+	// that omits `id` (e.g. an RTK mutation that only forwards status+metadata)
+	// would otherwise carry a nil id, and GORM's Save() with a zero primary key
+	// INSERTs a new row — silently creating a duplicate connection instead of
+	// updating the intended one.
+	id := conn.ID
+	if id == uuid.Nil {
+		id = uuid.FromStringOrNil(connId)
+	}
 	connection := connections.Connection{
-		ID:             conn.ID,
+		ID:             id,
 		Name:           conn.Name,
 		ConnectionType: conn.Type,
 		SubType:        conn.SubType,

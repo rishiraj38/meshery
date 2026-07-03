@@ -167,16 +167,13 @@ export const kubernetesDeploymentModeStep: WizardStep = {
 
     ctx.patch({ registrationError: null });
     try {
-      const metadata = (connection.metadata as GenericRecord) || {};
-      const nextMetadata = { ...metadata, meshsync_deployment_mode: selectedMode };
-      // Mirror the connections-table payload: the PUT only forwards status +
-      // metadata, and the backend redeploys MeshSync for the new mode.
-      await ctx.services.updateConnectionById(connectionId, {
-        ...connection,
-        metadata: nextMetadata,
-      });
+      // Dedicated action endpoint: the server owns the metadata merge and the
+      // MeshSync redeploy, keyed on the connection id.
+      await ctx.services.setMeshsyncMode(connectionId, selectedMode as 'operator' | 'embedded');
       // Keep the local connection in sync so the step shows the new mode as
       // current if the user steps back into it.
+      const metadata = (connection.metadata as GenericRecord) || {};
+      const nextMetadata = { ...metadata, meshsync_deployment_mode: selectedMode };
       ctx.patch({ registrationResult: { ...connection, metadata: nextMetadata } });
       ctx.services.notify({
         message: `MeshSync deployment mode set to ${selectedMode}.`,

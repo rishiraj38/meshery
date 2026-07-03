@@ -4712,6 +4712,12 @@ func (l *RemoteProvider) UpdateConnectionById(token string, connection *connecti
 		return nil, ErrInvalidCapability("PersistConnection", l.ProviderName)
 	}
 	ep, _ := l.Capabilities.GetEndpointForFeature(PersistConnection)
+	// Ensure the payload carries the URL id so the remote provider keys the
+	// update on the intended connection even if the client omitted `id`
+	// (avoids duplicate-row creation).
+	if connection.ID == uuid.Nil {
+		connection.ID = uuid.FromStringOrNil(connId)
+	}
 	_conn, err := json.Marshal(connection)
 	if err != nil {
 		return nil, err

@@ -11,7 +11,7 @@ import useGrafanaPingHook from '@/utils/hooks/useGrafanaPingHook';
 import { getResponsiveColumnVisibility } from '../../utils/responsive-column';
 import { useWindowDimensions } from '../../utils/dimension';
 import { useGetEnvironmentsQuery } from '../../rtk-query/environments';
-import { useGetConnectionsQuery } from '@/rtk-query/connection';
+import { useGetConnectionsQuery, usePerformConnectionActionMutation } from '@/rtk-query/connection';
 import { useTableUrlState } from '@/utils/hooks/useTableUrlState';
 import { useColumnVisibilityPreference } from '@/utils/hooks/useColumnVisibilityPreference';
 
@@ -126,6 +126,7 @@ const ConnectionTable = ({
     saveEnvironment,
     updateConnectionStatus,
   } = useConnectionActions({ organizationId: organization?.id });
+  const [performConnectionAction] = usePerformConnectionActionMutation();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [deploymentModeAnchorEl, setDeploymentModeAnchorEl] = useState<HTMLElement | null>(null);
   const [configureConnection, setConfigureConnection] = useState<ConfigurableConnection | null>(
@@ -419,15 +420,11 @@ const ConnectionTable = ({
       }
 
       try {
-        await updateConnectionByIdMutator({
+        // Dedicated action endpoint: the server owns the metadata merge and the
+        // MeshSync redeploy, keyed on the URL connection id.
+        await performConnectionAction({
           connectionId: connection.id,
-          body: {
-            ...connection,
-            metadata: {
-              ...connection.metadata,
-              meshsync_deployment_mode: newMode,
-            },
-          },
+          body: { action: 'setMeshsyncMode', mode: newMode },
         }).unwrap();
 
         notify({
@@ -450,7 +447,7 @@ const ConnectionTable = ({
       handleDeploymentModeMenuClose,
       notify,
       rowData?.rowIndex,
-      updateConnectionByIdMutator,
+      performConnectionAction,
     ],
   );
 

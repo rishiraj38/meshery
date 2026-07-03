@@ -5,6 +5,7 @@ import {
   useConnectToConnectionMutation,
   useDiscoverKubernetesContextsMutation,
   useGetCredentialsQuery,
+  usePerformConnectionActionMutation,
   useUpdateConnectionByIdMutation,
   useVerifyAndRegisterConnectionMutation,
 } from '@/rtk-query/connection';
@@ -57,6 +58,7 @@ export const useConnectionWizard = (params: UseConnectionWizardParams) => {
   const [addKubernetesConfig] = useAddKubernetesConfigMutation();
   const [discoverKubernetesContexts] = useDiscoverKubernetesContextsMutation();
   const [updateConnectionById] = useUpdateConnectionByIdMutation();
+  const [performConnectionAction] = usePerformConnectionActionMutation();
   const { data: credentialsResponse } = useGetCredentialsQuery(undefined, { skip: !isOpen });
 
   const formRefs = useRef<WizardFormRefs>({
@@ -138,6 +140,11 @@ export const useConnectionWizard = (params: UseConnectionWizardParams) => {
       },
       updateConnectionById: (connectionId, body) =>
         updateConnectionById({ connectionId, body }).unwrap(),
+      setMeshsyncMode: (connectionId, mode) =>
+        performConnectionAction({
+          connectionId,
+          body: { action: 'setMeshsyncMode', mode },
+        }).unwrap(),
       credentials: credentialsResponse?.credentials || [],
     }),
     [
@@ -147,6 +154,7 @@ export const useConnectionWizard = (params: UseConnectionWizardParams) => {
       addKubernetesConfig,
       discoverKubernetesContexts,
       updateConnectionById,
+      performConnectionAction,
       credentialsResponse,
     ],
   );
