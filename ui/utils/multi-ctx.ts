@@ -1,3 +1,5 @@
+import { MESHSYNC_DEPLOYMENT_TYPE } from './Enum';
+
 /**
  * A function to be used by the requests sent for the
  * operations based on multi-context support
@@ -174,4 +176,31 @@ export function getConnectionIDsFromContextIds(contexts, k8sConfig) {
     contexts.some((context) => context == config.id),
   );
   return filteredK8sConnfigs.map((config) => config.connectionId);
+}
+
+// Reads the MeshSync deployment mode from a k8sConfig/context entry, tolerating
+// both camelCase and snake_case metadata keys.
+function getMeshsyncDeploymentMode(config) {
+  return config?.meshsyncDeploymentMode ?? config?.meshsync_deployment_mode;
+}
+
+/**
+ * Like getConnectionIDsFromContextIds, but only returns connections whose
+ * MeshSync deployment mode is `operator`. The operator / broker / meshsync
+ * controllers only exist in-cluster in operator mode; embedded connections run
+ * MeshSync in-process inside the Meshery server and have no such resources, so
+ * watching their controller status just 404s on every poll. Scoping the
+ * controller-status stream to operator-mode connections avoids that pointless
+ * work. (An explicit mode is expected in metadata; a missing/embedded mode is
+ * treated as non-operator, matching the embedded default.)
+ *
+ * @param {Array<Object>} contexts Kubernetes context ids
+ * @param {Array<Object>} k8sConfig Kubernetes config
+ * @returns {Array<string>} connection IDs for operator-mode kubernetes contexts
+ */
+export function getOperatorModeConnectionIDsFromContextIds(contexts, k8sConfig) {
+  return k8sConfig
+    .filter((config) => contexts.some((context) => context == config.id))
+    .filter((config) => getMeshsyncDeploymentMode(config) === MESHSYNC_DEPLOYMENT_TYPE.OPERATOR)
+    .map((config) => config.connectionId);
 }

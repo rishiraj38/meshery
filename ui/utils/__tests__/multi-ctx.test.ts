@@ -11,6 +11,7 @@ import {
   getConnectionIdFromClusterId,
   getClusterNameFromCtxId,
   getConnectionIDsFromContextIds,
+  getOperatorModeConnectionIDsFromContextIds,
 } from '../multi-ctx';
 
 const sampleConfig = [
@@ -167,5 +168,28 @@ describe('getConnectionIDsFromContextIds', () => {
 
   it('returns an empty array when contexts list is empty', () => {
     expect(getConnectionIDsFromContextIds([], sampleConfig)).toEqual([]);
+  });
+});
+
+describe('getOperatorModeConnectionIDsFromContextIds', () => {
+  const modeConfig = [
+    { id: 'ctx-1', connectionId: 'conn-1', meshsync_deployment_mode: 'operator' },
+    { id: 'ctx-2', connectionId: 'conn-2', meshsync_deployment_mode: 'embedded' },
+    { id: 'ctx-3', connectionId: 'conn-3', meshsyncDeploymentMode: 'operator' },
+    { id: 'ctx-4', connectionId: 'conn-4' }, // no mode → treated as non-operator
+  ];
+
+  it('returns only connections whose mode is operator (snake_case or camelCase)', () => {
+    expect(
+      getOperatorModeConnectionIDsFromContextIds(['ctx-1', 'ctx-2', 'ctx-3', 'ctx-4'], modeConfig),
+    ).toEqual(['conn-1', 'conn-3']);
+  });
+
+  it('excludes embedded and mode-less connections', () => {
+    expect(getOperatorModeConnectionIDsFromContextIds(['ctx-2', 'ctx-4'], modeConfig)).toEqual([]);
+  });
+
+  it('respects the context filter', () => {
+    expect(getOperatorModeConnectionIDsFromContextIds(['ctx-1'], modeConfig)).toEqual(['conn-1']);
   });
 });
