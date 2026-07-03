@@ -109,10 +109,9 @@ func internalControllerStatus(status controllers.MesheryControllerStatus) string
 	return ""
 }
 
-// controllerHandlersForConnection resolves the per-controller meshkit handlers
-// for a connection through its FSM instance. Returns (nil, false) when the
-// connection has no ready instance — callers degrade to an unknown status.
-func (h *Handler) controllerHandlersForConnection(connectionID string) (map[models.MesheryController]controllers.IMesheryController, bool) {
+// machineCtxForConnection resolves the kubernetes FSM machine context for a
+// connection. Returns (nil, false) when the connection has no ready instance.
+func (h *Handler) machineCtxForConnection(connectionID string) (*kubernetes.MachineCtx, bool) {
 	connUUID := uuid.FromStringOrNil(connectionID)
 	if connUUID == uuid.Nil || h.ConnectionToStateMachineInstanceTracker == nil {
 		return nil, false
@@ -128,7 +127,52 @@ func (h *Handler) controllerHandlersForConnection(connectionID string) (map[mode
 		}
 		return nil, false
 	}
+	return machinectx, true
+}
+
+// controllerHandlersForConnection resolves the per-controller meshkit handlers
+// for a connection through its FSM instance. Returns (nil, false) when the
+// connection has no ready instance — callers degrade to an unknown status.
+func (h *Handler) controllerHandlersForConnection(connectionID string) (map[models.MesheryController]controllers.IMesheryController, bool) {
+	machinectx, ok := h.machineCtxForConnection(connectionID)
+	if !ok {
+		return nil, false
+	}
 	return machinectx.MesheryCtrlsHelper.GetControllerHandlersForEachContext(), true
+}
+
+// mesheryHoldsLiveBrokerConnection reports whether Meshery currently holds a
+// live broker connection (via the MeshSync data handler) for this connection —
+// i.e. it is actually receiving MeshSync data. This is the authoritative
+// "connected" signal for the MeshSync/broker controllers, as opposed to
+// meshkit's status which re-probes the broker's monitoring endpoint from Meshery
+// and false-negatives when that endpoint isn't reachable even though the data
+// path is up (Docker Desktop, cluster-internal broker, etc.).
+func (h *Handler) mesheryHoldsLiveBrokerConnection(machinectx *kubernetes.MachineCtx) bool {
+	if machinectx == nil || machinectx.MesheryCtrlsHelper == nil {
+		return false
+	}
+	dataHandler := machinectx.MesheryCtrlsHelper.GetMeshSyncDataHandlersForEachContext()
+	return dataHandler != nil && dataHandler.IsConnected()
+}
+
+// deriveControllerStatus upgrades a MeshSync/broker controller's status to
+// CONNECTED when Meshery holds a live broker connection. We only upgrade a
+// controller that is already present (running/deployed/enabled) — a
+// not-deployed controller is never reported as connected — and the operator's
+// status is left untouched (it is unrelated to broker connectivity).
+func deriveControllerStatus(controller models.MesheryController, status string, brokerConnected bool) string {
+	if !brokerConnected {
+		return status
+	}
+	if controller != models.Meshsync && controller != models.MesheryBroker {
+		return status
+	}
+	switch status {
+	case "RUNNING", "DEPLOYED", "ENABLED":
+		return "CONNECTED"
+	}
+	return status
 }
 
 // collectControllersStatus builds the full status list for the requested
@@ -137,19 +181,22 @@ func (h *Handler) controllerHandlersForConnection(connectionID string) (map[mode
 func (h *Handler) collectControllersStatus(connectionIDs []string) []ControllerStatusItem {
 	items := make([]ControllerStatusItem, 0)
 	for _, connectionID := range connectionIDs {
-		ctrlHandlers, ok := h.controllerHandlersForConnection(connectionID)
+		machinectx, ok := h.machineCtxForConnection(connectionID)
 		if !ok {
 			continue
 		}
+		ctrlHandlers := machinectx.MesheryCtrlsHelper.GetControllerHandlersForEachContext()
+		brokerConnected := h.mesheryHoldsLiveBrokerConnection(machinectx)
 		for controller, ctrlHandler := range ctrlHandlers {
 			version, err := ctrlHandler.GetVersion()
 			if err != nil {
 				h.log.Debugf("controllers status: version for %s on %s: %v", internalControllerName(controller), connectionID, err)
 			}
+			status := deriveControllerStatus(controller, internalControllerStatus(ctrlHandler.GetStatus()), brokerConnected)
 			items = append(items, ControllerStatusItem{
 				ConnectionID: connectionID,
 				Controller:   internalControllerName(controller),
-				Status:       internalControllerStatus(ctrlHandler.GetStatus()),
+				Status:       status,
 				Version:      version,
 			})
 		}
@@ -286,8 +333,9 @@ func (h *Handler) MeshsyncStatusHandler(w http.ResponseWriter, req *http.Request
 		Name:         "MeshSync",
 		Status:       controllersStatusUnknown,
 	}
-	if ctrlHandlers, ok := h.controllerHandlersForConnection(connectionID); ok {
-		info = h.meshsyncInfo(ctrlHandlers[models.Meshsync], ctrlHandlers[models.MesheryBroker])
+	if machinectx, ok := h.machineCtxForConnection(connectionID); ok {
+		ctrlHandlers := machinectx.MesheryCtrlsHelper.GetControllerHandlersForEachContext()
+		info = h.meshsyncInfo(ctrlHandlers[models.Meshsync], ctrlHandlers[models.MesheryBroker], h.mesheryHoldsLiveBrokerConnection(machinectx))
 		info.ConnectionID = connectionID
 	}
 	writeJSONMessage(w, info, http.StatusOK)
@@ -303,16 +351,40 @@ func (h *Handler) BrokerStatusHandler(w http.ResponseWriter, req *http.Request, 
 		Name:         "MesheryBroker",
 		Status:       controllersStatusUnknown,
 	}
-	if ctrlHandlers, ok := h.controllerHandlersForConnection(connectionID); ok {
-		info = h.brokerInfo(ctrlHandlers[models.MesheryBroker])
+	if machinectx, ok := h.machineCtxForConnection(connectionID); ok {
+		ctrlHandlers := machinectx.MesheryCtrlsHelper.GetControllerHandlersForEachContext()
+		info = h.brokerInfo(ctrlHandlers[models.MesheryBroker], h.mesheryHoldsLiveBrokerConnection(machinectx))
 		info.ConnectionID = connectionID
 	}
 	writeJSONMessage(w, info, http.StatusOK)
 }
 
+// isBrokerReachableStatus reports whether a meshkit status string means the
+// controller is present (deployed/running) — the states we upgrade to Connected
+// when Meshery already holds a live broker connection.
+func isBrokerReachableStatus(status string) bool {
+	return status == controllers.Running.String() ||
+		status == controllers.Deployed.String() ||
+		status == controllers.Enabled.String()
+}
+
+// composeConnectedBrokerStatus builds the "Connected <endpoint>" status string,
+// appending the broker's public endpoint when it can be resolved.
+func composeConnectedBrokerStatus(broker controllers.IMesheryController) string {
+	status := controllers.Connected.String()
+	if broker != nil {
+		if endpoint, err := broker.GetPublicEndpoint(); err == nil && endpoint != "" {
+			status = fmt.Sprintf("%s %s", status, endpoint)
+		}
+	}
+	return status
+}
+
 // brokerInfo reproduces model.GetBrokerInfo without the gqlgen model dependency
 // (handlers cannot import internal/graphql/model — it imports handlers).
-func (h *Handler) brokerInfo(broker controllers.IMesheryController) ControllerInfo {
+// brokerConnected upgrades a present-but-unverified broker to Connected when
+// Meshery already holds a live broker connection.
+func (h *Handler) brokerInfo(broker controllers.IMesheryController, brokerConnected bool) ControllerInfo {
 	if broker == nil {
 		return ControllerInfo{Status: controllersStatusUnknown}
 	}
@@ -320,6 +392,8 @@ func (h *Handler) brokerInfo(broker controllers.IMesheryController) ControllerIn
 	if status == controllers.Connected.String() {
 		endpoint, _ := broker.GetPublicEndpoint()
 		status = fmt.Sprintf("%s %s", status, endpoint)
+	} else if brokerConnected && isBrokerReachableStatus(status) {
+		status = composeConnectedBrokerStatus(broker)
 	}
 	version, _ := broker.GetVersion()
 	return ControllerInfo{
@@ -330,8 +404,9 @@ func (h *Handler) brokerInfo(broker controllers.IMesheryController) ControllerIn
 }
 
 // meshsyncInfo reproduces model.GetMeshSyncInfo without the gqlgen model
-// dependency.
-func (h *Handler) meshsyncInfo(meshsync, broker controllers.IMesheryController) ControllerInfo {
+// dependency. brokerConnected upgrades a present-but-unverified MeshSync to
+// Connected when Meshery already holds a live broker connection.
+func (h *Handler) meshsyncInfo(meshsync, broker controllers.IMesheryController, brokerConnected bool) ControllerInfo {
 	if meshsync == nil {
 		return ControllerInfo{Status: controllersStatusUnknown}
 	}
@@ -347,6 +422,8 @@ func (h *Handler) meshsyncInfo(meshsync, broker controllers.IMesheryController) 
 		} else {
 			status = fmt.Sprintf("%s %s", status, endpoint)
 		}
+	} else if brokerConnected && isBrokerReachableStatus(status) {
+		status = composeConnectedBrokerStatus(broker)
 	}
 	version, _ := meshsync.GetVersion()
 	return ControllerInfo{
