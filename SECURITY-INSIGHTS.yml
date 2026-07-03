@@ -78,8 +78,10 @@ repository:
       primary: true
     - name: Sangram Rath
       affiliation: OD10
+      primary: false
     - name: Mia Grenell
       affiliation: The University of Texas at Austin
+      primary: false
   license:
     url: https://github.com/meshery/meshery/blob/master/LICENSE
     expression: Apache-2.0
