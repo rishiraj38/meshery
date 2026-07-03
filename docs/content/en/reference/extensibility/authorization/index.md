@@ -9,7 +9,7 @@ Meshery features an extensible authorization system that offers the ability to d
 
 ## Authorization Keys
 
-The extensible authorization system consists of a large set of keys. Each key uniquely represents a specific capability, for example, the ability to view a [Connection]({{< ref "concepts/logical/connections/index.md" >}}), edit or delete a Connection. With the help of these keys, the system evaluates the permissions during runtime and renders the UI, helping to offer both a secure management system and a customizable user experience.
+The extensible authorization system consists of a large set of keys. Each key uniquely represents a specific capability, for example, the ability to view, edit, or delete a [Connection]({{< ref "concepts/logical/connections/index.md" >}}). With the help of these keys, the system evaluates permissions at runtime to render the UI, offering both a secure management system and a customizable user experience.
 
 ### Key Naming and Scoping Conventions
 
@@ -26,12 +26,12 @@ Keys are categorized by their **domain of authority** rather than the UI compone
 For example, the component `MesheryPatternCard` (which resides in the designs/patterns directory) uses the key `CatalogManagementUnpublishDesign` because publishing/unpublishing a design is a **Catalog Management** action (making it public or private in the catalog), even though the card itself represents a pattern/design UI element.
 
 {{% alert color="info" title="Note" %}}
-The extensible authorization system is available to both Local and Remote Providers. Depending on your chosen [Remote Provider]({{< ref "reference/extensibility/providers/index.md" >}}), you may be offered features such as grouping keys, assigning them to user groups, or assigning them to user roles rather than just individual users.
+The extensible authorization system is available to both Local and Remote Providers. Depending on your chosen [Remote Provider]({{< ref "reference/extensibility/providers/index.md" >}}), you may be offered features such as grouping keys or assigning them to user groups or roles, rather than just individual users.
 {{% /alert %}}
 
 ### Adding a New Permission Key
 
-Permission keys are defined and managed centrally via an automated Google Spreadsheet workflow, ensuring `@meshery/schemas` serves as the single source of truth:
+Permission keys are defined and managed centrally via an automated Google Spreadsheet workflow. The spreadsheet serves as the authoritative source of truth, while `@meshery/schemas` compiles and publishes the generated Go and TypeScript artifacts consumed by downstream projects:
 
 1. **Spreadsheet Registration**: Keys are registered in the central permissions spreadsheet.
 2. **Meshery Schemas Automation**: A GitHub Actions workflow automatically imports the spreadsheet, updates `build/permissions.csv`, and compiles the definitions into Go and TypeScript libraries.
@@ -59,7 +59,7 @@ Add a new row to the authoritative **Permissions Spreadsheet**. Ensure the follo
 *   **Local Provider**: Set to `TRUE` if this key should be seeded for the Local Provider database.
 
 ##### Step 3: Run the Schema Sync & Generation Workflow
-Once added to the spreadsheet, the GitHub Actions workflow [`generate-artifacts-from-schemas.yml`](https://github.com/meshery/schemas/blob/master/.github/workflows/generate-artifacts-from-schemas.yml) in `meshery/schemas` runs (or is manually triggered) to sync the spreadsheet keys to the local [`build/permissions.csv`](https://github.com/meshery/schemas/blob/master/build/permissions.csv).
+Once added to the spreadsheet, the GitHub Actions workflow [`generate-artifacts-from-schemas.yml`](https://github.com/meshery/schemas/blob/master/.github/workflows/generate-artifacts-from-schemas.yml) in `meshery/schemas` runs automatically on a daily schedule (and can also be triggered manually) to sync the spreadsheet keys to the local [`build/permissions.csv`](https://github.com/meshery/schemas/blob/master/build/permissions.csv).
 
 This workflow automatically executes the generators to produce:
 *   Go constants: [`models/permissions/permissions.go`](https://github.com/meshery/schemas/blob/master/models/permissions/permissions.go)
@@ -81,7 +81,7 @@ On startup, Meshery Server's [`SeedKeys`](https://github.com/meshery/meshery/blo
 #### Phase 3: Wire Key in the UI
 
 ##### Step 5: Direct Import from Schemas
-Because the UI constants are dynamically mapped and resolved at runtime, **you do not need to edit `ui/utils/permission_constants.ts`** to define your new key.
+Because Meshery UI depends on `@meshery/schemas`, you can gate new UI behavior by importing `Keys` directly from `@meshery/schemas/permissions` instead of adding a manual entry to `ui/utils/permission_constants.ts`. Many existing components still use `permission_constants.ts`, so only those legacy call sites require updates until they are migrated.
 
 Simply import the `Keys` object directly from `@meshery/schemas/permissions` in your component:
 {{< code code=`import { Keys } from '@meshery/schemas/permissions';` >}}
@@ -203,7 +203,7 @@ Verify that the `token` cookie is set and not expired:
 
 | Symptom | Likely cause |
 |---------|----------------|
-| Button never appears | User lacks the key; missing `permission_constants.ts` entry; or `CAN(...)` not wired |
+| Button never appears | User lacks the key; if gating via `permission_constants.ts`, missing entry; or `CAN(...)` not wired |
 | New key not visible after merge | Stale `sessionStorage.keys`; missing Local Provider seed row; or only schemas PR merged |
 | Works in one org, not another | Keys are org-scoped—check `currentOrg` and refetch keys |
 | API returns `401` or `403` when fetching keys | Expired or missing `token` cookie; verify browser cookie store |
@@ -229,7 +229,7 @@ An example of how CASL evaluates permissions in the UI:
 	)}
 </React.Fragment>` >}}
 
-Once a user has logged in, the backend sends a response containing the permissions that the user has. Those permissions are used to create abilities on the frontend, and CASL is updated with those abilities. The UI maintains a constant file containing all allowed permissions (referred to as keys). With the help of these keys, the `CAN` function evaluates permissions at runtime and renders the UI accordingly.
+Upon user login, the backend returns the list of authorized permissions. These permissions are then used to build and update the CASL ability rules on the frontend. The UI maintains a constant file containing all allowed permissions (referred to as keys). With the help of these keys, the `CAN` function evaluates permissions at runtime and renders the UI accordingly.
 
 {{% alert color="dark" title="Note" %}}
 It's important to understand not all pages uses CASL authorization, means even if you are not assigned with any role within organization you might access preferences page and Meshery UI dashboard.
