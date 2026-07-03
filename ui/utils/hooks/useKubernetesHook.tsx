@@ -141,7 +141,9 @@ export function useMeshsSyncController() {
         res.name === 'MeshSync' &&
         (res.status === 'Running' || res.status.includes('Running'))
       ) {
-        handleInfo(`MeshSync is running (${res.version}), but is not connected to Meshery Broker.`);
+        handleInfo(
+          `MeshSync is running${res.version ? ` (${res.version})` : ''}, but Meshery could not confirm a connection to the Meshery Broker (the broker may be unreachable from Meshery, or MeshSync is still connecting).`,
+        );
       } else if (res.name === 'MeshSync' && res.status === 'Deployed') {
         handleInfo('MeshSync is deployed but connection status unclear');
       } else if (
@@ -190,7 +192,7 @@ export const useNatsController = () => {
         (res.status === 'Deployed' || res.status === 'DEPLOYED')
       ) {
         handleInfo(
-          `Meshery Broker is deployed (${res.version}) but not connected to Meshery Server`,
+          `Meshery Broker is deployed${res.version ? ` (${res.version})` : ''} but not connected to Meshery Server`,
         );
       } else {
         handleError(

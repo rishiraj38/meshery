@@ -52,7 +52,7 @@ import 'tippy.js/animations/perspective-subtle.css';
 import 'tippy.js/animations/perspective-extreme.css';
 import '@xterm/xterm/css/xterm.css';
 import {
-  getOperatorModeConnectionIDsFromContextIds,
+  getControllerPollConnectionIDsFromContextIds,
   getK8sConfigIdsFromK8sConfig,
 } from '../utils/multi-ctx';
 import './../public/static/style/index.css';
@@ -221,13 +221,14 @@ const MesheryApp = ({ Component, pageProps, relayEnvironment, emotionCache }) =>
       if (!k8sConfig?.length) {
         return;
       }
-      // Only watch controller status for operator-mode connections: the
-      // operator/broker/meshsync controllers exist in-cluster only in operator
-      // mode. Embedded connections run MeshSync in-process, so there's nothing
-      // to poll. This also re-scopes automatically — switching a connection's
-      // mode invalidates the connections cache, refetching k8sConfig and
-      // re-running initSubscriptions with the new operator-mode set.
-      const connectionIDs = getOperatorModeConnectionIDsFromContextIds(contexts, k8sConfig);
+      // Only watch controller status for connections that are BOTH in operator
+      // mode AND connected: the operator/broker/meshsync controllers exist
+      // in-cluster only in operator mode, and only a connected connection has
+      // live controllers to poll. Embedded or not-connected connections have
+      // nothing to poll. This re-scopes automatically — a mode/status change
+      // invalidates the connections cache, refetching k8sConfig and re-running
+      // initSubscriptions with the updated eligible set.
+      const connectionIDs = getControllerPollConnectionIDsFromContextIds(contexts, k8sConfig);
 
       // Tear down any prior controller-status stream before opening a new one,
       // so re-subscribing on a context change never leaks an EventSource.

@@ -11,7 +11,7 @@ import {
   getConnectionIdFromClusterId,
   getClusterNameFromCtxId,
   getConnectionIDsFromContextIds,
-  getOperatorModeConnectionIDsFromContextIds,
+  getControllerPollConnectionIDsFromContextIds,
 } from '../multi-ctx';
 
 const sampleConfig = [
@@ -171,25 +171,56 @@ describe('getConnectionIDsFromContextIds', () => {
   });
 });
 
-describe('getOperatorModeConnectionIDsFromContextIds', () => {
-  const modeConfig = [
-    { id: 'ctx-1', connectionId: 'conn-1', meshsync_deployment_mode: 'operator' },
-    { id: 'ctx-2', connectionId: 'conn-2', meshsync_deployment_mode: 'embedded' },
-    { id: 'ctx-3', connectionId: 'conn-3', meshsyncDeploymentMode: 'operator' },
-    { id: 'ctx-4', connectionId: 'conn-4' }, // no mode → treated as non-operator
+describe('getControllerPollConnectionIDsFromContextIds', () => {
+  const pollConfig = [
+    // operator + connected → eligible
+    {
+      id: 'ctx-1',
+      connectionId: 'conn-1',
+      meshsync_deployment_mode: 'operator',
+      connectionStatus: 'connected',
+    },
+    // operator + connected (camelCase mode) → eligible
+    {
+      id: 'ctx-2',
+      connectionId: 'conn-2',
+      meshsyncDeploymentMode: 'operator',
+      connectionStatus: 'connected',
+    },
+    // operator but not connected → excluded
+    {
+      id: 'ctx-3',
+      connectionId: 'conn-3',
+      meshsync_deployment_mode: 'operator',
+      connectionStatus: 'registered',
+    },
+    // embedded but connected → excluded
+    {
+      id: 'ctx-4',
+      connectionId: 'conn-4',
+      meshsync_deployment_mode: 'embedded',
+      connectionStatus: 'connected',
+    },
+    // operator + connected, but no status field → excluded (missing = not connected)
+    { id: 'ctx-5', connectionId: 'conn-5', meshsync_deployment_mode: 'operator' },
   ];
 
-  it('returns only connections whose mode is operator (snake_case or camelCase)', () => {
+  it('returns only connections that are operator-mode AND connected', () => {
     expect(
-      getOperatorModeConnectionIDsFromContextIds(['ctx-1', 'ctx-2', 'ctx-3', 'ctx-4'], modeConfig),
-    ).toEqual(['conn-1', 'conn-3']);
+      getControllerPollConnectionIDsFromContextIds(
+        ['ctx-1', 'ctx-2', 'ctx-3', 'ctx-4', 'ctx-5'],
+        pollConfig,
+      ),
+    ).toEqual(['conn-1', 'conn-2']);
   });
 
-  it('excludes embedded and mode-less connections', () => {
-    expect(getOperatorModeConnectionIDsFromContextIds(['ctx-2', 'ctx-4'], modeConfig)).toEqual([]);
+  it('excludes not-connected, embedded, and status-less connections', () => {
+    expect(
+      getControllerPollConnectionIDsFromContextIds(['ctx-3', 'ctx-4', 'ctx-5'], pollConfig),
+    ).toEqual([]);
   });
 
   it('respects the context filter', () => {
-    expect(getOperatorModeConnectionIDsFromContextIds(['ctx-1'], modeConfig)).toEqual(['conn-1']);
+    expect(getControllerPollConnectionIDsFromContextIds(['ctx-1'], pollConfig)).toEqual(['conn-1']);
   });
 });

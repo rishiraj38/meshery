@@ -108,6 +108,7 @@ export const normalizeKubernetesContextsResponse = (response?: KubernetesContext
 
 type KubernetesConnection = {
   id?: string;
+  status?: string;
   created_at?: string;
   createdAt?: string;
   updated_at?: string;
@@ -133,6 +134,10 @@ export const connectionsToK8sContexts = (connections?: KubernetesConnection[]) =
     .map((connection) => ({
       ...(connection.metadata as Record<string, unknown>),
       connectionId: connection.id,
+      // The connection's lifecycle status (connected/registered/discovered/...),
+      // surfaced so consumers can gate on it (e.g. only poll controller status
+      // for connected connections).
+      connectionStatus: connection.status,
       createdAt: connection.created_at ?? connection.createdAt,
       updatedAt: connection.updated_at ?? connection.updatedAt,
     }));
