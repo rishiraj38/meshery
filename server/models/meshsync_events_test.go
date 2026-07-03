@@ -47,6 +47,12 @@ func (b *testMeshsyncBroker) Info() string {
 	return "test-broker"
 }
 
+func (b *testMeshsyncBroker) IsConnected() bool {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return !b.closed
+}
+
 func (b *testMeshsyncBroker) DeepCopyObject() meshkitBroker.Handler {
 	return b
 }
