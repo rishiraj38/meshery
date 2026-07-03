@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { keys } from '../permission_constants';
+import { keys, getPermissionMetadata } from '../permission_constants';
 
 describe('permission_constants.keys', () => {
   it('exports a non-empty record of permission keys', () => {
@@ -26,6 +26,14 @@ describe('permission_constants.keys', () => {
     expect(keys.VIEW_ALL_ORGANIZATIONS.subject).toBe('View All Organizations');
     expect(keys.VIEW_PROFILE.subject).toBe('View Profile');
     expect(keys.RESET_DATABASE.subject).toBe('Reset database');
+  });
+
+  it('resolves metadata correctly using getPermissionMetadata', () => {
+    const action = keys.VIEW_PROFILE.action;
+    const metadata = getPermissionMetadata(action);
+    expect(metadata).toBeDefined();
+    expect(metadata?.id).toBe(action);
+    expect(metadata?.function).toBe('View Profile');
   });
 
   it('exposes design/filter/workspace lifecycle keys', () => {

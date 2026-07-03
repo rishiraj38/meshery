@@ -3,6 +3,27 @@
  * When add new key make sure that subject property matches with key function property
  */
 
+export interface PermissionMetadata {
+  id: string;
+  category: string;
+  subcategory: string;
+  function: string;
+  description: string;
+}
+
+export function getPermissionMetadata(action: string): PermissionMetadata | undefined {
+  const entry = Object.entries(keys).find(([, val]) => val.action === action);
+  if (!entry) return undefined;
+  const [, val] = entry;
+  return {
+    id: val.action,
+    category: '',
+    subcategory: '',
+    function: val.subject,
+    description: '',
+  };
+}
+
 export const keys = {
   EDIT_ORGANIZATION: {
     subject: 'Edit Organization',

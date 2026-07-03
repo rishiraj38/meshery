@@ -34,6 +34,8 @@ import {
 } from '../../../constants/navigator';
 import { iconSmall } from '../../../css/icons.styles';
 import CAN from '@/utils/can';
+import { keys } from '@/utils/permission_constants';
+import PermissionInfo from '@/components/permissions/PermissionInfo';
 import { CustomTextTooltip } from '../../meshery-mesh-interface/PatternService/CustomTextTooltip';
 import {
   HideScrollbar,
@@ -578,34 +580,51 @@ const NavigatorContent = () => {
             }
 
             const isActive = currentPath === hrefc;
+            const isCredentialDisabled =
+              idc === 'credential' && permissionc
+                ? !CAN(permissionc.action, permissionc.subject)
+                : false;
 
             return (
               <div key={idc}>
-                <ListItemComponent
-                  {...(isLifecycleGroup
-                    ? {
-                        component: 'a',
-                        isShow: !showc,
+                <div style={{ display: 'flex', alignItems: 'center', position: 'relative', width: '100%' }}>
+                  <ListItemComponent
+                    {...(isLifecycleGroup
+                      ? {
+                          component: 'a',
+                          isShow: !showc,
+                        }
+                      : {})}
+                    button
+                    data-testid={idc}
+                    depth={depth}
+                    isDrawerCollapsed={isDrawerCollapsed}
+                    isActive={isActive}
+                    onClick={() => {
+                      if (isLifecycleGroup) {
+                        handleAdapterClick(idc, linkc);
                       }
-                    : {})}
-                  button
-                  data-testid={idc}
-                  depth={depth}
-                  isDrawerCollapsed={isDrawerCollapsed}
-                  isActive={isActive}
-                  onClick={() => {
-                    if (isLifecycleGroup) {
-                      handleAdapterClick(idc, linkc);
-                    }
 
-                    if (linkc && hrefc) {
-                      router.push(hrefc);
-                    }
-                  }}
-                  disabled={permissionc ? !CAN(permissionc.action, permissionc.subject) : false}
-                >
-                  {linkContent(iconc, titlec, hrefc, false, isDrawerCollapsed)}
-                </ListItemComponent>
+                      if (linkc && hrefc) {
+                        router.push(hrefc);
+                      }
+                    }}
+                    disabled={permissionc ? !CAN(permissionc.action, permissionc.subject) : false}
+                    style={{ flexGrow: 1 }}
+                  >
+                    {linkContent(iconc, titlec, hrefc, false, isDrawerCollapsed)}
+                  </ListItemComponent>
+                  {isCredentialDisabled && !isDrawerCollapsed && (
+                    <PermissionInfo
+                      permissionId={keys.VIEW_CREDENTIALS.action}
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        zIndex: 2,
+                      }}
+                    />
+                  )}
+                </div>
                 {renderChildren(idname, childrenc, depth + 1)}
               </div>
             );
