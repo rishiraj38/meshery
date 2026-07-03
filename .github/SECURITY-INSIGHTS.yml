@@ -80,6 +80,7 @@ repository:
     - name: Sangram Rath
       affiliation: OD10
       social: https://layer5.io/community/members/sangram-rath/
+      primary: false
   license:
     url: https://github.com/meshery/meshery/blob/master/LICENSE
     expression: Apache-2.0
