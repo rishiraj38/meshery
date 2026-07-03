@@ -122,6 +122,16 @@ func (mch *MesheryControllersHelper) GetMeshsyncDeploymentMode() connections.Mes
 	return mch.meshsyncDeploymentMode
 }
 
+// GetBrokerPortForwardAddr returns the local address of the managed broker
+// port-forward when one is active (out-of-cluster Meshery), else "". Used to
+// surface how Meshery reaches the broker.
+func (mch *MesheryControllersHelper) GetBrokerPortForwardAddr() string {
+	if mch.brokerPortForward == nil {
+		return ""
+	}
+	return mch.brokerPortForward.LocalAddr()
+}
+
 // initializes Meshsync data handler for the contexts for whom it has not been
 // initialized yet. Apart from updating the map, it also runs the handler after
 // updating the map. The presence of a handler for a context in a map indicate that

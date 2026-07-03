@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"sort"
 	"time"
 
@@ -519,8 +520,8 @@ func (h *Handler) computeConnectionDiagnostics(connectionID string) system.Conne
 
 	// Broker present but Meshery holds no live connection => unreachable. This is
 	// also why MeshSync would show "running but not connected".
-	if broker := ctrlHandlers[models.MesheryBroker]; broker != nil && !brokerConnected {
-		if isBrokerReachableStatus(broker.GetStatus().String()) {
+	if broker := ctrlHandlers[models.MesheryBroker]; broker != nil {
+		if !brokerConnected && isBrokerReachableStatus(broker.GetStatus().String()) {
 			rem := append([]string(nil), models.BrokerUnreachableRemediation...)
 			d := system.ControllerDiagnostic{
 				Severity:    system.Warning,
@@ -535,9 +536,65 @@ func (h *Handler) computeConnectionDiagnostics(connectionID string) system.Conne
 			}
 			add(d)
 		}
+
+		// Informational: surface HOW Meshery reaches the broker (managed
+		// port-forward vs in-cluster ClusterIP vs a direct endpoint) so the
+		// networking is visible in the UI.
+		if net, ok := h.brokerNetworkingDiagnostic(machinectx, broker); ok {
+			add(net)
+		}
 	}
 
 	return result
+}
+
+// brokerNetworkingDiagnostic describes the transport Meshery uses to reach the
+// broker. It returns ok=false when the broker isn't deployed yet (nothing to
+// describe).
+func (h *Handler) brokerNetworkingDiagnostic(
+	machinectx *kubernetes.MachineCtx,
+	broker controllers.IMesheryController,
+) (system.ControllerDiagnostic, bool) {
+	// Only describe networking for a broker that is actually present.
+	if !isBrokerReachableStatus(broker.GetStatus().String()) &&
+		broker.GetStatus() != controllers.Connected {
+		return system.ControllerDiagnostic{}, false
+	}
+
+	managedAddr := machinectx.MesheryCtrlsHelper.GetBrokerPortForwardAddr()
+	endpoint, _ := broker.GetPublicEndpoint()
+	inCluster := os.Getenv("KUBERNETES_SERVICE_HOST") != ""
+
+	var transport, description, ep string
+	switch {
+	case managedAddr != "":
+		transport = "Managed port-forward"
+		ep = managedAddr
+		description = fmt.Sprintf(
+			"Meshery reaches the Meshery Broker (NATS) through a managed port-forward at %s, tunneled to the in-cluster NATS pod through the Kubernetes API server. This is automatic for out-of-cluster Meshery; set MESHERY_MANAGED_BROKER_PORTFORWARD=false on the server to disable it. The transport follows the connection's MeshSync mode — operator mode uses the in-cluster broker; embedded mode uses none.",
+			managedAddr,
+		)
+	case inCluster:
+		transport = "In-cluster (ClusterIP)"
+		ep = endpoint
+		description = "Meshery runs inside the cluster and reaches the Meshery Broker (NATS) directly at its cluster-internal (ClusterIP) address."
+	default:
+		transport = "Direct endpoint"
+		ep = endpoint
+		description = "Meshery reaches the Meshery Broker (NATS) at the resolved endpoint (e.g. a NodePort/LoadBalancer or a manual port-forward)."
+	}
+
+	d := system.ControllerDiagnostic{
+		Severity:    system.Info,
+		Controller:  diagnosticControllerPtr(models.MesheryBroker),
+		Code:        "broker_networking",
+		Summary:     fmt.Sprintf("Broker networking: %s", transport),
+		Description: strPtr(description),
+	}
+	if ep != "" {
+		d.Endpoint = strPtr(ep)
+	}
+	return d, true
 }
 
 // ControllerDiagnosticsHandler returns human-actionable diagnostics and
