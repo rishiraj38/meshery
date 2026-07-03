@@ -1,6 +1,7 @@
 import {
   mesheryApi,
   useGetConnectionsQuery as useSchemasGetConnectionsQuery,
+  useGetControllerDiagnosticsQuery as useSchemasGetControllerDiagnosticsQuery,
 } from '@meshery/schemas/mesheryApi';
 import { api, mesheryApiPath } from './index';
 
@@ -181,6 +182,11 @@ export const useLazyGetMeshsyncStatusQuery = wrapControllerStatusLazyQuery(
 export const useLazyGetBrokerStatusQuery = wrapControllerStatusLazyQuery(
   mesheryApi.endpoints.getBrokerControllerStatus,
 );
+
+// Per-connection controller diagnostics + remediation, fetched on demand by the
+// connection detail view. Skips when no connectionId is available.
+export const useGetControllerDiagnosticsQuery = (connectionId, options = {}) =>
+  useSchemasGetControllerDiagnosticsQuery({ connectionId }, { skip: !connectionId, ...options });
 
 export const useGetConnectionsQuery = (queryArg, options) =>
   useSchemasGetConnectionsQuery(

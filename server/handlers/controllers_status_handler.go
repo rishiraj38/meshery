@@ -10,8 +10,10 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/meshery/meshery/server/machines/kubernetes"
 	"github.com/meshery/meshery/server/models"
+	"github.com/meshery/meshery/server/models/connections"
 	"github.com/meshery/meshkit/models/controllers"
 	"github.com/meshery/meshkit/utils"
+	system "github.com/meshery/schemas/models/v1beta1/system"
 )
 
 // Controller-status SSE + REST handlers.
@@ -431,4 +433,118 @@ func (h *Handler) meshsyncInfo(meshsync, broker controllers.IMesheryController, 
 		Status:  status,
 		Version: version,
 	}
+}
+
+// ---- Controller diagnostics ----
+//
+// The diagnostics API turns the raw controller statuses (and Meshery's live
+// broker connection) into human-actionable problems with remediation steps, so
+// the connection detail view can render a "Diagnostics" section. The wording is
+// shared with the connect-time events (models.BrokerUnreachable*), so the same
+// guidance appears whether the user reads the notification or the detail view.
+
+// diagnosticControllerPtr maps a Meshery controller to the schemas enum pointer,
+// or nil when it doesn't map.
+func diagnosticControllerPtr(c models.MesheryController) *system.ControllerDiagnosticController {
+	var v system.ControllerDiagnosticController
+	switch c {
+	case models.MesheryBroker:
+		v = system.ControllerDiagnosticControllerBROKER
+	case models.Meshsync:
+		v = system.ControllerDiagnosticControllerMESHSYNC
+	case models.MesheryOperator:
+		v = system.ControllerDiagnosticControllerOPERATOR
+	default:
+		return nil
+	}
+	return &v
+}
+
+func strPtr(s string) *string { return &s }
+
+// computeConnectionDiagnostics derives the diagnostics list for a connection
+// from its controller statuses and Meshery's live broker connection. Healthy is
+// true when no warning/error diagnostic was raised.
+func (h *Handler) computeConnectionDiagnostics(connectionID string) system.ConnectionDiagnostics {
+	result := system.ConnectionDiagnostics{
+		ConnectionId: connectionID,
+		Healthy:      true,
+		Diagnostics:  []system.ControllerDiagnostic{},
+	}
+
+	add := func(d system.ControllerDiagnostic) {
+		if d.Severity == system.Warning || d.Severity == system.Error {
+			result.Healthy = false
+		}
+		result.Diagnostics = append(result.Diagnostics, d)
+	}
+
+	machinectx, ok := h.machineCtxForConnection(connectionID)
+	if !ok {
+		add(system.ControllerDiagnostic{
+			Severity:    system.Info,
+			Code:        "connection_inactive",
+			Summary:     "Connection is not active",
+			Description: strPtr("Meshery has no active session for this connection yet, so its controller status can't be read. Connect the cluster to begin monitoring the operator, MeshSync, and broker."),
+		})
+		return result
+	}
+
+	// Embedded MeshSync runs in-process and does not use the in-cluster operator
+	// or broker, so those being undeployed is expected — no diagnostics apply.
+	if machinectx.MesheryCtrlsHelper.GetMeshsyncDeploymentMode() == connections.MeshsyncDeploymentModeEmbedded {
+		return result
+	}
+
+	ctrlHandlers := machinectx.MesheryCtrlsHelper.GetControllerHandlersForEachContext()
+	brokerConnected := h.mesheryHoldsLiveBrokerConnection(machinectx)
+
+	// Operator must be deployed for operator-mode MeshSync/broker to exist.
+	if operator := ctrlHandlers[models.MesheryOperator]; operator != nil {
+		switch internalControllerStatus(operator.GetStatus()) {
+		case "NOTDEPLOYED", "UNDEPLOYED":
+			add(system.ControllerDiagnostic{
+				Severity:    system.Warning,
+				Controller:  diagnosticControllerPtr(models.MesheryOperator),
+				Code:        "operator_not_deployed",
+				Summary:     "Meshery Operator is not deployed",
+				Description: strPtr("The Meshery Operator manages MeshSync and the Meshery Broker inside the cluster. Without it, Meshery cannot collect cluster state for this connection."),
+				Remediation: &[]string{
+					"Deploy the operator by re-connecting the cluster, or switch MeshSync to operator mode from the connection's actions.",
+					"Ensure Meshery has permission to create resources in the 'meshery' namespace.",
+				},
+			})
+		}
+	}
+
+	// Broker present but Meshery holds no live connection => unreachable. This is
+	// also why MeshSync would show "running but not connected".
+	if broker := ctrlHandlers[models.MesheryBroker]; broker != nil && !brokerConnected {
+		if isBrokerReachableStatus(broker.GetStatus().String()) {
+			rem := append([]string(nil), models.BrokerUnreachableRemediation...)
+			d := system.ControllerDiagnostic{
+				Severity:    system.Warning,
+				Controller:  diagnosticControllerPtr(models.MesheryBroker),
+				Code:        "broker_unreachable",
+				Summary:     "Meshery Broker unreachable",
+				Description: strPtr(models.BrokerUnreachableLongDescription),
+				Remediation: &rem,
+			}
+			if endpoint, err := broker.GetPublicEndpoint(); err == nil && endpoint != "" {
+				d.Endpoint = strPtr(endpoint)
+			}
+			add(d)
+		}
+	}
+
+	return result
+}
+
+// ControllerDiagnosticsHandler returns human-actionable diagnostics and
+// remediation for a kubernetes connection's controllers. It powers the
+// "Diagnostics" section of the connection detail view.
+// GET /api/system/controllers/diagnostics?connectionId=<id>
+func (h *Handler) ControllerDiagnosticsHandler(w http.ResponseWriter, req *http.Request, _ *models.Preference, _ *models.User, _ models.Provider) {
+	connectionID := req.URL.Query().Get("connectionId")
+	writeJSONMessage(w, h.computeConnectionDiagnostics(connectionID), http.StatusOK)
 }
