@@ -140,6 +140,18 @@ func NewRouter(_ context.Context, h models.HandlerInterface, port int, g http.Ha
 	// SSE stream of live events; replaces the subscribeEvents GraphQL subscription.
 	gMux.Handle("/api/system/events/subscribe", h.ProviderMiddleware(h.AuthMiddleware(h.SessionInjectorMiddleware(h.SubscribeEventsHandler), models.ProviderAuth))).
 		Methods("GET")
+
+	// Controller (operator/MeshSync/broker) status: SSE stream replaces the
+	// subscribeMesheryControllersStatus GraphQL subscription; the three one-shot
+	// GETs replace getOperatorStatus/getMeshsyncStatus/getNatsStatus.
+	gMux.Handle("/api/system/controllers/status/subscribe", h.ProviderMiddleware(h.AuthMiddleware(h.SessionInjectorMiddleware(h.SubscribeMesheryControllersStatusHandler), models.ProviderAuth))).
+		Methods("GET")
+	gMux.Handle("/api/system/controllers/operator/status", h.ProviderMiddleware(h.AuthMiddleware(h.SessionInjectorMiddleware(h.OperatorStatusHandler), models.ProviderAuth))).
+		Methods("GET")
+	gMux.Handle("/api/system/controllers/meshsync/status", h.ProviderMiddleware(h.AuthMiddleware(h.SessionInjectorMiddleware(h.MeshsyncStatusHandler), models.ProviderAuth))).
+		Methods("GET")
+	gMux.Handle("/api/system/controllers/broker/status", h.ProviderMiddleware(h.AuthMiddleware(h.SessionInjectorMiddleware(h.BrokerStatusHandler), models.ProviderAuth))).
+		Methods("GET")
 	gMux.Handle("/api/system/events/types", h.ProviderMiddleware(h.AuthMiddleware(h.SessionInjectorMiddleware(h.GetEventTypes), models.ProviderAuth))).
 		Methods("GET")
 	gMux.Handle("/api/system/events/status/bulk", h.ProviderMiddleware(h.AuthMiddleware(h.SessionInjectorMiddleware(h.BulkUpdateEventStatus), models.ProviderAuth))).

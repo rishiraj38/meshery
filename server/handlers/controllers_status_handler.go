@@ -1,0 +1,357 @@
+package handlers
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"sort"
+	"time"
+
+	"github.com/gofrs/uuid"
+	"github.com/meshery/meshery/server/machines/kubernetes"
+	"github.com/meshery/meshery/server/models"
+	"github.com/meshery/meshkit/models/controllers"
+	"github.com/meshery/meshkit/utils"
+)
+
+// Controller-status SSE + REST handlers.
+//
+// These replace the former GraphQL surface for controller status:
+//   - subscribeMesheryControllersStatus  -> SubscribeMesheryControllersStatusHandler (SSE)
+//   - getOperatorStatus                  -> OperatorStatusHandler   (REST)
+//   - getMeshsyncStatus                  -> MeshsyncStatusHandler   (REST)
+//   - getNatsStatus                      -> BrokerStatusHandler     (REST)
+//
+// The data source is unchanged: controller status is read on-demand from the
+// meshkit controller handlers reached through the per-connection FSM
+// (ConnectionToStateMachineInstanceTracker -> kubernetes.MachineCtx ->
+// MesheryCtrlsHelper). Missing / not-yet-ready instances degrade to an
+// "unknown" status, matching the old resolver behavior.
+//
+// Wire payloads use canonical camelCase JSON tags (connectionId, not
+// connectionID) per the identifier naming guide. The status/controller string
+// values are reproduced here to match exactly what the old GraphQL enums put on
+// the wire, so the frontend contract is unchanged.
+
+const (
+	// controllersStatusKeepAliveInterval bounds how long the SSE connection can
+	// sit idle before we write a comment line, so the browser and any proxy in
+	// front of Meshery notice a dead peer and don't time the stream out.
+	controllersStatusKeepAliveInterval = 15 * time.Second
+	// controllersStatusPollInterval is how often the server re-reads controller
+	// status behind the single SSE connection. Polling is intentional for this
+	// phase; a future phase replaces it with an event-driven source (see the
+	// connections-sse migration plan).
+	controllersStatusPollInterval = 5 * time.Second
+	// controllersStatusWriteTimeout caps how long a single frame write may block
+	// on the socket, so a client that stops reading can't wedge this goroutine.
+	controllersStatusWriteTimeout = 30 * time.Second
+)
+
+// ControllerStatusItem is one controller's status for one connection. It is the
+// element type of both the SSE snapshot array and the operator REST response.
+type ControllerStatusItem struct {
+	ConnectionID string `json:"connectionId"`
+	Controller   string `json:"controller"` // OPERATOR | MESHSYNC | BROKER
+	Status       string `json:"status"`
+	Version      string `json:"version"`
+}
+
+// ControllerInfo is the MeshSync / Broker one-shot status payload. Its status
+// string may be composed (e.g. "Connected <endpoint>"), mirroring the old
+// getMeshsyncStatus / getNatsStatus queries the UI branches on.
+type ControllerInfo struct {
+	Name         string `json:"name"`
+	Version      string `json:"version"`
+	Status       string `json:"status"`
+	ConnectionID string `json:"connectionId"`
+}
+
+// controllersStatusUnknown is the status string emitted when a connection has no
+// ready FSM instance or its context can't be read.
+const controllersStatusUnknown = "UNKOWN"
+
+// internalControllerName reproduces model.GetInternalController: the wire name
+// for a controller enum.
+func internalControllerName(c models.MesheryController) string {
+	switch c {
+	case models.MesheryBroker:
+		return "BROKER"
+	case models.MesheryOperator:
+		return "OPERATOR"
+	case models.Meshsync:
+		return "MESHSYNC"
+	}
+	return ""
+}
+
+// internalControllerStatus reproduces model.GetInternalControllerStatus: the
+// wire status string for a meshkit controller status.
+func internalControllerStatus(status controllers.MesheryControllerStatus) string {
+	switch status {
+	case controllers.Deployed:
+		return "DEPLOYED"
+	case controllers.NotDeployed:
+		return "NOTDEPLOYED"
+	case controllers.Deploying:
+		return "DEPLOYING"
+	case controllers.Unknown:
+		return controllersStatusUnknown
+	case controllers.Undeployed:
+		return "UNDEPLOYED"
+	case controllers.Enabled:
+		return "ENABLED"
+	case controllers.Running:
+		return "RUNNING"
+	case controllers.Connected:
+		return "CONNECTED"
+	}
+	return ""
+}
+
+// controllerHandlersForConnection resolves the per-controller meshkit handlers
+// for a connection through its FSM instance. Returns (nil, false) when the
+// connection has no ready instance — callers degrade to an unknown status.
+func (h *Handler) controllerHandlersForConnection(connectionID string) (map[models.MesheryController]controllers.IMesheryController, bool) {
+	connUUID := uuid.FromStringOrNil(connectionID)
+	if connUUID == uuid.Nil || h.ConnectionToStateMachineInstanceTracker == nil {
+		return nil, false
+	}
+	inst, ok := h.ConnectionToStateMachineInstanceTracker.Get(connUUID)
+	if !ok || inst == nil {
+		return nil, false
+	}
+	machinectx, err := utils.Cast[*kubernetes.MachineCtx](inst.Context)
+	if err != nil || machinectx == nil || machinectx.MesheryCtrlsHelper == nil {
+		if err != nil {
+			h.log.Error(err)
+		}
+		return nil, false
+	}
+	return machinectx.MesheryCtrlsHelper.GetControllerHandlersForEachContext(), true
+}
+
+// collectControllersStatus builds the full status list for the requested
+// connections. The result is sorted (connectionId, controller) so callers can
+// compare successive snapshots byte-for-byte to detect changes.
+func (h *Handler) collectControllersStatus(connectionIDs []string) []ControllerStatusItem {
+	items := make([]ControllerStatusItem, 0)
+	for _, connectionID := range connectionIDs {
+		ctrlHandlers, ok := h.controllerHandlersForConnection(connectionID)
+		if !ok {
+			continue
+		}
+		for controller, ctrlHandler := range ctrlHandlers {
+			version, err := ctrlHandler.GetVersion()
+			if err != nil {
+				h.log.Debugf("controllers status: version for %s on %s: %v", internalControllerName(controller), connectionID, err)
+			}
+			items = append(items, ControllerStatusItem{
+				ConnectionID: connectionID,
+				Controller:   internalControllerName(controller),
+				Status:       internalControllerStatus(ctrlHandler.GetStatus()),
+				Version:      version,
+			})
+		}
+	}
+	sort.Slice(items, func(i, j int) bool {
+		if items[i].ConnectionID != items[j].ConnectionID {
+			return items[i].ConnectionID < items[j].ConnectionID
+		}
+		return items[i].Controller < items[j].Controller
+	})
+	return items
+}
+
+// SubscribeMesheryControllersStatusHandler streams controller status (operator,
+// MeshSync, broker) for the requested connections over Server-Sent Events. It
+// replaces the subscribeMesheryControllersStatus GraphQL subscription.
+//
+// Connections are passed as repeatable camelCase query params:
+// ?connectionIds=<id>&connectionIds=<id>. The handler emits the full status
+// snapshot once immediately, then re-polls every controllersStatusPollInterval
+// and re-emits the full snapshot only when it changed. Sending the full list
+// (not per-controller deltas) keeps the client idempotent — it just replaces
+// its controller state — removing the fragile client-side merge the old Relay
+// path needed.
+//
+// Each frame is the JSON array framed as an unnamed SSE event
+// (data: <json>\n\n) so the browser's EventSource.onmessage receives it. The
+// subscription lives for the duration of the request.
+func (h *Handler) SubscribeMesheryControllersStatusHandler(w http.ResponseWriter, req *http.Request, _ *models.Preference, user *models.User, _ models.Provider) {
+	if user == nil {
+		writeJSONError(w, "user unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		writeJSONError(w, "streaming unsupported", http.StatusInternalServerError)
+		return
+	}
+
+	connectionIDs := req.URL.Query()["connectionIds"]
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	// X-Accel-Buffering disables buffering at any nginx hop in front of Meshery
+	// so events reach the browser immediately.
+	w.Header().Set("X-Accel-Buffering", "no")
+	w.WriteHeader(http.StatusOK)
+	flusher.Flush()
+
+	responseController := http.NewResponseController(w)
+
+	writeFrame := func(payload []byte) bool {
+		_ = responseController.SetWriteDeadline(time.Now().Add(controllersStatusWriteTimeout))
+		if _, err := fmt.Fprintf(w, "data: %s\n\n", payload); err != nil {
+			return false
+		}
+		flusher.Flush()
+		return true
+	}
+
+	// Initial snapshot so the UI renders current state without waiting a tick.
+	last, err := json.Marshal(h.collectControllersStatus(connectionIDs))
+	if err != nil {
+		h.log.Error(models.ErrMarshal(err, "controllers status"))
+		return
+	}
+	if !writeFrame(last) {
+		return
+	}
+
+	poll := time.NewTicker(controllersStatusPollInterval)
+	defer poll.Stop()
+	keepAlive := time.NewTicker(controllersStatusKeepAliveInterval)
+	defer keepAlive.Stop()
+
+	ctx := req.Context()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-poll.C:
+			payload, err := json.Marshal(h.collectControllersStatus(connectionIDs))
+			if err != nil {
+				h.log.Error(models.ErrMarshal(err, "controllers status"))
+				continue
+			}
+			// Snapshots are sorted, so equal state marshals to equal bytes —
+			// suppress no-op frames.
+			if string(payload) == string(last) {
+				continue
+			}
+			if !writeFrame(payload) {
+				return
+			}
+			last = payload
+		case <-keepAlive.C:
+			_ = responseController.SetWriteDeadline(time.Now().Add(controllersStatusWriteTimeout))
+			if _, err := fmt.Fprint(w, ": keepalive\n\n"); err != nil {
+				return
+			}
+			flusher.Flush()
+		}
+	}
+}
+
+// OperatorStatusHandler returns the operator's current status for a connection.
+// Replaces the getOperatorStatus GraphQL query.
+// GET /api/system/controllers/operator/status?connectionId=<id>
+func (h *Handler) OperatorStatusHandler(w http.ResponseWriter, req *http.Request, _ *models.Preference, _ *models.User, _ models.Provider) {
+	connectionID := req.URL.Query().Get("connectionId")
+	item := ControllerStatusItem{
+		ConnectionID: connectionID,
+		Controller:   internalControllerName(models.MesheryOperator),
+		Status:       controllersStatusUnknown,
+	}
+	if ctrlHandlers, ok := h.controllerHandlersForConnection(connectionID); ok {
+		if operator, ok := ctrlHandlers[models.MesheryOperator]; ok {
+			item.Status = internalControllerStatus(operator.GetStatus())
+			item.Version, _ = operator.GetVersion()
+		}
+	}
+	writeJSONMessage(w, item, http.StatusOK)
+}
+
+// MeshsyncStatusHandler returns MeshSync's current status for a connection.
+// Replaces the getMeshsyncStatus GraphQL query.
+// GET /api/system/controllers/meshsync/status?connectionId=<id>
+func (h *Handler) MeshsyncStatusHandler(w http.ResponseWriter, req *http.Request, _ *models.Preference, _ *models.User, _ models.Provider) {
+	connectionID := req.URL.Query().Get("connectionId")
+	info := ControllerInfo{
+		ConnectionID: connectionID,
+		Name:         "MeshSync",
+		Status:       controllersStatusUnknown,
+	}
+	if ctrlHandlers, ok := h.controllerHandlersForConnection(connectionID); ok {
+		info = h.meshsyncInfo(ctrlHandlers[models.Meshsync], ctrlHandlers[models.MesheryBroker])
+		info.ConnectionID = connectionID
+	}
+	writeJSONMessage(w, info, http.StatusOK)
+}
+
+// BrokerStatusHandler returns the Meshery Broker (NATS) status for a connection.
+// Replaces the getNatsStatus GraphQL query.
+// GET /api/system/controllers/broker/status?connectionId=<id>
+func (h *Handler) BrokerStatusHandler(w http.ResponseWriter, req *http.Request, _ *models.Preference, _ *models.User, _ models.Provider) {
+	connectionID := req.URL.Query().Get("connectionId")
+	info := ControllerInfo{
+		ConnectionID: connectionID,
+		Name:         "MesheryBroker",
+		Status:       controllersStatusUnknown,
+	}
+	if ctrlHandlers, ok := h.controllerHandlersForConnection(connectionID); ok {
+		info = h.brokerInfo(ctrlHandlers[models.MesheryBroker])
+		info.ConnectionID = connectionID
+	}
+	writeJSONMessage(w, info, http.StatusOK)
+}
+
+// brokerInfo reproduces model.GetBrokerInfo without the gqlgen model dependency
+// (handlers cannot import internal/graphql/model — it imports handlers).
+func (h *Handler) brokerInfo(broker controllers.IMesheryController) ControllerInfo {
+	if broker == nil {
+		return ControllerInfo{Status: controllersStatusUnknown}
+	}
+	status := broker.GetStatus().String()
+	if status == controllers.Connected.String() {
+		endpoint, _ := broker.GetPublicEndpoint()
+		status = fmt.Sprintf("%s %s", status, endpoint)
+	}
+	version, _ := broker.GetVersion()
+	return ControllerInfo{
+		Name:    broker.GetName(),
+		Status:  status,
+		Version: version,
+	}
+}
+
+// meshsyncInfo reproduces model.GetMeshSyncInfo without the gqlgen model
+// dependency.
+func (h *Handler) meshsyncInfo(meshsync, broker controllers.IMesheryController) ControllerInfo {
+	if meshsync == nil {
+		return ControllerInfo{Status: controllersStatusUnknown}
+	}
+	status := meshsync.GetStatus().String()
+	if broker == nil {
+		status = controllers.Unknown.String()
+	} else if status == controllers.Connected.String() {
+		endpoint, err := broker.GetPublicEndpoint()
+		if err != nil {
+			h.log.Warn(err)
+		} else if endpoint == "" {
+			h.log.Warnf("broker public endpoint is empty while composing meshsync status")
+		} else {
+			status = fmt.Sprintf("%s %s", status, endpoint)
+		}
+	}
+	version, _ := meshsync.GetVersion()
+	return ControllerInfo{
+		Name:    meshsync.GetName(),
+		Status:  status,
+		Version: version,
+	}
+}

@@ -18,8 +18,7 @@ import { startSessionTimer } from '../lib/sessionTimer';
 import Header from '../components/layout/Header/Header';
 import MesheryProgressBar from '../components/MesheryProgressBar';
 import getPageContext from '../components/PageContext';
-import { MESHERY_CONTROLLER_SUBSCRIPTION } from '../components/subscription/helpers';
-import { GQLSubscription } from '../components/subscription/subscriptionhandler';
+import { subscribeToControllersStatus } from 'lib/controllersStatusSubscription';
 import { useLazyGetSystemSyncQuery, useLazyGetKubernetesContextsQuery } from '../rtk-query/system';
 import { useGetUserPrefQuery } from '../rtk-query/user';
 import { api } from '../rtk-query';
@@ -130,7 +129,6 @@ const MesheryApp = ({ Component, pageProps, relayEnvironment, emotionCache }) =>
     k8sContexts: { totalCount: 0, contexts: [] },
     activeK8sContexts: [],
     mesheryControllerSubscription: null,
-    disposeK8sContextSubscription: null,
     theme: 'light',
     isOpen: false,
     relayEnvironment: createRelayEnvironment(),
@@ -140,13 +138,10 @@ const MesheryApp = ({ Component, pageProps, relayEnvironment, emotionCache }) =>
     abilityUpdated: false,
   });
 
-  // Mirror the dispose callback into a ref so the bootstrap effect's cleanup
-  // can call the latest value rather than the (always-null) initial-mount
-  // closure of `state.disposeK8sContextSubscription`.
-  const disposeK8sContextSubscriptionRef = useRef<null | (() => void)>(null);
-  useEffect(() => {
-    disposeK8sContextSubscriptionRef.current = state.disposeK8sContextSubscription;
-  }, [state.disposeK8sContextSubscription]);
+  // Holds the live controller-status SSE subscription ({ dispose }) so
+  // initSubscriptions can tear down the previous stream and the bootstrap
+  // cleanup can dispose it on unmount, without racing a stale state closure.
+  const mesheryControllerSubscriptionRef = useRef<null | { dispose: () => void }>(null);
 
   const setAppState = useCallback((partialState, callback) => {
     setState((prevState) => {
@@ -224,24 +219,29 @@ const MesheryApp = ({ Component, pageProps, relayEnvironment, emotionCache }) =>
         return;
       }
       const connectionIDs = getConnectionIDsFromContextIds(contexts, k8sConfig);
-      // No need to create a controller subscription if there are no connections
+
+      // Tear down any prior controller-status stream before opening a new one,
+      // so re-subscribing on a context change never leaks an EventSource.
+      mesheryControllerSubscriptionRef.current?.dispose?.();
+      mesheryControllerSubscriptionRef.current = null;
+
+      // No need to open a stream if there are no connections.
       if (connectionIDs.length < 1) {
-        setState((prevState) => ({ ...prevState, mesheryControllerSubscription: () => {} }));
+        setState((prevState) => ({ ...prevState, mesheryControllerSubscription: null }));
         return;
       }
 
-      const mesheryControllerSubscription = new GQLSubscription({
-        type: MESHERY_CONTROLLER_SUBSCRIPTION,
-        connectionIDs: connectionIDs,
-        callbackFunction: (data) => {
-          dispatch(setControllerState({ controllerState: data }));
-        },
+      // SSE stream (replaces the subscribeMesheryControllersStatus GraphQL
+      // subscription). The server sends the full controller-status array on
+      // every change, so we just replace the redux state — no client merge.
+      const mesheryControllerSubscription = subscribeToControllersStatus(connectionIDs, (data) => {
+        dispatch(setControllerState({ controllerState: data }));
       });
-      mesheryControllerSubscription.initSubscription();
+      mesheryControllerSubscriptionRef.current = mesheryControllerSubscription;
 
       setState((prevState) => ({ ...prevState, mesheryControllerSubscription }));
     },
-    [k8sConfig],
+    [k8sConfig, dispatch],
   );
 
   const handleDrawerToggle = useCallback(() => {
@@ -447,7 +447,7 @@ const MesheryApp = ({ Component, pageProps, relayEnvironment, emotionCache }) =>
 
     return () => {
       document.removeEventListener('fullscreenchange', fullScreenChanged);
-      disposeK8sContextSubscriptionRef.current?.();
+      mesheryControllerSubscriptionRef.current?.dispose?.();
     };
   }, []);
 
@@ -462,15 +462,11 @@ const MesheryApp = ({ Component, pageProps, relayEnvironment, emotionCache }) =>
     }
 
     if (k8sConfig?.length > 0) {
-      const { mesheryControllerSubscription } = state;
+      // initSubscriptions disposes any existing stream and re-subscribes with
+      // the current connection set, so it is safe to call on every k8sConfig
+      // change.
       const ids = getK8sConfigIdsFromK8sConfig(k8sConfig);
-      if (mesheryControllerSubscription) {
-        mesheryControllerSubscription.updateSubscription(
-          getConnectionIDsFromContextIds(ids, k8sConfig),
-        );
-      } else {
-        initSubscriptions(ids);
-      }
+      initSubscriptions(ids);
     }
   }, [k8sConfig, providerCapabilities]);
 

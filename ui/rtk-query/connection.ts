@@ -94,6 +94,30 @@ const connectionsApi = api.injectEndpoints({
         credentials: 'include',
       }),
     }),
+    // One-shot controller status pings (replace the getOperatorStatus /
+    // getMeshsyncStatus / getNatsStatus GraphQL queries). Live status is
+    // delivered via the SSE stream in lib/controllersStatusSubscription.ts.
+    getOperatorStatus: builder.query({
+      query: (connectionId) => ({
+        url: mesheryApiPath(`system/controllers/operator/status`),
+        params: { connectionId },
+        credentials: 'include',
+      }),
+    }),
+    getMeshsyncStatus: builder.query({
+      query: (connectionId) => ({
+        url: mesheryApiPath(`system/controllers/meshsync/status`),
+        params: { connectionId },
+        credentials: 'include',
+      }),
+    }),
+    getBrokerStatus: builder.query({
+      query: (connectionId) => ({
+        url: mesheryApiPath(`system/controllers/broker/status`),
+        params: { connectionId },
+        credentials: 'include',
+      }),
+    }),
     updateConnectionStatus: builder.mutation({
       query: ({ kind, body }) => ({
         url: mesheryApiPath(`integrations/connections/${kind}/status`),
@@ -139,6 +163,9 @@ export const {
   useDiscoverKubernetesContextsMutation,
   useLazyPingKubernetesQuery,
   useUpdateConnectionStatusMutation,
+  useLazyGetOperatorStatusQuery,
+  useLazyGetMeshsyncStatusQuery,
+  useLazyGetBrokerStatusQuery,
 } = connectionsApi;
 
 export const useGetConnectionsQuery = (queryArg, options) =>

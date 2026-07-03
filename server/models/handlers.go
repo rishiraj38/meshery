@@ -73,6 +73,10 @@ type HandlerInterface interface {
 	AvailableAdaptersHandler(w http.ResponseWriter, req *http.Request)
 	EventStreamHandler(w http.ResponseWriter, req *http.Request, prefObj *Preference, user *User, provider Provider)
 	SubscribeEventsHandler(w http.ResponseWriter, req *http.Request, prefObj *Preference, user *User, provider Provider)
+	SubscribeMesheryControllersStatusHandler(w http.ResponseWriter, req *http.Request, prefObj *Preference, user *User, provider Provider)
+	OperatorStatusHandler(w http.ResponseWriter, req *http.Request, prefObj *Preference, user *User, provider Provider)
+	MeshsyncStatusHandler(w http.ResponseWriter, req *http.Request, prefObj *Preference, user *User, provider Provider)
+	BrokerStatusHandler(w http.ResponseWriter, req *http.Request, prefObj *Preference, user *User, provider Provider)
 	ClientEventHandler(w http.ResponseWriter, req *http.Request, prefObj *Preference, user *User, provider Provider)
 	AdapterPingHandler(w http.ResponseWriter, req *http.Request, prefObj *Preference, user *User, provider Provider)
 
