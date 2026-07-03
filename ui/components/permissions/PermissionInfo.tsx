@@ -55,7 +55,14 @@ export const PermissionInfo: React.FC<PermissionInfoProps> = ({
 
   return (
     <CustomTooltip title={tooltipContent} placement={placement} interactive>
-      <span style={{ display: 'inline-flex', verticalAlign: 'middle', ...style }}>
+      <Box
+        component="span"
+        style={style}
+        sx={{
+          display: 'inline-flex',
+          verticalAlign: 'middle',
+        }}
+      >
         <IconButton
           size={iconSize}
           aria-label={`Permission details for ${displayName}`}
@@ -69,7 +76,7 @@ export const PermissionInfo: React.FC<PermissionInfoProps> = ({
         >
           {icon || <InfoIcon width={16} height={16} />}
         </IconButton>
-      </span>
+      </Box>
     </CustomTooltip>
   );
 };

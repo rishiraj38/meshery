@@ -587,7 +587,14 @@ const NavigatorContent = () => {
 
             return (
               <div key={idc}>
-                <div style={{ display: 'flex', alignItems: 'center', position: 'relative', width: '100%' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    position: 'relative',
+                    width: '100%',
+                  }}
+                >
                   <ListItemComponent
                     {...(isLifecycleGroup
                       ? {
