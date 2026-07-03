@@ -548,14 +548,16 @@ const ConnectionTable = ({
   );
 
   const handleStatusChange = useCallback(
-    async (event, connectionId: string, connectionKind: string, connectionStatus: string) => {
-      event.stopPropagation();
-
+    async (
+      status: string,
+      connectionId: string,
+      connectionKind: string,
+      connectionStatus: string,
+    ) => {
       if (!modalRef.current) {
         return;
       }
 
-      const status = event.target.value;
       const subtitle = getStatusTransition(
         connectionMetadataState?.[connectionKind]?.transitionMap,
         connectionStatus,

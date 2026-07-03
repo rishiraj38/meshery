@@ -106,19 +106,19 @@ export const MeshsyncDeploymentModePicker = ({
   </Box>
 );
 
-const getConfiguredConnection = (ctx: WizardContext): GenericRecord =>
+export const getConfiguredConnection = (ctx: WizardContext): GenericRecord =>
   (ctx.data.registrationResult as GenericRecord) || {};
 
 // The persisted mode, accepting either the camelCase or snake_case metadata key
 // (mirrors how the connections table reads it).
-const getCurrentDeploymentMode = (ctx: WizardContext): string => {
+export const getCurrentDeploymentMode = (ctx: WizardContext): string => {
   const metadata = (getConfiguredConnection(ctx).metadata as GenericRecord) || {};
   const mode = metadata.meshsyncDeploymentMode ?? metadata.meshsync_deployment_mode;
   return typeof mode === 'string' && mode ? mode : DEFAULT_MESHSYNC_DEPLOYMENT_MODE;
 };
 
 // The mode currently chosen in the step, falling back to the persisted one.
-const getSelectedDeploymentMode = (ctx: WizardContext): string => {
+export const getSelectedDeploymentMode = (ctx: WizardContext): string => {
   const pending = ctx.data.postConfig.meshsyncDeploymentMode;
   return typeof pending === 'string' && pending ? pending : getCurrentDeploymentMode(ctx);
 };
