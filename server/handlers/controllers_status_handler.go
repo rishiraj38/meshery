@@ -500,6 +500,28 @@ func (h *Handler) computeConnectionDiagnostics(connectionID string) system.Conne
 	ctrlHandlers := machinectx.MesheryCtrlsHelper.GetControllerHandlersForEachContext()
 	brokerConnected := h.mesheryHoldsLiveBrokerConnection(machinectx)
 
+	// Surface *why* operator setup failed (kubeconfig unreadable, Kubernetes
+	// client creation, or a failed Deploy) — not merely that the operator is
+	// absent. When client creation fails the controller handlers map is empty, so
+	// the status-based checks below are skipped entirely; this error-level
+	// diagnostic is what tells the user what actually went wrong. Mirrors the
+	// broker diagnostics: an actionable Error carrying the underlying cause and
+	// remediation.
+	if opErr := machinectx.MesheryCtrlsHelper.GetOperatorError(); opErr != nil {
+		add(system.ControllerDiagnostic{
+			Severity:    system.Error,
+			Controller:  diagnosticControllerPtr(models.MesheryOperator),
+			Code:        "operator_deploy_failed",
+			Summary:     "Meshery Operator deployment failed",
+			Description: strPtr(fmt.Sprintf("Meshery could not deploy the Meshery Operator for this connection, so MeshSync and the Meshery Broker are unavailable. Underlying cause: %s", opErr.Error())),
+			Remediation: &[]string{
+				"Verify Meshery can read the kubeconfig for this cluster — it needs read permission on the kubeconfig file.",
+				"Ensure Meshery has permission to create resources in the 'meshery' namespace.",
+				"Re-connect the cluster to retry operator deployment.",
+			},
+		})
+	}
+
 	// Operator must be deployed for operator-mode MeshSync/broker to exist.
 	if operator := ctrlHandlers[models.MesheryOperator]; operator != nil {
 		switch internalControllerStatus(operator.GetStatus()) {

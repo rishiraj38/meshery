@@ -74,6 +74,31 @@ type MesheryControllersHelper struct {
 	eventBroadcaster *Broadcast
 	provider         Provider
 	systemID         *core.Uuid
+
+	// lastOperatorError records the most recent failure to set up the operator for
+	// this context — an unreadable kubeconfig, a failed Kubernetes client, or a
+	// failed Deploy — so the connection-diagnostics API can surface *why* the
+	// operator (and therefore MeshSync/broker) isn't running, not just that it
+	// isn't. nil once setup succeeds. Guarded by opErrMu because it is written
+	// from the connect goroutine and read from the diagnostics HTTP handler.
+	opErrMu           sync.RWMutex
+	lastOperatorError error
+}
+
+// setOperatorError records (or clears, when err is nil) the latest operator
+// setup failure for this context. See lastOperatorError.
+func (mch *MesheryControllersHelper) setOperatorError(err error) {
+	mch.opErrMu.Lock()
+	mch.lastOperatorError = err
+	mch.opErrMu.Unlock()
+}
+
+// GetOperatorError returns the most recent operator setup failure for this
+// context, or nil if operator setup last succeeded.
+func (mch *MesheryControllersHelper) GetOperatorError() error {
+	mch.opErrMu.RLock()
+	defer mch.opErrMu.RUnlock()
+	return mch.lastOperatorError
 }
 
 func (mch *MesheryControllersHelper) GetControllerHandlersForEachContext() map[MesheryController]controllers.IMesheryController {
@@ -258,9 +283,26 @@ func (mch *MesheryControllersHelper) meshsynDataHandlersNatsBroker(
 	ctxID := k8scontext.ID
 	controllerHandlers := mch.ctxControllerHandlers
 
-	// brokerStatus := controllerHandlers[MesheryBroker].GetStatus()
+	// The broker controller handler is only populated by AddCtxControllerHandlers,
+	// which bails early (leaving ctxControllerHandlers empty) when it can't read
+	// the kubeconfig or build a Kubernetes client for this context. Guard against a
+	// nil handler here so that failure surfaces as an actionable diagnostic instead
+	// of a nil-pointer panic when we go to read the broker's endpoint below.
+	brokerController := controllerHandlers[MesheryBroker]
+	if brokerController == nil {
+		opErr := mch.GetOperatorError()
+		mch.log.Warnf("Meshery Broker controller unavailable for Kubernetes context (%v); operator setup likely failed", ctxID)
+		mch.emitWarningEvent("Meshery Broker controller unavailable", opErr, map[string]any{
+			"k8sContextID":   ctxID,
+			"k8sContextName": k8scontext.Name,
+			"connectionID":   k8scontext.ConnectionID,
+		}, userID)
+		return nil
+	}
+
+	// brokerStatus := brokerController.GetStatus()
 	// do something if broker is being deployed , maybe try again after sometime
-	brokerEndpoint, err := controllerHandlers[MesheryBroker].GetPublicEndpoint()
+	brokerEndpoint, err := brokerController.GetPublicEndpoint()
 	if brokerEndpoint == "" {
 		if err != nil {
 			mch.log.Warn(err)
@@ -286,7 +328,7 @@ func (mch *MesheryControllersHelper) meshsynDataHandlersNatsBroker(
 	// endpoint is reachable. Read it from the broker controller (empty for
 	// tokenless brokers, preserving backward compatibility).
 	var brokerToken string
-	if tokenProvider, ok := controllerHandlers[MesheryBroker].(interface{ GetToken() (string, error) }); ok {
+	if tokenProvider, ok := brokerController.(interface{ GetToken() (string, error) }); ok {
 		if token, terr := tokenProvider.GetToken(); terr != nil {
 			mch.log.Warn(terr)
 		} else {
@@ -298,7 +340,7 @@ func (mch *MesheryControllersHelper) meshsynDataHandlersNatsBroker(
 	// self-healing managed port-forward to the NATS pod and prefer its stable local
 	// address, so it works out of the box (no manual `kubectl port-forward`).
 	// In-cluster Meshery reaches the ClusterIP directly, so this is skipped.
-	forwardAddr := mch.ensureBrokerPortForward(controllerHandlers[MesheryBroker])
+	forwardAddr := mch.ensureBrokerPortForward(brokerController)
 
 	// Self-healing connection: hand NATS the (managed forward, if any) plus the
 	// resolved endpoint and localhost / host.docker.internal on the same port,
@@ -487,8 +529,14 @@ func (mch *MesheryControllersHelper) AddCtxControllerHandlers(ctx K8sContext) *M
 	// resetting this value as a specific controller handler instance does not have any significance opposed to
 	// a MeshsyncDataHandler instance where it signifies whether or not a listener is attached
 
+	// Fresh setup attempt: clear any error from a previous attempt. It is re-set
+	// below (and in DeployUndeployedOperators) if this attempt fails, so the
+	// diagnostics API always reflects the latest operator setup outcome.
+	mch.setOperatorError(nil)
+
 	cfg, err := ctx.GenerateKubeConfig()
 	if err != nil {
+		mch.setOperatorError(err)
 		mch.log.Error(err)
 		mch.emitErrorEvent("Failed to generate kubeconfig", err, map[string]any{
 			"k8sContextID":   ctx.ID,
@@ -501,6 +549,7 @@ func (mch *MesheryControllersHelper) AddCtxControllerHandlers(ctx K8sContext) *M
 	client, err := mesherykube.New(cfg)
 	// means that the config is invalid
 	if err != nil {
+		mch.setOperatorError(err)
 		mch.log.Error(err)
 		mch.emitErrorEvent("Failed to create Kubernetes client", err, map[string]any{
 			"k8sContextID":   ctx.ID,
@@ -602,6 +651,7 @@ func (mch *MesheryControllersHelper) DeployUndeployedOperators(ot *OperatorTrack
 				err := operatorHandler.Deploy(false)
 
 				if err != nil {
+					mch.setOperatorError(err)
 					mch.log.Error(err)
 					mch.emitErrorEvent("Failed to deploy Meshery Operator", err, map[string]any{
 						"meshsyncDeploymentMode": mch.meshsyncDeploymentMode,
