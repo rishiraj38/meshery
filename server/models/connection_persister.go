@@ -165,6 +165,40 @@ func (cp *ConnectionPersister) SaveConnection(connection *connections.Connection
 		// leaving the caller's transient payload — which previously surfaced a
 		// stale/empty status on re-import.
 		if err := tx.First(&existingConnection, "id = ?", connection.ID).Error; err == nil {
+			// Safety net: if the persisted row is missing identity fields (e.g. a
+			// kind wiped by an earlier partial update), heal them from the incoming
+			// payload so a re-import can repair an otherwise permanently malformed
+			// row. Live status/metadata are still preserved.
+			healed := false
+			if existingConnection.Kind == "" && connection.Kind != "" {
+				existingConnection.Kind = connection.Kind
+				healed = true
+			}
+			if existingConnection.Name == "" && connection.Name != "" {
+				existingConnection.Name = connection.Name
+				healed = true
+			}
+			if existingConnection.ConnectionType == "" && connection.ConnectionType != "" {
+				existingConnection.ConnectionType = connection.ConnectionType
+				healed = true
+			}
+			if existingConnection.SubType == "" && connection.SubType != "" {
+				existingConnection.SubType = connection.SubType
+				healed = true
+			}
+			if existingConnection.Status == "" && connection.Status != "" {
+				existingConnection.Status = connection.Status
+				healed = true
+			}
+			if existingConnection.Metadata == nil && connection.Metadata != nil {
+				existingConnection.Metadata = connection.Metadata
+				healed = true
+			}
+			if healed {
+				if err := tx.Save(&existingConnection).Error; err != nil {
+					return err
+				}
+			}
 			*connection = existingConnection
 			return nil
 		}

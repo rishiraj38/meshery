@@ -377,6 +377,11 @@ func (h *Handler) UpdateConnectionById(w http.ResponseWriter, req *http.Request,
 		writeMeshkitError(w, ErrRetrieveUserToken(err), http.StatusInternalServerError)
 		return
 	}
+
+	// A PUT here is a partial update (the UI's connect action sends only
+	// {status}); the provider's UpdateConnectionById backfills any omitted field
+	// from the persisted row so a partial payload never clobbers columns like
+	// kind/name/type/metadata.
 	updatedConnection, err := provider.UpdateConnectionById(token, connection, mux.Vars(req)["connectionId"])
 	if err != nil {
 		_err := ErrFailToSave(err, obj)

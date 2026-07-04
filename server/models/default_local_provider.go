@@ -1407,6 +1407,14 @@ func (l *DefaultLocalProvider) UpdateConnectionById(token string, conn *connecti
 	if id == uuid.Nil {
 		id = uuid.FromStringOrNil(connId)
 	}
+	conn.ID = id
+	// A partial payload (e.g. the UI's connect action sending only {status}, or an
+	// FSM status transition sending only {kind, metadata, status}) must not
+	// clobber the columns it omits — UpdateConnection persists via GORM's Save(),
+	// which writes every column. Backfill omitted fields from the persisted row.
+	if existing, gerr := l.ConnectionPersister.GetConnection(id, ""); gerr == nil && existing != nil {
+		connections.MergePayloadOntoExisting(conn, existing)
+	}
 	connection := connections.Connection{
 		ID:             id,
 		Name:           conn.Name,

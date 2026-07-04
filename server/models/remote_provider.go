@@ -4718,6 +4718,13 @@ func (l *RemoteProvider) UpdateConnectionById(token string, connection *connecti
 	if connection.ID == uuid.Nil {
 		connection.ID = uuid.FromStringOrNil(connId)
 	}
+	// A partial payload (e.g. the UI's connect action sending only {status}, or an
+	// FSM status transition sending only {kind, metadata, status}) must not
+	// clobber the fields it omits on the remote row. Backfill omitted fields from
+	// the persisted connection before sending the full PUT.
+	if existing, _, gerr := l.GetConnectionByID(token, connection.ID); gerr == nil && existing != nil {
+		connections.MergePayloadOntoExisting(connection, existing)
+	}
 	_conn, err := json.Marshal(connection)
 	if err != nil {
 		return nil, err
