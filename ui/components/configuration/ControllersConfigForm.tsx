@@ -249,6 +249,10 @@ export default function ControllersConfigForm({
     path: FieldPath,
     options: { value: string; label: string }[],
     helper?: string,
+    postProcess?: (
+      next: ControllersConfigDoc,
+      selected: string | undefined,
+    ) => ControllersConfigDoc,
   ) => {
     const current = getPath(value, path) as string | undefined;
     const inherited = inheritedValue(path) as string | undefined;
@@ -263,7 +267,12 @@ export default function ControllersConfigForm({
           value={current ?? INHERIT}
           onChange={(e) => {
             const v = e.target.value;
-            onChange(setPath(value, path, v === INHERIT ? undefined : v));
+            const selected = v === INHERIT ? undefined : v;
+            let next = setPath(value, path, selected);
+            if (postProcess) {
+              next = postProcess(next, selected);
+            }
+            onChange(next);
           }}
           helperText={helper}
         >
@@ -276,6 +285,24 @@ export default function ControllersConfigForm({
         </TextField>
       </Grid2>
     );
+  };
+
+  // clearLoadBalancerFieldsUnlessLB drops the LoadBalancer-only service
+  // fields whenever the effective service type is not LoadBalancer: the
+  // inputs are hidden then, and stale values would trip server-side
+  // validation the user cannot see or clear from the form.
+  const clearLoadBalancerFieldsUnlessLB = (
+    next: ControllersConfigDoc,
+    selected: string | undefined,
+  ): ControllersConfigDoc => {
+    const effectiveType =
+      selected ?? (inheritedValue(['broker', 'service', 'type']) as string | undefined);
+    if (effectiveType === 'LoadBalancer') {
+      return next;
+    }
+    let cleared = setPath(next, ['broker', 'service', 'loadBalancerClass'], undefined);
+    cleared = setPath(cleared, ['broker', 'service', 'loadBalancerSourceRanges'], undefined);
+    return cleared;
   };
 
   // Watch list -------------------------------------------------------------
@@ -546,6 +573,7 @@ export default function ControllersConfigForm({
             { value: 'LoadBalancer', label: 'LoadBalancer' },
           ],
           'How the broker is exposed. Reconciles in place without restarting broker pods.',
+          clearLoadBalancerFieldsUnlessLB,
         )}
         {textInput(
           'External endpoint override',
