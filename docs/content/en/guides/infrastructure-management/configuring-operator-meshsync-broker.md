@@ -180,7 +180,7 @@ MeshSync watches `secrets.v1.` by default, and Secret objects are published to t
 kubectl -n meshery set env deploy/meshery-meshsync MESHSYNC_REDACT_SECRETS=true
 ```
 
-With redaction enabled, MeshSync replaces every value in a Secret's `data`, `stringData`, and `binaryData` fields with the placeholder `[REDACTED]` before publishing. Keys are preserved, so Meshery still shows that a Secret exists and which keys it defines - only the sensitive values are withheld. ConfigMaps are not affected. Redaction is off by default; accepted truthy values are `true` and `1`. Changing an environment variable on the Deployment triggers a rollout automatically. (Requires MeshSync v1.0.2 or newer; older images ignore the variable.)
+With redaction enabled, MeshSync replaces every value in a Secret's `data` and `stringData` fields with the placeholder `[REDACTED]` before publishing. Keys are preserved, so Meshery still shows that a Secret exists and which keys it defines - only the sensitive values are withheld. ConfigMaps are not affected. Redaction is off by default; accepted truthy values are `true` and `1`. Changing an environment variable on the Deployment triggers a rollout automatically. (Requires MeshSync v1.0.2 or newer; older images ignore the variable.)
 
 ### Deduplicating Broker traffic
 
@@ -224,7 +224,7 @@ spec:
 ```
 
 - **`spec.version`** maps to the container image `meshery/meshsync:<version>`. The default is `stable-latest`. Tags ending in `-latest` are pulled on every pod start (`imagePullPolicy: Always`); pinned tags are pulled only if not present. Pin a specific version in production if you need to control exactly when MeshSync behavior changes.
-- **`spec.size`** sets Deployment replicas, validated to the range 1-10, defaulting to 1. MeshSync replicas do not coordinate: there is no leader election or work sharding, so every replica watches the entire cluster and publishes its own copy of every event. Keep `size: 1` for normal operation; the [work-queue design](#what-is-coming) is the roadmap direction for scaling discovery throughput.
+- **`spec.size`** sets Deployment replicas, validated to the range 1-10, defaulting to 1. MeshSync replicas do not coordinate: there is no leader election or work sharding, so every replica watches the entire cluster and publishes its own copy of every event, multiplying API server watch load, Broker traffic, and Meshery Server's ingest and database write load without adding discovery capacity. Keep `size: 1` for normal operation; the [work-queue design](#what-is-coming) is the roadmap direction for scaling discovery throughput.
 - **`spec.broker`** selects where MeshSync publishes: `native` points at a `Broker` resource by name and namespace (the Operator resolves its endpoint and injects `BROKER_URL`), while `custom.url` points MeshSync at an externally managed NATS verbatim.
 
 The `MeshSync` resource's `status` reports where MeshSync is publishing (`publishing-to`) and reconciliation `conditions`. MeshSync deliberately does not write its running version back into `spec.version`: the spec is your (and the Operator's) declaration of desired state, and the running version is advertised over the Broker instead.
@@ -290,10 +290,17 @@ Which type you need follows from where Meshery Server runs relative to the clust
 - **Meshery Server in the same cluster**: the default `ClusterIP` is correct. The Broker acquires no external address.
 - **Meshery Server outside the cluster** (Docker host, another cluster, Meshery Cloud): the server must reach the Broker's *external* endpoint. Use `NodePort` or `LoadBalancer`, or front the Broker with your own ingress/gateway and pin the advertised address with `spec.service.externalEndpointOverride: <host:port>`.
 
+Service annotations pass load-balancer hints through to your platform - for example, requesting an internal load balancer on AWS, or a MetalLB address pool on bare metal:
+
+```bash
+kubectl -n meshery patch broker meshery-broker --type merge \
+  -p '{"spec":{"service":{"type":"LoadBalancer","annotations":{"service.beta.kubernetes.io/aws-load-balancer-internal":"true"}}}}'
+```
+
 The Operator publishes the resulting addresses on `status.endpoint.internal` (always the in-cluster address and client port `4222`) and `status.endpoint.external` (empty for `ClusterIP`). The full endpoint selection order is documented in the [Operator FAQ]({{< ref "concepts/architecture/operator/index.md#how-does-the-operator-expose-information-about-broker-endpoints" >}}).
 
 {{% alert color="warning" title="Default changed: the Broker is no longer public by default" %}}
-Older Meshery Operator releases exposed the Broker as a <code>LoadBalancer</code> Service implicitly. Current releases keep the Broker cluster-internal (<code>ClusterIP</code>) unless <code>spec.service.type</code> requests otherwise. If Meshery Server runs outside the cluster and shows the Broker as unreachable after an upgrade, set <code>spec.service.type</code> to <code>NodePort</code> or <code>LoadBalancer</code>, or set <code>externalEndpointOverride</code>.
+Older Meshery Operator releases exposed the Broker as a <code>LoadBalancer</code> Service implicitly. Current releases keep the Broker cluster-internal (<code>ClusterIP</code>) unless <code>spec.service.type</code> requests otherwise. If Meshery Server runs outside the cluster and shows the Broker as unreachable after an upgrade, set <code>spec.service.type</code> to <code>NodePort</code> or <code>LoadBalancer</code>, or set <code>spec.service.externalEndpointOverride</code>.
 {{% /alert %}}
 
 Two ports matter: `4222` is the NATS client port that MeshSync and Meshery Server connect to; `8222` is the HTTP monitoring port, which MeshSync probes (`/connz`) before connecting and which the Broker pods use for their own health probes.

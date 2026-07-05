@@ -139,7 +139,7 @@ When it runs in embedded mode, it is integrated into the Meshery server as a lib
 
 ## Mode selection and switch
 
-The user selects the deployment mode per context when creating a new Kubernetes connection (submitting a kube config). Connections without an explicit mode use Meshery Server's `MESHSYNC_DEFAULT_DEPLOYMENT_MODE` setting, which itself defaults to `embedded`. The trade-offs between the modes, and the full precedence rules, are covered in [Configuring Meshery Operator, MeshSync, and Broker]({{< ref "guides/infrastructure-management/configuring-operator-meshsync-broker.md#choosing-a-deployment-mode" >}}).
+The user selects the deployment mode per context when creating a new Kubernetes connection (submitting a kubeconfig). Connections without an explicit mode use Meshery Server's `MESHSYNC_DEFAULT_DEPLOYMENT_MODE` setting, which itself defaults to `embedded`. The trade-offs between the modes, and the full precedence rules, are covered in [Configuring Meshery Operator, MeshSync, and Broker]({{< ref "guides/infrastructure-management/configuring-operator-meshsync-broker.md#choosing-a-deployment-mode" >}}).
 
 The user can switch the deployment mode per connection on the connections list page.
 
