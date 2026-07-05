@@ -60,12 +60,15 @@ export default function MesheryControllersConfig() {
     setDirty(false);
   };
 
-  if (error) {
-    notify({
-      message: 'Failed to load controllers configuration defaults.',
-      event_type: EVENT_TYPES.ERROR,
-    });
-  }
+  // Notify once per load failure rather than on every render.
+  useEffect(() => {
+    if (error) {
+      notify({
+        message: 'Failed to load controllers configuration defaults.',
+        event_type: EVENT_TYPES.ERROR,
+      });
+    }
+  }, [error]);
 
   return (
     <Paper sx={{ padding: '1.5rem', marginTop: '1rem' }}>

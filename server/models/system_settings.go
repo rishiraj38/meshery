@@ -19,7 +19,7 @@ import (
 type SystemSetting struct {
 	Key       string    `json:"key" gorm:"primaryKey"`
 	Value     string    `json:"value" gorm:"type:text"`
-	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 // TableName overrides the GORM default so the table reads naturally.

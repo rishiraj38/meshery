@@ -148,12 +148,29 @@ func (h *Handler) UpdateConnectionControllersConfig(w http.ResponseWriter, req *
 		writeMeshkitError(w, err, http.StatusBadRequest)
 		return
 	}
-	// Mirror the deployment mode into the legacy metadata key so every
-	// existing consumer (state machine, header chips, kubeconfig flows)
-	// keeps working unchanged.
-	if mode := connections.DeploymentModeFromControllersConfig(override); mode != connections.MeshsyncDeploymentModeUndefined {
-		connections.SetMeshsyncDeploymentModeToMetadata(metadata, mode)
+	// Materialize the effective deployment mode into the legacy
+	// meshsync_deployment_mode key so every existing consumer (state
+	// machine, header chips, kubeconfig flows) keeps working unchanged. The
+	// key is written on every update using the full precedence chain
+	// (override -> Settings-persisted server default -> server env default),
+	// not only when the override sets it: returning the field to Inherit
+	// therefore replaces a stale materialized override with the inherited
+	// mode, and the mode-change machinery below sees the correct desired
+	// mode.
+	serverDefaults, err := models.GetControllersConfigDefaults(h.dbHandler)
+	if err != nil {
+		h.log.Error(err)
+		writeMeshkitError(w, err, http.StatusInternalServerError)
+		return
 	}
+	desiredMode := connections.DeploymentModeFromControllersConfig(override)
+	if desiredMode == connections.MeshsyncDeploymentModeUndefined {
+		desiredMode = connections.DeploymentModeFromControllersConfig(serverDefaults)
+	}
+	if desiredMode == connections.MeshsyncDeploymentModeUndefined {
+		desiredMode = h.MeshsyncDefaultDeploymentMode
+	}
+	connections.SetMeshsyncDeploymentModeToMetadata(metadata, desiredMode)
 
 	payload := &connections.ConnectionPayload{
 		ID:           connection.ID,
@@ -243,11 +260,11 @@ func (h *Handler) readControllersConfigPayload(w http.ResponseWriter, req *http.
 // Kubernetes connection. On failure it writes the HTTP error response and
 // returns ok=false.
 func (h *Handler) fetchKubernetesConnection(w http.ResponseWriter, req *http.Request, token string, provider models.Provider) (*connections.Connection, bool) {
-	connectionID := uuid.FromStringOrNil(mux.Vars(req)["connectionId"])
-	if connectionID == uuid.Nil {
-		err := ErrEmptyConnectionID()
-		h.log.Error(err)
-		writeMeshkitError(w, err, http.StatusBadRequest)
+	connectionID, err := uuid.FromString(mux.Vars(req)["connectionId"])
+	if err != nil || connectionID == uuid.Nil {
+		idErr := ErrEmptyConnectionID()
+		h.log.Error(idErr)
+		writeMeshkitError(w, idErr, http.StatusBadRequest)
 		return nil, false
 	}
 	connection, statusCode, err := provider.GetConnectionByID(token, connectionID)
@@ -302,6 +319,9 @@ func (h *Handler) applyControllersConfigToConnection(
 	provider models.Provider,
 	eventBuilder *events.EventBuilder,
 ) {
+	if h.ConnectionToStateMachineInstanceTracker == nil {
+		return
+	}
 	machine, ok := h.ConnectionToStateMachineInstanceTracker.Get(connectionID)
 	if !ok || machine == nil {
 		// Not currently tracked (never connected in this server session):
@@ -325,7 +345,13 @@ func (h *Handler) applyControllersConfigToConnection(
 	}
 	ctrlHelper.SetControllersConfig(merged)
 
+	// Deployment-mode precedence: explicit metadata entry -> mode carried by
+	// the resolved configuration (per-connection override merged over the
+	// Settings-persisted server default) -> server env default.
 	mode := connections.MeshsyncDeploymentModeFromMetadata(metadata)
+	if mode == connections.MeshsyncDeploymentModeUndefined {
+		mode = connections.DeploymentModeFromControllersConfig(merged)
+	}
 	if mode == connections.MeshsyncDeploymentModeUndefined {
 		mode = h.MeshsyncDefaultDeploymentMode
 	}
