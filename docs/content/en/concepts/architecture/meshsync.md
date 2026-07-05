@@ -67,6 +67,10 @@ As a guiding principle, each set of composite fingerprints would use the same id
 
 ## Configuration
 
+{{% alert color="info" title="Configuring MeshSync, the Operator, and the Broker" %}}
+This page describes MeshSync's architecture and the mechanics of individual settings. For the complete, task-oriented configuration surface of all three in-cluster components - every setting, its default, and its behavioral impact - see <a href="{{< ref "guides/infrastructure-management/configuring-operator-meshsync-broker.md" >}}">Configuring Meshery Operator, MeshSync, and Broker</a>.
+{{% /alert %}}
+
 ### Subscribing to events and changes
 
 MeshSync registers a Kubernetes informer per watched resource type and listens for `ADDED`, `MODIFIED`, and `DELETED` events. On a `MODIFIED` event, MeshSync suppresses no-op updates by comparing the object's `resourceVersion` before republishing. Which resource types are watched, and which event types are published for each, is controlled by the `watch-list` on the `MeshSync` custom resource (see [FAQs](#meshsync-faqs)).
@@ -125,17 +129,17 @@ point MeshSync at an externally managed NATS instead, set
 
 MeshSync operates in one of two modes: operator or embedded.
 
-## Operator mode (default)
+## Operator mode
 
 When it runs in operator mode, it is managed by the <a href="{{< ref "concepts/architecture/operator/index.md" >}}">Meshery Operator</a>.
 
-## Embedded mode
+## Embedded mode (default)
 
 When it runs in embedded mode, it is integrated into the Meshery server as a library and no additional resources are deployed to the managed cluster.
 
 ## Mode selection and switch
 
-The user selects the deployment mode when creating a new Kubernetes connection (submitting a kube config). The selection is applied to all contexts from the submitted config.
+The user selects the deployment mode per context when creating a new Kubernetes connection (submitting a kubeconfig). Connections without an explicit mode use Meshery Server's `MESHSYNC_DEFAULT_DEPLOYMENT_MODE` setting, which itself defaults to `embedded`. The trade-offs between the modes, and the full precedence rules, are covered in [Configuring Meshery Operator, MeshSync, and Broker]({{< ref "guides/infrastructure-management/configuring-operator-meshsync-broker.md#choosing-a-deployment-mode" >}}).
 
 The user can switch the deployment mode per connection on the connections list page.
 
