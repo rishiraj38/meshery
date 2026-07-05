@@ -32,7 +32,7 @@ MeshSync supports both greenfield and brownfield discovery of infrastructure. Gr
 
 ### Brownfield: Discovering existing resources
 
-The resources that are present inside the cluster are discovered efficiently with the help of pipelines. The data is constructed in a particular format specific to Meshery and published across to different parts of the architecture.
+The resources that are present inside the cluster are discovered efficiently with the help of pipelines. The data is constructed in a particular format specific to Meshery and published across to different parts of the architecture. For a task-oriented walkthrough of connecting a cluster that already runs workloads - including the RBAC, network, scale, and sensitive-data considerations - see [Bringing Existing Infrastructure Under Meshery Management]({{< ref "guides/infrastructure-management/managing-existing-infrastructure.md" >}}).
 
 ### Greenfield: Tracking newly created resources
 
