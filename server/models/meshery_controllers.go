@@ -12,6 +12,7 @@ import (
 	"maps"
 
 	"github.com/gofrs/uuid"
+	"github.com/meshery/meshery/server/models/connections"
 	"github.com/meshery/meshkit/broker"
 	channelBroker "github.com/meshery/meshkit/broker/channel"
 	"github.com/meshery/meshkit/broker/nats"
@@ -22,7 +23,7 @@ import (
 	"github.com/meshery/meshkit/utils"
 	mesherykube "github.com/meshery/meshkit/utils/kubernetes"
 	libmeshsync "github.com/meshery/meshsync/pkg/lib/meshsync"
-	"github.com/meshery/meshery/server/models/connections"
+	controllersconfig "github.com/meshery/schemas/models/v1alpha1/controllers_config"
 	"github.com/spf13/viper"
 )
 
@@ -62,6 +63,13 @@ type MesheryControllersHelper struct {
 	dbHandler    *database.Handler
 
 	meshsyncDeploymentMode connections.MeshsyncDeploymentMode
+
+	// controllersConfig is the resolved (merged, explicitly-set) Meshery
+	// Operator / MeshSync / Broker configuration for the context this helper
+	// serves: per-connection override merged over the server-wide defaults.
+	// Set alongside the deployment mode when a connection connects or its
+	// configuration changes; consumed by the embedded meshsync run options.
+	controllersConfig *controllersconfig.MesheryControllersConfig
 
 	// event broadcasting dependencies
 	eventBroadcaster *Broadcast
@@ -109,6 +117,30 @@ func NewMesheryControllersHelper(
 func (mch *MesheryControllersHelper) SetMeshsyncDeploymentMode(value connections.MeshsyncDeploymentMode) *MesheryControllersHelper {
 	mch.meshsyncDeploymentMode = value
 	return mch
+}
+
+// SetControllersConfig stashes the resolved controllers configuration for the
+// context this helper serves. Chainable, mirroring SetMeshsyncDeploymentMode.
+func (mch *MesheryControllersHelper) SetControllersConfig(value *controllersconfig.MesheryControllersConfig) *MesheryControllersHelper {
+	mch.controllersConfig = value
+	return mch
+}
+
+// ResolveControllersConfigForConnection resolves the layered controllers
+// configuration for a connection's metadata against the server-wide defaults
+// persisted in this server's database. It returns the merged
+// (explicitly-set) document and the fully-resolved effective document.
+func (mch *MesheryControllersHelper) ResolveControllersConfigForConnection(metadata core.Map) (merged, effective *controllersconfig.MesheryControllersConfig, err error) {
+	override, err := connections.ControllersConfigFromMetadata(metadata)
+	if err != nil {
+		return nil, nil, err
+	}
+	serverDefaults, err := GetControllersConfigDefaults(mch.dbHandler)
+	if err != nil {
+		return nil, nil, err
+	}
+	merged, effective = connections.ResolveControllersConfig(override, serverDefaults)
+	return merged, effective, nil
 }
 
 // initializes Meshsync data handler for the contexts for whom it has not been
@@ -277,13 +309,31 @@ func (mch *MesheryControllersHelper) meshsynDataHandlersStartLibMeshsyncRun(
 
 	cancelCtx, stopFunc := context.WithCancel(ctx)
 
+	runOptions := []libmeshsync.OptionsSetter{
+		libmeshsync.WithOutputMode("broker"),
+		libmeshsync.WithBrokerHandler(brokerHandler),
+		libmeshsync.WithKubeConfig(kubeConfig),
+		libmeshsync.WithContext(cancelCtx),
+	}
+	// Apply the resolved controllers configuration to the in-process run.
+	// Output filters are the embedded-mode knobs libmeshsync exposes today;
+	// env-driven knobs (secret redaction, broker content dedup, debug
+	// logging) follow the Meshery Server process environment in embedded
+	// mode, and the watch-list is read from the MeshSync CR when the target
+	// cluster has one. The run restarts whenever the configuration changes.
+	if cfg := mch.controllersConfig; cfg != nil && cfg.Meshsync != nil {
+		if len(cfg.Meshsync.OutputNamespaces) > 0 {
+			runOptions = append(runOptions, libmeshsync.WithOnlyK8sNamespaces(cfg.Meshsync.OutputNamespaces...))
+		}
+		if len(cfg.Meshsync.OutputResources) > 0 {
+			runOptions = append(runOptions, libmeshsync.WithOnlyK8sResources(cfg.Meshsync.OutputResources))
+		}
+	}
+
 	go func() {
 		if err := libmeshsync.Run(
 			mch.log,
-			libmeshsync.WithOutputMode("broker"),
-			libmeshsync.WithBrokerHandler(brokerHandler),
-			libmeshsync.WithKubeConfig(kubeConfig),
-			libmeshsync.WithContext(cancelCtx),
+			runOptions...,
 		); err != nil {
 			meshsyncErr := fmt.Errorf("MesheryControllersHelper::meshsynDataHandlersStartLibMeshsyncRun error running meshsync lib: %v", err)
 			mch.log.Error(meshsyncErr)

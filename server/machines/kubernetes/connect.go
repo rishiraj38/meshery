@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/meshery/schemas/models/core"
 
@@ -62,7 +63,24 @@ func (ca *ConnectAction) Execute(ctx context.Context, machineCtx interface{}, da
 		return machines.NoOp, eventBuilder.Build(), errConnection
 	}
 
+	// Resolve the layered controllers configuration for this connection:
+	// per-connection override -> server-wide defaults (Settings) -> built-in
+	// defaults. The merged document is stashed on the controllers helper so
+	// the embedded meshsync run picks up its knobs, and is applied to the
+	// cluster after the operator machinery attaches (operator mode).
+	mergedControllersConfig, _, errResolve := machinectx.MesheryCtrlsHelper.ResolveControllersConfigForConnection(connection.Metadata)
+	if errResolve != nil {
+		// A malformed override must not block the connection: fall back to
+		// layer-free resolution and surface the problem as an event.
+		machinectx.log.Error(errResolve)
+		mergedControllersConfig = nil
+	}
+
 	meshsyncDeploymentMode := connections.MeshsyncDeploymentModeFromMetadata(connection.Metadata)
+	if meshsyncDeploymentMode == connections.MeshsyncDeploymentModeUndefined {
+		// Fall back to the server-wide default configured in Settings.
+		meshsyncDeploymentMode = connections.DeploymentModeFromControllersConfig(mergedControllersConfig)
+	}
 	if meshsyncDeploymentMode == connections.MeshsyncDeploymentModeUndefined {
 		// TODO:
 		// maybe not call to viper here and propagate default value from above,
@@ -79,9 +97,31 @@ func (ca *ConnectAction) Execute(ctx context.Context, machineCtx interface{}, da
 		ctrlHelper := machinectx.MesheryCtrlsHelper.
 			AddCtxControllerHandlers(machinectx.K8sContext).
 			SetMeshsyncDeploymentMode(meshsyncDeploymentMode).
+			SetControllersConfig(mergedControllersConfig).
 			UpdateOperatorsStatusMap(machinectx.OperatorTracker).
 			DeployUndeployedOperators(machinectx.OperatorTracker)
 		ctrlHelper.AddMeshsynDataHandlers(ctx, machinectx.K8sContext, userUUID, *sysID, provider)
+
+		// Operator mode: best-effort apply of the explicitly-set
+		// configuration onto the cluster's MeshSync/Broker custom resources
+		// and the MeshSync deployment. Targets that do not exist yet (the
+		// operator is still coming up) are skipped and re-applied on the
+		// next connect or configuration change.
+		if meshsyncDeploymentMode == connections.MeshsyncDeploymentModeOperator && mergedControllersConfig != nil {
+			kubeClient, errClient := machinectx.K8sContext.GenerateKubeHandler()
+			if errClient != nil {
+				machinectx.log.Error(ErrConnectAction(errClient))
+				return
+			}
+			// Detached context: the connect request's context ends with the
+			// HTTP request, while this apply runs alongside the async
+			// operator deployment.
+			applyCtx, cancelApply := context.WithTimeout(context.Background(), 2*time.Minute)
+			defer cancelApply()
+			if _, errApply := models.ApplyControllersConfigToCluster(applyCtx, machinectx.log, kubeClient, mergedControllersConfig); errApply != nil {
+				machinectx.log.Error(errApply)
+			}
+		}
 	}()
 	return machines.NoOp, nil, nil
 }
