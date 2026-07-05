@@ -32,21 +32,15 @@ MeshSync supports both greenfield and brownfield discovery of infrastructure. Gr
 
 ### Brownfield: Discovering existing resources
 
-The resources that are present inside the cluster are discovered efficiently with the help of pipelines. The data is constructed in a particular format specific to Meshery and published across to different parts of the architecture.
+The resources that are present inside the cluster are discovered efficiently with the help of pipelines. The data is constructed in a particular format specific to Meshery and published across to different parts of the architecture. For a task-oriented walkthrough of connecting a cluster that already runs workloads - including the RBAC, network, scale, and sensitive-data considerations - see [Bringing Existing Infrastructure Under Meshery Management]({{< ref "guides/infrastructure-management/managing-existing-infrastructure.md" >}}).
 
 ### Greenfield: Tracking newly created resources
 
-Meshery earmarks infrastructure for which it is the original lifecycle manager. In other words, Meshery tags the resources it creates. In Kubernetes deployments, earmarking is performed using annotations, notably the key/value pair:
+Resources created through Meshery - by deploying a [Design]({{< ref "concepts/logical/designs.md" >}}) - are applied to the cluster carrying exactly the metadata their design declares, and MeshSync discovers them through the same watch pipeline as every other resource.
 
-`designs.meshery.io: <design-id>`
-
-The propagation of the labels and annotations to the native k8s resources would be the responsibility of the workload/trait implementor.
-The following annotations are added to resources that are created by Meshery Server.
-
-```yaml
-Labels:
-  - resource.pattern.meshery.io/id=<uuid> # unique identifier for the design
-```
+{{% alert color="warning" title="Earmarking: not yet implemented" %}}
+Automatically earmarking Meshery-created resources - tagging them with an identifying label or annotation (for example, a design identifier) so that they can be positively attributed to the design that created them - is a design goal, not current behavior. Meshery Server does not currently inject identifying labels or annotations into the resources it deploys.
+{{% /alert %}}
 
 ## Identifying Infrastructure under Management
 
@@ -135,7 +129,7 @@ When it runs in operator mode, it is managed by the <a href="{{< ref "concepts/a
 
 ## Embedded mode (default)
 
-When it runs in embedded mode, it is integrated into the Meshery server as a library and no additional resources are deployed to the managed cluster.
+When it runs in embedded mode, it is integrated into the Meshery server as a library and no additional resources are deployed to the managed cluster. This is the default mode.
 
 ## Mode selection and switch
 
