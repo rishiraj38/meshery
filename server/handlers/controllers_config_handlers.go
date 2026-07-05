@@ -253,6 +253,9 @@ func (h *Handler) fetchKubernetesConnection(w http.ResponseWriter, req *http.Req
 	connection, statusCode, err := provider.GetConnectionByID(token, connectionID)
 	if err != nil {
 		h.log.Error(err)
+		if statusCode < http.StatusContinue {
+			statusCode = http.StatusInternalServerError
+		}
 		writeMeshkitError(w, err, statusCode)
 		return nil, false
 	}
