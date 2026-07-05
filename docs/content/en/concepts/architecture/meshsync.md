@@ -135,7 +135,7 @@ When it runs in operator mode, it is managed by the <a href="{{< ref "concepts/a
 
 ## Embedded mode (default)
 
-When it runs in embedded mode, it is integrated into the Meshery server as a library and no additional resources are deployed to the managed cluster.
+When it runs in embedded mode, it is integrated into the Meshery server as a library and no additional resources are deployed to the managed cluster. This is the default mode.
 
 ## Mode selection and switch
 
