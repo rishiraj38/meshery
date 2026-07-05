@@ -69,9 +69,12 @@ func (ca *ConnectAction) Execute(ctx context.Context, machineCtx interface{}, da
 	// the embedded meshsync run picks up its knobs, and is applied to the
 	// cluster after the operator machinery attaches (operator mode).
 	mergedControllersConfig, _, errResolve := machinectx.MesheryCtrlsHelper.ResolveControllersConfigForConnection(connection.Metadata)
+	controllersConfigResolved := errResolve == nil
 	if errResolve != nil {
-		// A malformed override must not block the connection: fall back to
-		// layer-free resolution and surface the problem as an event.
+		// The defaults store failed (a malformed override alone degrades
+		// inside the resolver and still yields the Settings defaults):
+		// connect with layer-free defaults and skip the cluster apply
+		// below, since the intended configuration is unknown.
 		machinectx.log.Error(errResolve)
 		mergedControllersConfig = nil
 	}
@@ -104,10 +107,12 @@ func (ca *ConnectAction) Execute(ctx context.Context, machineCtx interface{}, da
 
 		// Operator mode: best-effort apply of the explicitly-set
 		// configuration onto the cluster's MeshSync/Broker custom resources
-		// and the MeshSync deployment. Targets that do not exist yet (the
-		// operator is still coming up) are skipped and re-applied on the
-		// next connect or configuration change.
-		if meshsyncDeploymentMode == connections.MeshsyncDeploymentModeOperator && mergedControllersConfig != nil {
+		// and the MeshSync deployment. An empty resolved configuration is
+		// applied too: it withdraws previously-applied fields (cleared
+		// while the connection was down) and heals drift. Targets that do
+		// not exist yet (the operator is still coming up) are skipped and
+		// re-applied on the next connect or configuration change.
+		if meshsyncDeploymentMode == connections.MeshsyncDeploymentModeOperator && controllersConfigResolved {
 			kubeClient, errClient := machinectx.K8sContext.GenerateKubeHandler()
 			if errClient != nil {
 				machinectx.log.Error(ErrConnectAction(errClient))

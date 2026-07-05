@@ -63,21 +63,25 @@ type ControllersConfigApplyResult struct {
 
 // ApplyControllersConfigToCluster propagates the merged (explicitly-set)
 // controllers configuration to a cluster running in operator deployment
-// mode:
+// mode. Every target is managed with server-side apply under the
+// meshery-server field manager, so the applied configuration always
+// describes the complete set of fields Meshery Server owns: setting a field
+// takes ownership, and unsetting it at every layer withdraws it on the next
+// apply, reverting to the operator's or chart's own value.
 //
 //   - MeshSync CR: spec.version, spec.size, spec.watch-list
 //   - Broker CR: spec.version, spec.size, spec.service
 //   - MeshSync Deployment: env (MESHSYNC_REDACT_SECRETS,
 //     MESHSYNC_BROKER_CONTENT_DEDUP, DEBUG) and args (--outputNamespaces,
-//     --outputResources) via server-side apply under the meshery-server
-//     field manager, so entries withdraw cleanly when unset and the
-//     operator's own apply never fights them.
+//     --outputResources)
 //
-// MeshSync reads its watch-list at startup only, so a watch-list change also
-// triggers a rolling restart of the MeshSync Deployment. Absent CRs or
-// Deployment (operator not deployed yet, or embedded-mode cluster) are
-// skipped and reported, not treated as errors: configuration re-applies when
-// the connection reconnects.
+// A nil merged document is applied as an empty one: that is the withdrawal
+// case (no layer sets anything anymore), not a no-op. MeshSync reads its
+// watch-list at startup only, so a watch-list change also triggers a rolling
+// restart of the MeshSync Deployment. Absent CRs or Deployment (operator not
+// deployed yet, or embedded-mode cluster) are skipped and reported, not
+// treated as errors: configuration re-applies when the connection
+// reconnects.
 func ApplyControllersConfigToCluster(
 	ctx context.Context,
 	log logger.Handler,
@@ -89,7 +93,7 @@ func ApplyControllersConfigToCluster(
 		return result, ErrApplyControllersConfig(k8serrors.NewBadRequest("no kubernetes client available for the connection"))
 	}
 	if merged == nil {
-		return result, nil
+		merged = &controllersconfig.MesheryControllersConfig{}
 	}
 
 	var applyErrs []error
@@ -116,20 +120,21 @@ func ApplyControllersConfigToCluster(
 	return result, nil
 }
 
-// applyMeshSyncCR merge-patches the MeshSync custom resource with the
-// explicitly-set fields. It returns whether the watch-list changed as a
-// result (which requires a MeshSync restart to take effect).
+// applyMeshSyncCR server-side-applies the explicitly-set MeshSync fields
+// onto the MeshSync custom resource under the meshery-server field manager.
+// The applied configuration always describes the complete owned set, so
+// fields cleared at every layer are withdrawn and revert to the operator's
+// or chart's own values. It returns whether the watch-list changed as a
+// result of the apply (which requires a MeshSync restart to take effect,
+// since MeshSync reads its CR at startup only).
 func applyMeshSyncCR(
 	ctx context.Context,
 	kubeClient *mesherykube.Client,
 	cfg *controllersconfig.MeshSyncConfig,
 	result *ControllersConfigApplyResult,
 ) (bool, error) {
-	if cfg == nil || (cfg.Version == nil && cfg.Replicas == nil && cfg.WatchList == nil) {
-		return false, nil
-	}
-
-	current, err := kubeClient.DynamicKubeClient.Resource(meshSyncGVR).Namespace(controllersNamespace).Get(ctx, meshSyncCRName, metav1.GetOptions{})
+	crClient := kubeClient.DynamicKubeClient.Resource(meshSyncGVR).Namespace(controllersNamespace)
+	before, err := crClient.Get(ctx, meshSyncCRName, metav1.GetOptions{})
 	if err != nil {
 		if k8serrors.IsNotFound(err) || isNoKindMatch(err) {
 			result.Skipped = append(result.Skipped, "MeshSync custom resource not present; watch-list, version, and replica settings apply when the Meshery Operator is deployed")
@@ -139,47 +144,58 @@ func applyMeshSyncCR(
 	}
 
 	spec := map[string]interface{}{}
-	if cfg.Version != nil {
-		spec["version"] = *cfg.Version
-	}
-	if cfg.Replicas != nil {
-		spec["size"] = *cfg.Replicas
-	}
-
-	watchListChanged := false
-	if cfg.WatchList != nil {
-		desiredData := map[string]interface{}{"whitelist": nil, "blacklist": nil}
-		if len(cfg.WatchList.Whitelist) > 0 {
-			encoded, err := json.Marshal(watchListWhitelistWireEntries(cfg.WatchList.Whitelist))
-			if err != nil {
-				return false, err
-			}
-			desiredData["whitelist"] = string(encoded)
+	if cfg != nil {
+		if cfg.Version != nil {
+			spec["version"] = *cfg.Version
 		}
-		if len(cfg.WatchList.Blacklist) > 0 {
-			encoded, err := json.Marshal(cfg.WatchList.Blacklist)
-			if err != nil {
-				return false, err
-			}
-			desiredData["blacklist"] = string(encoded)
+		if cfg.Replicas != nil {
+			spec["size"] = *cfg.Replicas
 		}
-		spec["watch-list"] = map[string]interface{}{"data": desiredData}
-		watchListChanged = !watchListDataEqual(current.Object, desiredData)
+		if cfg.WatchList != nil {
+			// Claim both keys whenever a watch-list is managed: the unused
+			// key is set to the empty string (which MeshSync ignores) so a
+			// pre-existing chart-set counterpart cannot linger alongside the
+			// managed key and trip MeshSync's whitelist-XOR-blacklist
+			// validation. Withdrawing the watch-list releases both keys.
+			data := map[string]interface{}{"whitelist": "", "blacklist": ""}
+			if len(cfg.WatchList.Whitelist) > 0 {
+				encoded, err := json.Marshal(watchListWhitelistWireEntries(cfg.WatchList.Whitelist))
+				if err != nil {
+					return false, err
+				}
+				data["whitelist"] = string(encoded)
+			}
+			if len(cfg.WatchList.Blacklist) > 0 {
+				encoded, err := json.Marshal(cfg.WatchList.Blacklist)
+				if err != nil {
+					return false, err
+				}
+				data["blacklist"] = string(encoded)
+			}
+			spec["watch-list"] = map[string]interface{}{"data": data}
+		}
 	}
 
-	if len(spec) == 0 {
-		return false, nil
+	applyConfig := map[string]interface{}{
+		"apiVersion": meshSyncGVR.Group + "/" + meshSyncGVR.Version,
+		"kind":       "MeshSync",
+		"metadata": map[string]interface{}{
+			"name":      meshSyncCRName,
+			"namespace": controllersNamespace,
+		},
+		"spec": spec,
 	}
-
-	patch, err := json.Marshal(map[string]interface{}{"spec": spec})
+	payload, err := json.Marshal(applyConfig)
 	if err != nil {
 		return false, err
 	}
-	if _, err := kubeClient.DynamicKubeClient.Resource(meshSyncGVR).Namespace(controllersNamespace).Patch(ctx, meshSyncCRName, types.MergePatchType, patch, metav1.PatchOptions{}); err != nil {
+	force := true
+	after, err := crClient.Patch(ctx, meshSyncCRName, types.ApplyPatchType, payload, metav1.PatchOptions{FieldManager: controllersConfigFieldManager, Force: &force})
+	if err != nil {
 		return false, err
 	}
 	result.MeshSyncCRPatched = true
-	return watchListChanged, nil
+	return !watchListDataEqual(before.Object, after.Object), nil
 }
 
 // watchListWhitelistWireEntries converts schema whitelist entries into the
@@ -201,29 +217,28 @@ func watchListWhitelistWireEntries(entries []controllersconfig.MeshSyncWatchedRe
 	return wire
 }
 
-// watchListDataEqual compares the current CR's spec.watch-list.data with the
-// desired data map (string values; nil means absent).
-func watchListDataEqual(currentObj map[string]interface{}, desired map[string]interface{}) bool {
-	currentData := map[string]interface{}{}
-	if spec, ok := currentObj["spec"].(map[string]interface{}); ok {
-		if wl, ok := spec["watch-list"].(map[string]interface{}); ok {
-			if data, ok := wl["data"].(map[string]interface{}); ok {
-				currentData = data
+// watchListDataEqual reports whether two MeshSync CR objects carry the same
+// effective spec.watch-list.data (whitelist/blacklist), comparing the JSON
+// values regardless of formatting. Absent and empty entries are equivalent.
+func watchListDataEqual(a, b map[string]interface{}) bool {
+	dataOf := func(obj map[string]interface{}) map[string]interface{} {
+		if spec, ok := obj["spec"].(map[string]interface{}); ok {
+			if wl, ok := spec["watch-list"].(map[string]interface{}); ok {
+				if data, ok := wl["data"].(map[string]interface{}); ok {
+					return data
+				}
 			}
 		}
+		return map[string]interface{}{}
 	}
+	aData, bData := dataOf(a), dataOf(b)
 	for _, key := range []string{"whitelist", "blacklist"} {
-		currentValue, hasCurrent := currentData[key]
-		desiredValue := desired[key]
-		if desiredValue == nil {
-			currentString, _ := currentValue.(string)
-			if hasCurrent && currentString != "" {
-				return false
-			}
+		aString, _ := aData[key].(string)
+		bString, _ := bData[key].(string)
+		if aString == "" && bString == "" {
 			continue
 		}
-		currentString, _ := currentValue.(string)
-		if !hasCurrent || !jsonStringsEquivalent(currentString, desiredValue.(string)) {
+		if !jsonStringsEquivalent(aString, bString) {
 			return false
 		}
 	}
@@ -243,20 +258,19 @@ func jsonStringsEquivalent(a, b string) bool {
 	return reflect.DeepEqual(av, bv)
 }
 
-// applyBrokerCR merge-patches the Broker custom resource with the
-// explicitly-set fields. Broker service changes reconcile in place; version
-// and size changes roll the NATS statefulset under operator control.
+// applyBrokerCR server-side-applies the explicitly-set Broker fields onto
+// the Broker custom resource under the meshery-server field manager, with
+// the same complete-owned-set withdrawal semantics as applyMeshSyncCR.
+// Broker service changes reconcile in place; version and size changes roll
+// the NATS statefulset under operator control.
 func applyBrokerCR(
 	ctx context.Context,
 	kubeClient *mesherykube.Client,
 	cfg *controllersconfig.MesheryBrokerConfig,
 	result *ControllersConfigApplyResult,
 ) error {
-	if cfg == nil || (cfg.Version == nil && cfg.Replicas == nil && cfg.Service == nil) {
-		return nil
-	}
-
-	if _, err := kubeClient.DynamicKubeClient.Resource(brokerGVR).Namespace(controllersNamespace).Get(ctx, brokerCRName, metav1.GetOptions{}); err != nil {
+	crClient := kubeClient.DynamicKubeClient.Resource(brokerGVR).Namespace(controllersNamespace)
+	if _, err := crClient.Get(ctx, brokerCRName, metav1.GetOptions{}); err != nil {
 		if k8serrors.IsNotFound(err) || isNoKindMatch(err) {
 			result.Skipped = append(result.Skipped, "Broker custom resource not present; broker settings apply when the Meshery Operator is deployed")
 			return nil
@@ -265,42 +279,51 @@ func applyBrokerCR(
 	}
 
 	spec := map[string]interface{}{}
-	if cfg.Version != nil {
-		spec["version"] = *cfg.Version
-	}
-	if cfg.Replicas != nil {
-		spec["size"] = *cfg.Replicas
-	}
-	if svc := cfg.Service; svc != nil {
-		service := map[string]interface{}{}
-		if svc.Type != nil {
-			service["type"] = string(*svc.Type)
+	if cfg != nil {
+		if cfg.Version != nil {
+			spec["version"] = *cfg.Version
 		}
-		if svc.Annotations != nil {
-			service["annotations"] = svc.Annotations
+		if cfg.Replicas != nil {
+			spec["size"] = *cfg.Replicas
 		}
-		if svc.LoadBalancerClass != nil {
-			service["loadBalancerClass"] = *svc.LoadBalancerClass
+		if svc := cfg.Service; svc != nil {
+			service := map[string]interface{}{}
+			if svc.Type != nil {
+				service["type"] = string(*svc.Type)
+			}
+			if svc.Annotations != nil {
+				service["annotations"] = svc.Annotations
+			}
+			if svc.LoadBalancerClass != nil {
+				service["loadBalancerClass"] = *svc.LoadBalancerClass
+			}
+			if svc.LoadBalancerSourceRanges != nil {
+				service["loadBalancerSourceRanges"] = svc.LoadBalancerSourceRanges
+			}
+			if svc.ExternalEndpointOverride != nil {
+				service["externalEndpointOverride"] = *svc.ExternalEndpointOverride
+			}
+			if len(service) > 0 {
+				spec["service"] = service
+			}
 		}
-		if svc.LoadBalancerSourceRanges != nil {
-			service["loadBalancerSourceRanges"] = svc.LoadBalancerSourceRanges
-		}
-		if svc.ExternalEndpointOverride != nil {
-			service["externalEndpointOverride"] = *svc.ExternalEndpointOverride
-		}
-		if len(service) > 0 {
-			spec["service"] = service
-		}
-	}
-	if len(spec) == 0 {
-		return nil
 	}
 
-	patch, err := json.Marshal(map[string]interface{}{"spec": spec})
+	applyConfig := map[string]interface{}{
+		"apiVersion": brokerGVR.Group + "/" + brokerGVR.Version,
+		"kind":       "Broker",
+		"metadata": map[string]interface{}{
+			"name":      brokerCRName,
+			"namespace": controllersNamespace,
+		},
+		"spec": spec,
+	}
+	payload, err := json.Marshal(applyConfig)
 	if err != nil {
 		return err
 	}
-	if _, err := kubeClient.DynamicKubeClient.Resource(brokerGVR).Namespace(controllersNamespace).Patch(ctx, brokerCRName, types.MergePatchType, patch, metav1.PatchOptions{}); err != nil {
+	force := true
+	if _, err := crClient.Patch(ctx, brokerCRName, types.ApplyPatchType, payload, metav1.PatchOptions{FieldManager: controllersConfigFieldManager, Force: &force}); err != nil {
 		return err
 	}
 	result.BrokerCRPatched = true

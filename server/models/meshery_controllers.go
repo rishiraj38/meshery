@@ -130,10 +130,19 @@ func (mch *MesheryControllersHelper) SetControllersConfig(value *controllersconf
 // configuration for a connection's metadata against the server-wide defaults
 // persisted in this server's database. It returns the merged
 // (explicitly-set) document and the fully-resolved effective document.
+//
+// A malformed per-connection override invalidates only the override layer:
+// it is logged and treated as absent so the Settings defaults still apply
+// (the per-connection GET endpoint surfaces the parse error to the user).
+// A non-nil error therefore always means the defaults store itself failed,
+// in which case no resolution is returned.
 func (mch *MesheryControllersHelper) ResolveControllersConfigForConnection(metadata core.Map) (merged, effective *controllersconfig.MesheryControllersConfig, err error) {
-	override, err := connections.ControllersConfigFromMetadata(metadata)
-	if err != nil {
-		return nil, nil, err
+	override, overrideErr := connections.ControllersConfigFromMetadata(metadata)
+	if overrideErr != nil {
+		if mch.log != nil {
+			mch.log.Error(overrideErr)
+		}
+		override = nil
 	}
 	serverDefaults, err := GetControllersConfigDefaults(mch.dbHandler)
 	if err != nil {
