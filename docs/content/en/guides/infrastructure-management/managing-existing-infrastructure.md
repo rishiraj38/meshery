@@ -70,11 +70,7 @@ MeshSync's code performs no writes against your cluster - it lists and watches. 
 - **In operator mode, Meshery Server must also reach the Broker.** The Broker's client Service defaults to `ClusterIP` - reachable only from inside the cluster. That works when Meshery Server runs in the same cluster; an out-of-cluster server (your laptop, another cluster, a SaaS deployment) needs the Broker exposed via the `Broker` custom resource's `spec.service.type` (`NodePort` or `LoadBalancer`) or an explicit `spec.service.externalEndpointOverride` for ingress and NAT topologies. The operator publishes the resolved address in the Broker's `status.endpoint`.
 - **Embedded mode sidesteps the Broker entirely** - discovery traffic flows through Meshery Server's existing kubeconfig connection. On restrictive networks, this is the simplest topology.
 
-<!-- "Configuring Meshery Operator, MeshSync, and Broker" ships in a parallel PR. Until it
-     merges, links to it are absolute docs.meshery.io URLs so this page does not break the
-     Hugo build (an unresolved ref shortcode fails the build). Convert them to ref-shortcode
-     links once that page exists on master. -->
-For the specific service-networking and endpoint knobs, see [Configuring Meshery Operator, MeshSync, and Broker](https://docs.meshery.io/guides/infrastructure-management/configuring-operator-meshsync-broker/).
+For the specific service-networking and endpoint knobs, see [Configuring Meshery Operator, MeshSync, and Broker]({{< ref "guides/infrastructure-management/configuring-operator-meshsync-broker.md#broker-service-networking" >}}).
 
 ### Scale: the initial snapshot on a large estate
 
@@ -84,7 +80,7 @@ The first sync lists every object of every watched resource type. On a large bro
 - Narrow *what is published* with MeshSync's `--outputNamespaces` and `--outputResources` filters.
 - Expect re-discovery on CRD churn: installing or removing a CRD triggers MeshSync to rebuild its pipeline and re-list. Estates with heavy CRD turnover resync more often.
 
-The full set of scoping and deployment knobs, and where each is configured, is covered in [Configuring Meshery Operator, MeshSync, and Broker](https://docs.meshery.io/guides/infrastructure-management/configuring-operator-meshsync-broker/).
+The full set of scoping and deployment knobs, and where each is configured, is covered in [Configuring Meshery Operator, MeshSync, and Broker]({{< ref "guides/infrastructure-management/configuring-operator-meshsync-broker.md#configuring-meshsync" >}}).
 
 ### Sensitive data: Secrets are discovered by default
 
@@ -133,7 +129,7 @@ MeshSync's default watch list includes `secrets.v1.`, and Secret **values are pu
 
 ## Related
 
-- [Configuring Meshery Operator, MeshSync, and Broker](https://docs.meshery.io/guides/infrastructure-management/configuring-operator-meshsync-broker/) - every deployment and discovery-scoping knob in one place.
+- [Configuring Meshery Operator, MeshSync, and Broker]({{< ref "guides/infrastructure-management/configuring-operator-meshsync-broker.md" >}}) - every deployment and discovery-scoping knob in one place.
 - [Registering a Connection]({{< ref "guides/infrastructure-management/registering-a-connection.md" >}}) - the Connection Wizard, step by step.
 - [Connections]({{< ref "concepts/logical/connections/index.md" >}}) - concepts and the state lifecycle.
 - [Managing Connections]({{< ref "guides/infrastructure-management/lifecycle-management/index.md" >}}) - lifecycle operations on registered Connections.
