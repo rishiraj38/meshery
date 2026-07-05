@@ -78,7 +78,7 @@ When you import or reconfigure a Kubernetes cluster, you choose how [MeshSync]({
 - **Operator** - installs the [Meshery Operator]({{< ref "concepts/architecture/operator/index.md" >}}) into the cluster. MeshSync runs in-cluster and streams resource changes to Meshery in real time.
 - **Embedded** - runs MeshSync from within Meshery Server. Nothing is installed into the cluster; discovery happens out-of-cluster. This is the default.
 
-Switching the mode later makes Meshery redeploy MeshSync accordingly (see [Updating a Connection](#updating-a-connection)).
+Switching the mode later makes Meshery redeploy MeshSync accordingly (see [Updating a Connection](#updating-a-connection)). For the behavioral trade-offs between the two modes - cluster footprint, permissions, network requirements, and what each mode gives up - and for every other setting of these components, see [Configuring Meshery Operator, MeshSync, and Broker]({{< ref "guides/infrastructure-management/configuring-operator-meshsync-broker.md" >}}).
 
 ## Updating a Connection
 
@@ -108,6 +108,7 @@ Prefer the terminal? `mesheryctl` can create, list, view, and delete Connections
 ## Related
 
 - [Connections]({{< ref "concepts/logical/connections/index.md" >}}) - concepts and state lifecycle.
+- [Configuring Meshery Operator, MeshSync, and Broker]({{< ref "guides/infrastructure-management/configuring-operator-meshsync-broker.md" >}}) - tuning the components that keep an imported cluster in sync.
 - [Credentials]({{< ref "concepts/logical/credentials.md" >}}) - authentication for Connections.
 - [Environments]({{< ref "concepts/logical/environments.md" >}}) and [Workspaces]({{< ref "concepts/logical/workspaces.md" >}}) - grouping and sharing Connections.
 - [Managing Connections]({{< ref "guides/infrastructure-management/lifecycle-management/index.md" >}}) - lifecycle operations.
