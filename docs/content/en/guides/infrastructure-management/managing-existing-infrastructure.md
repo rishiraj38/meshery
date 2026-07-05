@@ -18,14 +18,14 @@ For the underlying concepts, see the canonical references:
 - [Managing Connections]({{< ref "guides/infrastructure-management/lifecycle-management/index.md" >}}) - operating Connections after they are registered.
 
 {{% alert color="info" title="What 'management' means at each stage" %}}
-Discovery populates Meshery's <strong>inventory</strong>: a continuously refreshed, read-only snapshot of the cluster. Management <strong>actions</strong> - deploying or undeploying a [Design]({{< ref "concepts/logical/designs.md" >}}), transitioning a Connection's state - are separate, explicit, and user-initiated. Connecting a cluster never mutates the workloads already running on it.
+Discovery populates Meshery's **inventory**: a continuously refreshed, read-only snapshot of the cluster. Management **actions** - deploying or undeploying a [Design]({{< ref "concepts/logical/designs.md" >}}), transitioning a Connection's state - are separate, explicit, and user-initiated. Connecting a cluster never mutates the workloads already running on it.
 {{% /alert %}}
 
 ## How Meshery treats an existing cluster
 
 When MeshSync starts against a cluster, its informers first **list** every resource type in scope - delivering each pre-existing object to Meshery as a discovered resource - and then **watch** for subsequent changes. The initial listing is the brownfield snapshot; the watch keeps it current. There is no requirement that a resource carry any particular label or annotation to be discovered.
 
-Meshery does distinguish the infrastructure it deploys itself: resources created through a Meshery [Design]({{< ref "concepts/logical/designs.md" >}}) are earmarked with identifying labels and annotations (for example, `designs.meshery.io: <design-id>`). Pre-existing resources carry no such marks and never acquire them through discovery. Both kinds appear side by side in your inventory and are kept equally current.
+Meshery does not brand what it deploys, either: resources created by deploying a Meshery [Design]({{< ref "concepts/logical/designs.md" >}}) reach the cluster carrying exactly the metadata the design declares - Meshery Server does not inject identifying labels or annotations at deploy time - and discovery treats them identically to resources that predate Meshery. Your inventory is one uniform, continuously refreshed view of the cluster, whatever created its contents.
 
 ## What happens when you connect a live cluster
 
@@ -78,11 +78,11 @@ For the specific service-networking and endpoint knobs, see [Configuring Meshery
 
 ### Scale: the initial snapshot on a large estate
 
-The first sync lists every object of every watched resource type. On a large brownfield cluster that is a burst of load on the API server, a burst of traffic to the Broker (operator mode), and a burst of writes into Meshery's database. There are no rate or depth tuning knobs in MeshSync today; **scoping is the lever**:
+The first sync lists every object of every watched resource type. On a large brownfield cluster, this causes a burst of load on the API server, a burst of traffic to the Broker (operator mode), and a burst of writes into Meshery's database. There are no rate or depth tuning knobs in MeshSync today; **scoping is the lever**:
 
 - Narrow *what is watched* with the whitelist or blacklist in the `MeshSync` custom resource's `watch-list` (see the [MeshSync FAQs]({{< ref "concepts/architecture/meshsync.md#meshsync-faqs" >}}) for exact syntax).
 - Narrow *what is published* with MeshSync's `--outputNamespaces` and `--outputResources` filters.
-- Expect re-discovery on CRD churn: installing or removing a CRD triggers MeshSync to rebuild its pipeline and re-list. Estates with heavy CRD turnover re-sync more often.
+- Expect re-discovery on CRD churn: installing or removing a CRD triggers MeshSync to rebuild its pipeline and re-list. Estates with heavy CRD turnover resync more often.
 
 The full set of scoping and deployment knobs, and where each is configured, is covered in [Configuring Meshery Operator, MeshSync, and Broker](https://docs.meshery.io/guides/infrastructure-management/configuring-operator-meshsync-broker/).
 
@@ -90,7 +90,7 @@ The full set of scoping and deployment knobs, and where each is configured, is c
 
 MeshSync's default watch list includes `secrets.v1.`, and Secret **values are published to Meshery unredacted by default**. On a brownfield cluster this means credentials that predate Meshery flow into its inventory the moment discovery starts. Decide your posture before connecting, not after:
 
-- **Redact**: set `MESHSYNC_REDACT_SECRETS=true` on the MeshSync process to replace every value in a Secret's `data`, `stringData`, and `binaryData` with `[REDACTED]` while preserving the keys - the inventory still shows that Secrets exist and how they are shaped, without their contents.
+- **Redact**: set `MESHSYNC_REDACT_SECRETS=true` on the MeshSync process to replace every value in a discovered Secret's `data` with `[REDACTED]` while preserving the keys - the inventory still shows that Secrets exist and how they are shaped, without their contents.
 - **Exclude**: blacklist `secrets.v1.` in the `watch-list` so Secrets are not discovered at all.
 - **Deny by RBAC**: in embedded mode, upload an identity that has no `get`/`list`/`watch` on Secrets; in operator mode, do not grant Secret read access beyond what the chart requires. What cannot be read cannot be published.
 
@@ -119,15 +119,15 @@ MeshSync's default watch list includes `secrets.v1.`, and Secret **values are pu
 5. **Scope discovery to what you care about.** If the inventory is noisier than useful - or the initial sync is heavier than you want - narrow the watch list and output filters (see the [checklist above](#scale-the-initial-snapshot-on-a-large-estate)) and restart MeshSync to apply.
 6. **Organize and share.** Assign the Connection to an [Environment]({{< ref "concepts/logical/environments.md" >}}), and the Environment to a [Workspace]({{< ref "concepts/logical/workspaces.md" >}}), to make the cluster available to your team with scoped access.
 7. **Operate deliberately.** Discovery has populated the inventory; management actions remain yours to initiate:
-   - Meshery can render the discovered state of a cluster as a [Design]({{< ref "concepts/logical/designs.md" >}}) on the fly (the resource API supports `?asDesign=true`) for visualization and evaluation. There is no import source that persists a design *from* live cluster state today - designs are imported from Kubernetes manifests, Helm charts, Docker Compose files, or existing design files. If your estate's manifests live in Git, import those directly: `mesheryctl design import -f ./manifests.yaml -s manifest` (see [design import]({{< ref "reference/references/mesheryctl/design/import.md" >}})).
+   - Meshery can render the discovered state of a cluster as a [Design]({{< ref "concepts/logical/designs.md" >}}) on the fly (the resource API supports `?asDesign=true`) for visualization and evaluation. There is no import source that persists a design *from* live cluster state today - designs are imported from Kubernetes manifests, Helm charts, Docker Compose files, or existing design files. If your estate's manifests live in Git, import those directly: `mesheryctl design import -f ./manifests.yaml -s "Kubernetes Manifest"` (see [design import]({{< ref "reference/references/mesheryctl/design/import.md" >}})).
    - Deploying a design creates or updates the resources that the design declares; undeploying removes them. These actions apply only to what the design declares - they never extend to the rest of the discovered inventory.
 
 ## Caveats and limitations
 
 - **Discovery is read-only, with one active-operation exception.** MeshSync itself never creates, updates, or deletes cluster resources. Separately from discovery, Meshery's pod-level troubleshooting features (interactive `exec` sessions and log streaming, available in operator mode via the Broker) are active operations inside your workloads - user-initiated, on demand, and only possible if MeshSync's ServiceAccount is granted `create` on `pods/exec` and `get` on `pods/log`, which the current chart RBAC does not include by default.
 - **Inventory freshness is best-effort between syncs.** MeshSync publishes over core NATS (at-most-once delivery). If Meshery Server is disconnected when an event fires, that event is not replayed; the snapshot is rebuilt on the next resync or re-list. Treat the inventory as an operational cache, not an audit log.
-- **Disconnecting is non-destructive; deleting flushes.** Disconnecting a cluster (or undeploying Meshery's components) leaves every workload untouched and retains the collected inventory - which then goes stale. Deleting the Connection removes its inventory from Meshery, and only when the last Connection referencing that cluster is deleted. Either way, the cluster itself is unaffected.
-- **Drift is surfaced, not prevented.** Resources changed or created outside Meshery keep flowing into the inventory - that is the design. A design you deployed reflects what you declared; the inventory reflects what is observed. Meshery does not blockade out-of-band change, and a design does not "adopt" the live resources it happens to describe.
+- **Disconnecting is non-destructive; deleting flushes.** Disconnecting a cluster (or undeploying Meshery's components) leaves every workload untouched and retains the collected inventory - which then goes stale. Deleting the Connection removes the collected inventory from Meshery, though only when it is the last Connection referencing that cluster (several kubeconfig contexts can point at the same cluster). Either way, the cluster itself is unaffected.
+- **Drift is surfaced, not prevented.** Resources changed or created outside Meshery keep flowing into the inventory - that is the design. A design you deployed reflects what you declared; the inventory reflects what is observed. Meshery does not block out-of-band changes, and a design does not "adopt" the live resources it happens to describe.
 - **Operator-mode discovery breadth is RBAC-bounded.** As noted [above](#rbac-what-mesherys-components-can-actually-do), the current meshery-operator chart authorizes reads on fewer resource types than MeshSync's default watch list requests; resource types without granted read access are not discovered until you extend the ServiceAccount's permissions.
 - **Watch-list changes require a MeshSync restart**, and the Maintenance connection state is not currently implemented for Kubernetes Connections (both noted in the sections above).
 

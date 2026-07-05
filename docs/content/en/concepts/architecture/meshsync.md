@@ -36,17 +36,11 @@ The resources that are present inside the cluster are discovered efficiently wit
 
 ### Greenfield: Tracking newly created resources
 
-Meshery earmarks infrastructure for which it is the original lifecycle manager. In other words, Meshery tags the resources it creates. In Kubernetes deployments, earmarking is performed using annotations, notably the key/value pair:
+Resources created through Meshery - by deploying a [Design]({{< ref "concepts/logical/designs.md" >}}) - are applied to the cluster carrying exactly the metadata their design declares, and MeshSync discovers them through the same watch pipeline as every other resource.
 
-`designs.meshery.io: <design-id>`
-
-The propagation of the labels and annotations to the native k8s resources would be the responsibility of the workload/trait implementor.
-The following annotations are added to resources that are created by Meshery Server.
-
-```yaml
-Labels:
-  - resource.pattern.meshery.io/id=<uuid> # unique identifier for the design
-```
+{{% alert color="warning" title="Earmarking: not yet implemented" %}}
+Automatically earmarking Meshery-created resources - tagging them with an identifying label or annotation (for example, a design identifier) so that they can be positively attributed to the design that created them - is a design goal, not current behavior. Meshery Server does not currently inject identifying labels or annotations into the resources it deploys.
+{{% /alert %}}
 
 ## Identifying Infrastructure under Management
 
