@@ -474,7 +474,7 @@ const MeshAdapterConfigComponent = () => {
             alignItems="flex-end"
             justifyContent="flex-end"
             size="grow"
-            style={{ paddingTop: '2rem' }}
+            sx={{ pt: 4 }}
           >
             <div ref={labelRef}>
               <TextField
@@ -488,7 +488,7 @@ const MeshAdapterConfigComponent = () => {
               />
             </div>
             <React.Fragment>
-              <AdapterButtons style={{ paddingTop: '0' }}>
+              <AdapterButtons sx={{ paddingTop: 0 }}>
                 <AdapterButton
                   type="submit"
                   variant="contained"
