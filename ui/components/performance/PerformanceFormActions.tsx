@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, CircularProgress } from '@sistent/sistent';
 import { SaveOutlined as SaveOutlinedIcon } from '@/assets/icons';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 
 interface PerformanceFormActionsProps {
   disableTest: boolean;

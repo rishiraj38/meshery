@@ -28,7 +28,7 @@ import {
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { WORKSPACE_ACTION_TYPES } from '.';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { useTeamAssignment } from '@sistent/sistent';
 import { AssignmentModal } from '@sistent/sistent';
 

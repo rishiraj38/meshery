@@ -7,7 +7,7 @@ import MeshSyncTable from './meshSync';
 import ConnectionIcon from '../../assets/icons/Connection';
 import MeshsyncIcon from '../../assets/icons/Meshsync';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import DefaultError from '../general/error-404/index';
 import { useGetSchemaQuery } from '@/rtk-query/schema';
 import CustomErrorFallback from '../shared/ErrorBoundary/ErrorBoundary';

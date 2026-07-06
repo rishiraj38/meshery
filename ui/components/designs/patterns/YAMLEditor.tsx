@@ -14,7 +14,7 @@ import { Close as CloseIcon, Delete as DeleteIcon, Save as SaveIcon } from '@/as
 import { UnControlled as CodeMirror } from '../../CodeMirror';
 import { FILE_OPS } from '../../../utils/Enum';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { YamlDialogTitle, YamlDialogTitleText } from './MesheryPatterns.styled';
 
 function YAMLEditor({ pattern, onClose, onSubmit, isReadOnly = false }) {

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button, Typography } from '@sistent/sistent';
 import { styled } from '@/theme';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import AddIconCircleBorder from '@/assets/icons/AddIconCircleBorder';
 import ConnectionWizardModal from './ConnectionWizardModal';
 const LaunchButton = styled(Button)({

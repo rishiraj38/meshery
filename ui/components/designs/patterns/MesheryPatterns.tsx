@@ -23,7 +23,7 @@ import { useColumnVisibilityPreference } from '@/utils/hooks/useColumnVisibility
 import InfoModal from '../../shared/Modal/Information/InfoModal';
 import DefaultError from '../../general/error-404/index';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import ExportDesignModal from '../export/ExportDesignModal';
 import { useModal, Modal as SistentModal } from '@sistent/sistent';
 import PatternIcon from '@/assets/icons/Pattern';

@@ -39,7 +39,7 @@ import {
 } from '@/utils/utils';
 import Router, { useRouter } from 'next/router';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import MoveFileIcon from '@/assets/icons/MoveFileIcon';
 import { useSelector } from 'react-redux';
 import { WorkspaceModalContext } from '@/utils/context/WorkspaceModalContextProvider';

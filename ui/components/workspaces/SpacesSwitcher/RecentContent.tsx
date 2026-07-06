@@ -1,5 +1,5 @@
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { Box, FormControl, Grid2, InputLabel, MenuItem, Select, useTheme } from '@sistent/sistent';
 import React, { useCallback, useState } from 'react';
 import { StyledSearchBar } from '@sistent/sistent';

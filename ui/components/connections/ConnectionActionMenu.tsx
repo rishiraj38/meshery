@@ -10,7 +10,7 @@ import {
 import { ActionListItem } from './styles';
 import { iconMedium } from '../../css/icons.styles';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { MESHSYNC_DEPLOYMENT_TYPE } from '../../utils/Enum';
 
 type ConnectionActionMenuProps = {

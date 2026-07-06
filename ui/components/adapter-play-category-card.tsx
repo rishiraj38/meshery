@@ -11,7 +11,7 @@ import {
   PlayArrowIcon as PlayIcon,
 } from '@sistent/sistent';
 import { iconMedium } from '../css/icons.styles';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import CAN from '@/utils/can';
 import { AdapterCard } from './adapter-play-styled';
 

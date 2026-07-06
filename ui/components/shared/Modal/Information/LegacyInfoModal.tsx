@@ -3,7 +3,7 @@ import { usePublishPatternMutation, useUpdatePatternFileMutation } from '@/rtk-q
 import TooltipButton from '@/utils/TooltipButton';
 import CAN from '@/utils/can';
 import { filterEmptyFields } from '@/utils/objects';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import {
   Avatar,
   Box,

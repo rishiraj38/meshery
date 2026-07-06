@@ -7,7 +7,7 @@ import { iconSmall } from '../../../css/icons.styles';
 import { CustomTextTooltip } from '@/components/meshery-mesh-interface/PatternService/CustomTextTooltip';
 import { useGetConnectionsQuery } from '@/rtk-query/connection';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { useRouter } from 'next/router';
 import { DashboardSection, LoadingContainer } from '../style';
 import ConnectCluster from './ConnectCluster';

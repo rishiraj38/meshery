@@ -2,7 +2,7 @@ import React from 'react';
 import { FlipCard } from '../lifecycle/general';
 import { useGetEnvironmentConnectionsQuery } from '../../rtk-query/environments';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { DeleteIcon, EditIcon, Grid2, SyncAltIcon, useTheme } from '@sistent/sistent';
 
 import {

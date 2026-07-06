@@ -43,7 +43,7 @@ import { useRouter } from 'next/router';
 import { MESHERY_CLOUD_PROD } from '../../../constants/endpoints';
 import { useGetUserByIdQuery } from '../../../rtk-query/user';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import ActionButton from './ActionButton';
 import DryRunIcon from '@/assets/icons/DryRunIcon';
 import CheckIcon from '@/assets/icons/CheckIcon';
@@ -255,8 +255,8 @@ function MesheryPatternCard_({
                     icon: <UndeployIcon fill={crimson[40]} style={iconMedium} />,
                     onClick: (e) => genericClickHandler(e, handleUnDeploy),
                     disabled: !CAN(
-                      Keys.CatalogManagementDeployDesign.id,
-                      Keys.CatalogManagementDeployDesign.function,
+                      Keys.CatalogManagementUndeployDesign.id,
+                      Keys.CatalogManagementUndeployDesign.function,
                     ),
                     'data-testid': 'pattern-btn-undeploy',
                   },

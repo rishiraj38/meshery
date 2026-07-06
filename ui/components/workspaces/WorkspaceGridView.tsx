@@ -15,7 +15,7 @@ import {
   ErrorBoundary,
 } from '@sistent/sistent';
 import { useDeleteWorkspaceMutation } from '@/rtk-query/workspace';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import CAN from '@/utils/can';
 import { useNotificationHandlers } from '@/utils/hooks/useNotification';
 import { UserCommonBox } from './styles';

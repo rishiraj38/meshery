@@ -5,7 +5,7 @@ import { dataToColors, isValidColumnName } from '../../../utils/charts';
 import ConnectClustersBtn from '../../general/ConnectClustersBtn';
 import Link from 'next/link';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { Box, MenuItem, Select, Typography } from '@sistent/sistent';
 import { useTheme } from '@/theme';
 

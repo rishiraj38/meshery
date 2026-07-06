@@ -10,7 +10,7 @@ vi.mock('@/utils/can', () => ({
   default: (...args: unknown[]) => can(...args),
 }));
 
-vi.mock('@/utils/permission_constants', () => ({
+vi.mock('@meshery/schemas/permissions', () => ({
   Keys: {
     WorkspaceManagementEditWorkspace: { id: 'edit', function: 'workspace' },
     WorkspaceManagementDeleteWorkspace: { id: 'delete', function: 'workspace' },

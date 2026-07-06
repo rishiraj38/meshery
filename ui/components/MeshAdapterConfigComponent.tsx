@@ -7,7 +7,7 @@ import changeAdapterState from '@/graphql/mutations/AdapterStatusMutation';
 import { useNotification } from '../utils/hooks/useNotification';
 import { EVENT_TYPES } from '../lib/event-types';
 import BadgeAvatars from './CustomAvatar';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import CAN from '@/utils/can';
 import { iconMedium } from 'css/icons.styles';
 import {

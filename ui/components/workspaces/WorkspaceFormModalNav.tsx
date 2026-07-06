@@ -30,7 +30,7 @@ import WorkspaceContent from './SpacesSwitcher/WorkspaceContent';
 import { useGetProviderCapabilitiesQuery, useGetSelectedOrganization } from '@/rtk-query/user';
 import SharedContent from './SpacesSwitcher/SharedContent';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { WorkspaceModalContext } from '@/utils/context/WorkspaceModalContextProvider';
 import type { Theme } from '@/theme';
 import { NavItem, WorkspacesSection, NavConfigItem } from './WorkspaceFormModalSections';

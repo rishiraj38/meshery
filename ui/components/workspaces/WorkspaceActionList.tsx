@@ -17,7 +17,7 @@ import { TableIconsContainer, IconWrapper } from './styles';
 import { iconMedium } from 'css/icons.styles';
 import { WORKSPACE_ACTION_TYPES } from '.';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 
 const WorkspaceActionList = ({
   handleTeamsModalOpen,

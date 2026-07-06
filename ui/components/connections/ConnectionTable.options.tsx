@@ -3,7 +3,7 @@ import { Button, Grid2, Table, TableCell, TableRow, DeleteIcon, useTheme } from 
 import { ContentContainer, InnerTableContainer } from './styles';
 import { iconMedium } from '../../css/icons.styles';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import FormatConnectionMetadata from './metadata';
 import type { ConnectionRow, ExpansionFlags, SelectedRows } from './ConnectionTable.types';
 

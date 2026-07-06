@@ -15,7 +15,7 @@ import { UnControlled as CodeMirror } from '../CodeMirror';
 import { FILE_OPS } from '../../utils/Enum';
 import { iconMedium } from '../../css/icons.styles';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import TooltipIcon from './TooltipIcon';
 import { YmlDialogTitle, YmlDialogTitleText } from './Filters.styled';
 import type { YAMLEditorProps } from './Filters.types';

@@ -28,7 +28,7 @@ import LazyComponentForm from './LazyComponentForm';
 import useDesignLifecycle from './hooks/useDesignLifecycle';
 import { useRouter } from 'next/router';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 
 const ScrollContainer = styled('div')({
   overflowY: 'auto',

@@ -6,7 +6,7 @@ import CloneIcon from '../../public/static/img/CloneIcon';
 import { iconMedium } from '../../css/icons.styles';
 import { VISIBILITY } from '../../utils/Enum';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { DefaultTableCell, SortableTableCell } from '../connections/common/index';
 import TooltipIcon from './TooltipIcon';
 import { ActionsBox } from './Filters.styled';

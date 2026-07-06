@@ -7,7 +7,7 @@ import {
 } from '@/rtk-query/workspace';
 import CAN from '@/utils/can';
 import { useNotificationHandlers } from '@/utils/hooks/useNotification';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { getColumnValue } from '@/utils/utils';
 import {
   AuthorCell,

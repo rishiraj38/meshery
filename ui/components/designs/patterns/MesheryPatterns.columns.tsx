@@ -8,7 +8,7 @@ import CloneIcon from '../../../public/static/img/CloneIcon';
 
 import { DefaultTableCell, SortableTableCell } from '../../connections/common';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import CheckIcon from '@/assets/icons/CheckIcon';
 import DryRunIcon from '@/assets/icons/DryRunIcon';
 import PatternConfigureIcon from '@/assets/icons/PatternConfigure';

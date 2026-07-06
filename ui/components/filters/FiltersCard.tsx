@@ -35,7 +35,7 @@ import TooltipButton from '../../utils/TooltipButton';
 import { VISIBILITY } from '../../utils/Enum';
 import { useGetUserByIdQuery } from '../../rtk-query/user';
 import { MESHERY_CLOUD_PROD } from '../../constants/endpoints';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import CAN from '@/utils/can';
 import { VisibilityChipMenu } from '@sistent/sistent';
 import { VIEW_VISIBILITY } from '../shared/Modal/Information/InfoModal';

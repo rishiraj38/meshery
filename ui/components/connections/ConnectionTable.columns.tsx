@@ -19,7 +19,7 @@ import { DefaultTableCell, SortableTableCell } from './common';
 import { getColumnValue } from '../../utils/utils';
 import MultiSelectWrapper from '../multi-select-wrapper';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { CustomTextTooltip } from '../meshery-mesh-interface/PatternService/CustomTextTooltip';
 import { formatDate } from '../data-formatter';
 import { getFallbackImageBasedOnKind, normalizeStaticImagePath } from '@/utils/fallback';

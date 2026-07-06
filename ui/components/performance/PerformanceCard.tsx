@@ -20,7 +20,7 @@ import PerformanceResults from './PerformanceResults';
 import { MESHERY_CLOUD_PROD } from '../../constants/endpoints';
 import { iconMedium } from '../../css/icons.styles';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { useGetUserByIdQuery } from '@/rtk-query/user';
 import useTestIDsGenerator from '@/utils/hooks/useTestIDs';
 import { BottomPart, CardButton, ResultContainer } from './style';
@@ -248,8 +248,8 @@ function PerformanceCard({
               onClick={(ev) => genericClickHandler(ev, handleProfile)}
               disabled={
                 !CAN(
-                  Keys.PerformanceManagementRunTest.id,
-                  Keys.PerformanceManagementRunTest.function,
+                  Keys.PerformanceManagementEditPerformanceTest.id,
+                  Keys.PerformanceManagementEditPerformanceTest.function,
                 )
               }
               sx={{ marginRight: '0.5rem' }}

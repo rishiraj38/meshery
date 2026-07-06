@@ -35,7 +35,7 @@ import { updateVisibleColumns } from '@/utils/responsive-column';
 import { useWindowDimensions } from '@/utils/dimension';
 import { ConditionalTooltip } from '@/utils/utils';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { ButtonTextWrapper, ProfileContainer, ViewSwitchBUtton } from './style';
 import { DefaultTableCell, SortableTableCell } from '../connections/common';
 import { useDispatch, useSelector } from 'react-redux';

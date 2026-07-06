@@ -3,7 +3,7 @@ import { CustomColumnVisibilityControl, SearchBar, UniversalFilter } from '@sist
 import { Publish as PublishIcon } from '@/assets/icons';
 import ViewSwitch from '../../ViewSwitch';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import TooltipButton from '@/utils/TooltipButton';
 import { ToolWrapper } from '@/assets/styles/general/tool.styles';
 import {

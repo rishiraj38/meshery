@@ -46,7 +46,7 @@ import {
   useUpdateEnvironmentMutation,
   useDeleteEnvironmentMutation,
 } from '../../rtk-query/environments';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import CAN from '@/utils/can';
 import DefaultError from '../general/error-404/index';
 import { useSelector } from 'react-redux';

@@ -11,7 +11,7 @@ import {
 } from '../designs/patterns/Grid.styles';
 import { RJSFModalWrapper } from '../shared/Modal/Modal';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { Modal as SistentModal } from '@sistent/sistent';
 import Filter from '../../public/static/img/drawer-icons/filter_svg';
 

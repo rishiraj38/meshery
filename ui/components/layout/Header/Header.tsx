@@ -38,7 +38,7 @@ import {
   FilterAllIcon,
 } from '@sistent/sistent';
 import { CanShow } from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import OrganizationAndWorkSpaceSwitcher from '../../workspaces/SpacesSwitcher/SpaceSwitcher';
 import HeaderMenu from './HeaderMenu';
 import ConnectionModal from '../../connections/ConnectionFormModal';

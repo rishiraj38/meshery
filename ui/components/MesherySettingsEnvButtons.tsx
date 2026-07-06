@@ -21,7 +21,7 @@ import { CONNECTION_STATES } from '../utils/Enum';
 import { TooltipWrappedConnectionChip, ConnectionStateChip } from './connections/ConnectionChip';
 import { getKubernetesContexts } from './connections/ConnectionWizard.helpers';
 import useKubernetesHook from '@/utils/hooks/useKubernetesHook';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import useTestIDsGenerator from '@/utils/hooks/useTestIDs';
 import CAN from '@/utils/can';
 import { useAddKubernetesConfigMutation } from '../rtk-query/connection';

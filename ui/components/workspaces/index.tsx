@@ -38,7 +38,7 @@ import { useNotification, useNotificationHandlers } from '../../utils/hooks/useN
 import { RJSFModalWrapper } from '../shared/Modal/Modal';
 import _PromptComponent from '../PromptComponent';
 import { EVENT_TYPES } from '../../lib/event-types';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import CAN from '@/utils/can';
 import { ToolWrapper } from '@/assets/styles/general/tool.styles';
 import ViewSwitch from '@/components/ViewSwitch';

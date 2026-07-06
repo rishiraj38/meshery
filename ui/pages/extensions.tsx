@@ -7,7 +7,7 @@ import DefaultError from '@/components/general/error-404';
 import { EVENT_TYPES } from '../lib/event-types';
 import { useNotification, usePageTitle } from '@/utils/hooks';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { CardContainer, FrontSideDescription } from '../css/icons.styles';
 import { useDispatch } from 'react-redux';
 import { toggleCatalogContent } from '@/store/slices/mesheryUi';

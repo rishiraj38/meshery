@@ -33,7 +33,7 @@ import {
   WORKSPACE,
 } from '../../../constants/navigator';
 import { iconSmall } from '../../../css/icons.styles';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 
 export const drawerIconsStyle = {
   height: '19.36px',

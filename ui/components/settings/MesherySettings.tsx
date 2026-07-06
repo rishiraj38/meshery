@@ -29,7 +29,7 @@ import {
   getMeshModelRegistrants,
 } from '../../api/meshmodel';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { ADAPTERS, RESET, OVERVIEW, REGISTRY, CONTROLLERS } from '@/constants/navigator';
 import MesheryControllersConfig from './MesheryControllersConfig';
 import { removeDuplicateVersions } from '../registry/helper';

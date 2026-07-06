@@ -1,7 +1,7 @@
 import React from 'react';
 import { CustomTooltip, DeleteIcon, IconButton } from '@sistent/sistent';
 import CAN from '@/utils/can';
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 
 const CustomToolbarSelect = ({
   selectedRows,

@@ -73,7 +73,7 @@ vi.mock('../../../css/icons.styles', () => ({
   iconSmall: {},
 }));
 
-import { Keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { drawerIconsStyle, getNavigatorComponents } from './navigatorComponents';
 
 const fakeProviderUiAccessControl = (allowed: Record<string, boolean>) => ({
