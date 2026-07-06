@@ -468,7 +468,14 @@ const MeshAdapterConfigComponent = () => {
               />
             </Grid2>
           </Grid2>
-          <Grid2 container spacing={1} alignItems="flex-end" justifyContent="flex-end" size="grow">
+          <Grid2
+            container
+            spacing={1}
+            alignItems="flex-end"
+            justifyContent="flex-end"
+            size="grow"
+            style={{ paddingTop: '2rem' }}
+          >
             <div ref={labelRef}>
               <TextField
                 id="deployPort"
@@ -481,7 +488,7 @@ const MeshAdapterConfigComponent = () => {
               />
             </div>
             <React.Fragment>
-              <AdapterButtons>
+              <AdapterButtons style={{ paddingTop: '0' }}>
                 <AdapterButton
                   type="submit"
                   variant="contained"
