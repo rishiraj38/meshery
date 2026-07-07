@@ -25,8 +25,10 @@ describe('normalizeLoggedInUser', () => {
     });
   });
 
-  it('returns undefined for a null/non-object response', () => {
+  it('returns undefined for null / non-object responses', () => {
     expect(normalizeLoggedInUser(undefined)).toBeUndefined();
+    expect(normalizeLoggedInUser(null as unknown as undefined)).toBeUndefined();
+    expect(normalizeLoggedInUser('not-an-object' as unknown as undefined)).toBeUndefined();
   });
 });
 

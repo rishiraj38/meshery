@@ -699,10 +699,11 @@ func (l *RemoteProvider) GetUserDetails(req *http.Request) (*User, error) {
 
 	prefLocal, _ := l.ReadFromPersister(up.ID.String())
 
-	// Guard up.Preferences: the remote provider can return a null/absent
-	// preferences field, which json.Unmarshal leaves nil - dereferencing
-	// UpdatedAt / RemoteProviderPreferences below would then panic. Nothing to
-	// persist in that case.
+	// Guard up.Preferences: up is pre-initialized with a non-nil Preferences, so
+	// an absent `preferences` field stays non-nil; but an explicit
+	// `"preferences": null` from the remote provider overwrites it to nil, and
+	// dereferencing UpdatedAt / RemoteProviderPreferences below would then panic.
+	// Nothing to persist in that case.
 	if up.Preferences != nil && (prefLocal == nil || up.Preferences.UpdatedAt.After(prefLocal.UpdatedAt) || !reflect.DeepEqual(up.Preferences.RemoteProviderPreferences, prefLocal.RemoteProviderPreferences)) {
 		_ = l.WriteToPersister(up.ID.String(), up.Preferences)
 	}
