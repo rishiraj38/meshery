@@ -101,6 +101,16 @@ export const userApi = api
           url: '/api/user',
           method: 'GET',
         }),
+        // Meshery Cloud's account-consolidation (Phase 4) moved the current-user
+        // response to schemas v1beta3, which drops the `userId` field (the
+        // canonical identifier is the `id` UUID). Backfill `userId` from `id` so
+        // ownership checks that compare `user.userId` against a resource's
+        // owner UUID keep working across every consumer of this query.
+        // Non-destructive: all other fields pass through unchanged.
+        transformResponse: (response) =>
+          response && typeof response === 'object'
+            ? { ...response, userId: response.userId ?? response.id }
+            : response,
         // All callers share one cache entry per user session (client-side Redux store).
         // This does not affect other users—each browser has its own isolated store.
         serializeQueryArgs: ({ endpointName }) => endpointName,
