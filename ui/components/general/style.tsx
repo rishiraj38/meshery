@@ -278,10 +278,10 @@ export const SideBarListItem = styled(ListItemButton, {
 
 export const SideBarText = styled(ListItemText)(({ drawerCollapsed }) => ({
   opacity: drawerCollapsed ? 0 : 1,
-  transition: drawerCollapsed ? 'opacity 200ms ease-in-out' : 'opacity 200ms ease-in-out',
+  transition: 'opacity 200ms ease-in-out, visibility 200ms ease-in-out',
   fontSize: '1rem',
   color: 'inherit',
-  display: drawerCollapsed ? 'none' : 'block',
+  visibility: drawerCollapsed ? 'hidden' : 'visible',
   '& .MuiListItemText-primary': {
     fontSize: '1rem',
     color: 'inherit',
