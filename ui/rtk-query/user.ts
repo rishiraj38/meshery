@@ -5,7 +5,7 @@ import { initiateQuery } from './utils';
 import { useGetOrgsQuery } from './organization';
 import { useGetWorkspacesQuery } from './workspace';
 import { normalizeLoadTestPrefs } from '../lib/load-test-prefs';
-import { normalizeProviderCapabilities } from './transforms';
+import { normalizeLoggedInUser, normalizeProviderCapabilities } from './transforms';
 import { normalizeUserProfileSummary } from './userProfile';
 
 const Tags = {
@@ -101,6 +101,7 @@ export const userApi = api
           url: '/api/user',
           method: 'GET',
         }),
+        transformResponse: normalizeLoggedInUser,
         // All callers share one cache entry per user session (client-side Redux store).
         // This does not affect other users—each browser has its own isolated store.
         serializeQueryArgs: ({ endpointName }) => endpointName,
