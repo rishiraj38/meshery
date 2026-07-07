@@ -90,6 +90,9 @@ export type WizardServices = {
   updateConnectionById: (connectionId: string, body: GenericRecord) => Promise<GenericRecord>;
   /** POST /integrations/connections/{id}/actions { setMeshsyncMode }. */
   setMeshsyncMode: (connectionId: string, mode: 'operator' | 'embedded') => Promise<GenericRecord>;
+  /** POST /integrations/connections/{id}/actions { flushMeshsync } — clears
+   * cached MeshSync data for the cluster and triggers a fresh resync. */
+  flushMeshsync: (connectionId: string) => Promise<GenericRecord>;
   credentials: CredentialRecord[];
 };
 

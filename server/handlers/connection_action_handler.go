@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
+	mhelpers "github.com/meshery/meshery/server/machines/helpers"
 	"github.com/meshery/meshery/server/machines/kubernetes"
 	"github.com/meshery/meshery/server/models"
 	"github.com/meshery/meshery/server/models/connections"
@@ -16,6 +17,13 @@ import (
 	"github.com/meshery/schemas/models/core"
 	schemasConnection "github.com/meshery/schemas/models/v1beta3/connection"
 )
+
+// flushMeshsyncAction is a connection action that is not yet part of the
+// published schemas action enum (v1.3.26 defines only setMeshsyncMode). The
+// wire field is an open string, so it is handled here by value until the
+// schemas enum change is published and this can reference the generated
+// constant. Keep in sync with the connection action enum in meshery/schemas.
+const flushMeshsyncAction schemasConnection.ConnectionActionRequestAction = "flushMeshsync"
 
 // PerformConnectionAction handles POST /api/integrations/connections/{connectionId}/actions.
 //
@@ -53,6 +61,8 @@ func (h *Handler) PerformConnectionAction(w http.ResponseWriter, req *http.Reque
 	switch actionReq.Action {
 	case schemasConnection.SetMeshsyncMode:
 		h.setMeshsyncDeploymentModeAction(w, req, connectionID, actionReq, user, provider)
+	case flushMeshsyncAction:
+		h.flushMeshsyncAction(w, req, connectionID, user, provider)
 	default:
 		writeJSONError(w, fmt.Sprintf("unsupported connection action %q", actionReq.Action), http.StatusBadRequest)
 	}
@@ -166,6 +176,84 @@ func (h *Handler) setMeshsyncDeploymentModeAction(
 	h.log.Info(description)
 
 	writeJSONMessage(w, updated, http.StatusOK)
+}
+
+// flushMeshsyncAction clears the cached MeshSync resources for a kubernetes
+// connection's cluster and triggers a fresh resync from the live cluster. This
+// is the connection-scoped equivalent of the old GraphQL resyncCluster
+// (clearDB + ReSync, no hard reset): the server resolves the cluster from the
+// connection's live machine context, so the flush is always keyed to the right
+// cluster without the client passing a k8scontext id.
+func (h *Handler) flushMeshsyncAction(
+	w http.ResponseWriter,
+	req *http.Request,
+	connectionID core.Uuid,
+	user *models.User,
+	provider models.Provider,
+) {
+	userID := user.ID
+	token, _ := req.Context().Value(models.TokenCtxKey).(string)
+	eventBuilder := events.NewEvent().ActedUpon(connectionID).FromOwner(userID).FromSystem(*h.SystemID).WithCategory("connection").WithAction("update")
+
+	existing, statusCode, err := provider.GetConnectionByID(token, connectionID)
+	if err != nil || existing == nil {
+		_err := ErrFailToSave(err, "connection")
+		h.log.Error(_err)
+		writeMeshkitError(w, _err, statusCode)
+		return
+	}
+	if existing.Kind != "kubernetes" {
+		writeJSONError(w, "flushing MeshSync data is only applicable to kubernetes connections", http.StatusBadRequest)
+		return
+	}
+
+	tracker := h.ConnectionToStateMachineInstanceTracker
+	if tracker == nil {
+		writeJSONError(w, "state machine instance tracker is nil", http.StatusInternalServerError)
+		return
+	}
+	machine, ok := tracker.Get(connectionID)
+	if !ok || machine == nil {
+		writeJSONError(w, fmt.Sprintf("no active session for connection %s; connect the cluster before flushing MeshSync", connectionID), http.StatusConflict)
+		return
+	}
+	machineCtx, err := kubernetes.GetMachineCtx(machine.Context, nil)
+	if err != nil || machineCtx == nil {
+		writeJSONError(w, fmt.Sprintf("failed to resolve machine context for connection %s", connectionID), http.StatusInternalServerError)
+		return
+	}
+
+	// Clear the cached cluster state. Keyed on the Kubernetes server id so only
+	// this cluster's rows are removed (matches the resolver's per-cluster path).
+	if serverID := machineCtx.K8sContext.KubernetesServerID; serverID != nil {
+		if perr := models.FlushMeshSyncResourcesForCluster(provider.GetGenericPersister(), serverID.String()); perr != nil {
+			_err := models.ErrFlushMeshSyncData(perr, machineCtx.K8sContext.Name, machineCtx.K8sContext.Server)
+			event := eventBuilder.WithSeverity(events.Error).WithDescription("Failed to flush MeshSync data").WithMetadata(map[string]any{"error": _err, "connectionId": connectionID}).Build()
+			_ = provider.PersistEvent(*event, token)
+			go h.config.EventBroadcaster.Publish(userID, event)
+			h.log.Error(_err)
+			writeMeshkitError(w, _err, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Repopulate from the live cluster. Fresh data streams back via the broker.
+	if rerr := mhelpers.ResyncResources(req.Context(), machine); rerr != nil {
+		event := eventBuilder.WithSeverity(events.Error).WithDescription(fmt.Sprintf("MeshSync data flushed but resync failed for connection %s", existing.Name)).WithMetadata(map[string]any{"error": rerr, "connectionId": connectionID}).Build()
+		_ = provider.PersistEvent(*event, token)
+		go h.config.EventBroadcaster.Publish(userID, event)
+		h.log.Error(rerr)
+		writeJSONError(w, fmt.Sprintf("failed to resync MeshSync data: %v", rerr), http.StatusInternalServerError)
+		return
+	}
+
+	description := fmt.Sprintf("MeshSync data flushed and resync requested for connection %s", existing.Name)
+	event := eventBuilder.WithSeverity(events.Informational).WithDescription(description).WithMetadata(map[string]any{"connectionId": connectionID}).Build()
+	_ = provider.PersistEvent(*event, token)
+	go h.config.EventBroadcaster.Publish(userID, event)
+	h.log.Info(description)
+
+	writeJSONMessage(w, existing, http.StatusOK)
 }
 
 // reconcileMeshsyncDeploymentMode drives the FSM's controller helper to undeploy

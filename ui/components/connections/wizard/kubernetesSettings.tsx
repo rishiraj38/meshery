@@ -13,7 +13,6 @@ import { useSelector } from 'react-redux';
 import { EVENT_TYPES } from 'lib/event-types';
 import { CONNECTION_STATES, MESHSYNC_DEPLOYMENT_TYPE } from '@/utils/Enum';
 import { useGetControllerDiagnosticsQuery } from '@/rtk-query/connection';
-import resetDatabase from '@/graphql/queries/ResetDatabaseQuery';
 import { formatWizardError } from './errors';
 import { StepHeader } from '../ConnectionWizardStepContent';
 import { ConnectionStatusSelect } from '../ConnectionStatusSelect';
@@ -121,33 +120,28 @@ const SettingsStepBody = ({ ctx }: { ctx: WizardContext }) => {
     }
   };
 
-  // Flush MeshSync data for this cluster and re-sync (same action as the table's
-  // row menu): clears the cached cluster state, repopulated by a live MeshSync.
-  const flushMeshSync = () => {
-    const contextID = String(getMetadata(ctx).id ?? '');
-    if (!contextID) {
+  // Flush MeshSync data for this cluster and re-sync: clears the cached cluster
+  // state (repopulated by a live MeshSync) via the connection actions endpoint,
+  // keyed on the connection id (server resolves the cluster).
+  const flushMeshSync = async () => {
+    if (!connectionId) {
       return;
     }
     setFlushBusy(true);
-    resetDatabase({
-      selector: { clearDB: 'true', ReSync: 'true', hardReset: 'false' },
-      k8scontextID: contextID,
-    }).subscribe({
-      next: () => {
-        setFlushBusy(false);
-        ctx.services.notify({
-          message: 'MeshSync data flush requested; data will be repopulated from the cluster.',
-          event_type: EVENT_TYPES.SUCCESS,
-        });
-      },
-      error: () => {
-        setFlushBusy(false);
-        ctx.services.notify({
-          message: 'Failed to flush MeshSync data.',
-          event_type: EVENT_TYPES.ERROR,
-        });
-      },
-    });
+    try {
+      await ctx.services.flushMeshsync(connectionId);
+      ctx.services.notify({
+        message: 'MeshSync data flush requested; data will be repopulated from the cluster.',
+        event_type: EVENT_TYPES.SUCCESS,
+      });
+    } catch (error) {
+      ctx.services.notify({
+        message: `Failed to flush MeshSync data: ${formatWizardError(error)}`,
+        event_type: EVENT_TYPES.ERROR,
+      });
+    } finally {
+      setFlushBusy(false);
+    }
   };
 
   return (
