@@ -414,7 +414,11 @@ function MesheryPatterns({
     });
 
   const userCanEdit = (pattern) => {
-    return CAN(keys.EDIT_DESIGN.action, keys.EDIT_DESIGN.subject) && user?.id === pattern?.userId;
+    return (
+      CAN(keys.EDIT_DESIGN.action, keys.EDIT_DESIGN.subject) &&
+      !!user?.id &&
+      user.id === pattern?.userId
+    );
   };
 
   const handleOpenInConfigurator = (id) => {

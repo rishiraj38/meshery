@@ -349,7 +349,6 @@ function PerformanceProfile({ handleDelete }) {
     search: false,
     viewColumns: false,
     sort: !isLocalProvider(providerCapabilities),
-    // search : !isLocalProvider(providerCapabilities),
     filterType: 'textField',
     responsive: 'standard',
     resizableColumns: true,

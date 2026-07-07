@@ -21,7 +21,9 @@
  * generated `mesheryApi` type should back the argument and the local
  * `getProviderCapabilities` endpoint (ui/rtk-query/user.ts) should be retired.
  */
-type ProviderCapabilitiesLike = { providerType?: string } | null | undefined;
+type ProviderType = 'local' | 'remote';
+
+type ProviderCapabilitiesLike = { providerType?: ProviderType } | null | undefined;
 
 export const isLocalProvider = (capabilities?: ProviderCapabilitiesLike): boolean =>
   capabilities?.providerType === 'local';
