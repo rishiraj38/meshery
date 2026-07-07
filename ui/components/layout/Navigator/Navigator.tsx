@@ -705,7 +705,6 @@ const NavigatorContent = () => {
             return (
               <RootDiv key={childId}>
                 <SideBarListItem
-                  button={!!link}
                   dense
                   key={childId}
                   link={!!link}

@@ -136,6 +136,7 @@ export const ExpandMoreIcon = styled('svg', {
 
 export const ExpandMore = ({ isExpanded, hasChildren, theme, isDrawerCollapsed, ...props }) => (
   <IconButton
+    component="span"
     aria-expanded={!!isExpanded}
     aria-label={isExpanded ? 'Collapse' : 'Expand'}
     style={{
