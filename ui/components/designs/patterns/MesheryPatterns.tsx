@@ -24,6 +24,7 @@ import InfoModal from '../../shared/Modal/Information/InfoModal';
 import DefaultError from '../../general/error-404/index';
 import CAN from '@/utils/can';
 import { keys } from '@/utils/permission_constants';
+import { canEditDesign } from './design-permissions';
 import ExportDesignModal from '../export/ExportDesignModal';
 import { useModal, Modal as SistentModal } from '@sistent/sistent';
 import PatternIcon from '@/assets/icons/Pattern';
@@ -413,13 +414,7 @@ function MesheryPatterns({
       handleUndeploy,
     });
 
-  const userCanEdit = (pattern) => {
-    return (
-      CAN(keys.EDIT_DESIGN.action, keys.EDIT_DESIGN.subject) &&
-      !!user?.id &&
-      user.id === pattern?.userId
-    );
-  };
+  const userCanEdit = (pattern) => canEditDesign(user, pattern);
 
   const handleOpenInConfigurator = (id) => {
     router.push('/configuration/designs/configurator?design_id=' + id);
