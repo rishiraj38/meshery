@@ -568,14 +568,9 @@ describe('ConnectionTable', () => {
     expect(setRowsExpandedSpy).not.toHaveBeenCalled();
   });
 
-  it('reuses the same onFlushMeshSync callback across rerenders so children are not invalidated', () => {
+  it('keeps the ResponsiveDataTable options referentially stable across rerenders', () => {
     const { rerender } = render(<ConnectionTable />);
 
-    // The action menu only renders when an anchor is set. Capture the
-    // identity of the JSX-bound `onFlushMeshSync` by re-rendering with the
-    // same props and asserting the prop bag handed to ResponsiveDataTable
-    // (the only render-time reflection of `handleFlushMeshSync` available
-    // here) is referentially stable across renders.
     const firstOptions = dataTableProps.options;
 
     rerender(<ConnectionTable />);

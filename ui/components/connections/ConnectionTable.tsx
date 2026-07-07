@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PROMPT_VARIANTS, ResponsiveDataTable } from '@sistent/sistent';
 import LoadingScreen from '../shared/LoadingState/LoadingComponent';
 import { EVENT_TYPES } from '../../lib/event-types';
 import _PromptComponent from '../PromptComponent';
-import resetDatabase from '@/graphql/queries/ResetDatabaseQuery';
 
 import { CONNECTION_KINDS, CONNECTION_STATES } from '../../utils/Enum';
 import useKubernetesHook from '@/utils/hooks/useKubernetesHook';
@@ -11,12 +10,11 @@ import useGrafanaPingHook from '@/utils/hooks/useGrafanaPingHook';
 import { getResponsiveColumnVisibility } from '../../utils/responsive-column';
 import { useWindowDimensions } from '../../utils/dimension';
 import { useGetEnvironmentsQuery } from '../../rtk-query/environments';
-import { useGetConnectionsQuery, usePerformConnectionActionMutation } from '@/rtk-query/connection';
+import { useGetConnectionsQuery } from '@/rtk-query/connection';
 import { useTableUrlState } from '@/utils/hooks/useTableUrlState';
 import { useColumnVisibilityPreference } from '@/utils/hooks/useColumnVisibilityPreference';
 
 import { useSelector } from 'react-redux';
-import { updateProgress } from '@/store/slices/mesheryUi';
 
 import type {
   ConnectionTableProps,
@@ -38,7 +36,7 @@ import type { ConnectionTransitionMap } from './ConnectionTable.constants';
 import { useConnectionActions } from './ConnectionTable.hooks';
 import { useConnectionColumns } from './ConnectionTable.columns';
 import { useConnectionTableOptions } from './ConnectionTable.options';
-import { ConnectionActionMenu, ConnectionDeploymentModeMenu } from './ConnectionActionMenu';
+import { ConnectionActionMenu } from './ConnectionActionMenu';
 import { ConnectionTableToolbar } from './ConnectionTableToolbar';
 import dynamic from 'next/dynamic';
 import type { ConfigurableConnection } from './ConnectionConfigureModal';
@@ -133,16 +131,13 @@ const ConnectionTable = ({
     saveEnvironment,
     updateConnectionStatus,
   } = useConnectionActions({ organizationId: organization?.id });
-  const [performConnectionAction] = usePerformConnectionActionMutation();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const [deploymentModeAnchorEl, setDeploymentModeAnchorEl] = useState<HTMLElement | null>(null);
   const [configureConnection, setConfigureConnection] = useState<ConfigurableConnection | null>(
     null,
   );
   const [controllersConfigConnection, setControllersConfigConnection] =
     useState<ConfigurableConnection | null>(null);
   const open = Boolean(anchorEl);
-  const deploymentModeOpen = Boolean(deploymentModeAnchorEl);
   const modalRef = useRef<{ show: (options: unknown) => Promise<string | null> } | null>(null);
   const lastNotifiedErrorsRef = useRef<{ environments: string; connections: string }>({
     environments: '',
@@ -365,35 +360,9 @@ const ConnectionTable = ({
     [filteredConnections, updateConnectionStatus],
   );
 
-  const handleError = useCallback(
-    (action: { error_msg?: string } | string) => (error: unknown) => {
-      updateProgress({ showProgress: false });
-
-      const message =
-        typeof action === 'string'
-          ? action
-          : `${action.error_msg}: ${getErrorMessage(error, 'Request failed')}`;
-
-      notify({
-        message,
-        event_type: EVENT_TYPES.ERROR,
-        details: String(error),
-      });
-    },
-    [notify],
-  );
-
   const handleActionMenuClose = useCallback(() => {
     setAnchorEl(null);
     setRowData(null);
-  }, []);
-
-  const handleDeploymentModeMenuClose = useCallback(() => {
-    setDeploymentModeAnchorEl(null);
-  }, []);
-
-  const handleDeploymentModeAnchorOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
-    setDeploymentModeAnchorEl(event.currentTarget);
   }, []);
 
   const getConnectionAtRowIndex = useCallback(
@@ -424,90 +393,6 @@ const ConnectionTable = ({
       setControllersConfigConnection(connection as ConfigurableConnection);
     }
   }, [getConnectionAtRowIndex, handleActionMenuClose, rowData?.rowIndex]);
-
-  const handleDeploymentModeChange = useCallback(
-    async (newMode: string) => {
-      const connection = getConnectionAtRowIndex(rowData?.rowIndex);
-
-      if (!connection) {
-        handleDeploymentModeMenuClose();
-        handleActionMenuClose();
-        return;
-      }
-
-      try {
-        // Dedicated action endpoint: the server owns the metadata merge and the
-        // MeshSync redeploy, keyed on the URL connection id.
-        await performConnectionAction({
-          connectionId: connection.id,
-          body: { action: 'setMeshsyncMode', mode: newMode },
-        }).unwrap();
-
-        notify({
-          message: `Deployment mode changed to ${newMode}`,
-          event_type: EVENT_TYPES.SUCCESS,
-        });
-      } catch (error) {
-        notify({
-          message: `Failed to change deployment mode: ${getErrorMessage(error)}`,
-          event_type: EVENT_TYPES.ERROR,
-        });
-      }
-
-      handleDeploymentModeMenuClose();
-      handleActionMenuClose();
-    },
-    [
-      getConnectionAtRowIndex,
-      handleActionMenuClose,
-      handleDeploymentModeMenuClose,
-      notify,
-      rowData?.rowIndex,
-      performConnectionAction,
-    ],
-  );
-
-  // The previous shape was `useCallback(() => async () => {...})` invoked as
-  // `handleFlushMeshSync()` in JSX, which created a new async closure on
-  // every render and minted a fresh `onFlushMeshSync` prop reference each
-  // commit. Returning the async function directly keeps the prop stable.
-  const handleFlushMeshSync = useCallback(async () => {
-    handleActionMenuClose();
-
-    const connection = getConnectionAtRowIndex(rowData?.rowIndex);
-    const connectionName = connection?.metadata?.name;
-
-    if (!connection || !modalRef.current) {
-      return;
-    }
-
-    const response = await modalRef.current.show({
-      title: `Flush MeshSync data for ${connectionName} ?`,
-      subtitle: `Are you sure to Flush MeshSync data for “${connectionName}”? Fresh MeshSync data will be repopulated for this context, if MeshSync is actively running on this cluster.`,
-      primaryOption: 'PROCEED',
-      variant: PROMPT_VARIANTS.WARNING,
-    });
-
-    if (response === 'PROCEED') {
-      updateProgress({ showProgress: true });
-      resetDatabase({
-        selector: {
-          clearDB: 'true',
-          ReSync: 'true',
-          hardReset: 'false',
-        },
-        k8scontextID: connection.metadata?.id || '',
-      }).subscribe({
-        next: (result) => {
-          updateProgress({ showProgress: false });
-          if (result.resetStatus === 'PROCESSING') {
-            notify({ message: `Database reset successful.`, event_type: EVENT_TYPES.SUCCESS });
-          }
-        },
-        error: handleError('Database is not reachable, try restarting server.'),
-      });
-    }
-  }, [getConnectionAtRowIndex, handleActionMenuClose, handleError, notify, rowData?.rowIndex]);
 
   const handleEnvironmentSelect = useCallback(
     async (
@@ -772,8 +657,6 @@ const ConnectionTable = ({
         anchorEl={anchorEl}
         open={open}
         onClose={handleActionMenuClose}
-        onFlushMeshSync={handleFlushMeshSync}
-        onDeploymentModeAnchor={handleDeploymentModeAnchorOpen}
         onConfigure={handleConfigureConnection}
         onConfigureControllers={
           rowData?.rowIndex != null &&
@@ -809,13 +692,6 @@ const ConnectionTable = ({
           onClose={() => setControllersConfigConnection(null)}
         />
       )}
-
-      <ConnectionDeploymentModeMenu
-        anchorEl={deploymentModeAnchorEl}
-        open={deploymentModeOpen}
-        onClose={handleDeploymentModeMenuClose}
-        onSelectMode={handleDeploymentModeChange}
-      />
     </>
   );
 };
