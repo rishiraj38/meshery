@@ -468,7 +468,7 @@ func strPtr(s string) *string { return &s }
 // true when no warning/error diagnostic was raised.
 func (h *Handler) computeConnectionDiagnostics(connectionID string) system.ConnectionDiagnostics {
 	result := system.ConnectionDiagnostics{
-		ConnectionId: connectionID,
+		ConnectionId: uuid.FromStringOrNil(connectionID),
 		Healthy:      true,
 		Diagnostics:  []system.ControllerDiagnostic{},
 	}

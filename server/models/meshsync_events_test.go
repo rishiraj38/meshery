@@ -43,6 +43,10 @@ func (b *testMeshsyncBroker) SubscribeWithChannel(_ string, _ string, subscripti
 	return nil
 }
 
+func (b *testMeshsyncBroker) Unsubscribe(_ string) error {
+	return nil
+}
+
 func (b *testMeshsyncBroker) Info() string {
 	return "test-broker"
 }
