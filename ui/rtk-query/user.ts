@@ -106,6 +106,12 @@ export const userApi = api
         // This does not affect other users—each browser has its own isolated store.
         serializeQueryArgs: ({ endpointName }) => endpointName,
       }),
+      // Stopgap, not a duplicated schemas endpoint: @meshery/schemas does not
+      // yet expose a provider-capabilities operation. It is explicitly "pending
+      // the provider-capabilities schema tracked separately in the
+      // identifier-uniformity program" (see @meshery/schemas cloudApi). Once
+      // that schema lands, replace this with the generated mesheryApi query and
+      // migrate consumers (incl. ui/utils/provider.ts).
       getProviderCapabilities: builder.query({
         query: () => '/api/provider/capabilities',
         method: 'GET',
