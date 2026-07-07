@@ -20,8 +20,9 @@ var (
 // uses to key preferences and persister-scoped data for its single "meshery"
 // system user. schemas v1beta3 dropped the string User.UserId ("meshery"); this
 // deterministic (namespaced) uuid replaces it so the local persister key stays
-// stable across restarts. It is non-nil on purpose - a nil user id is treated
-// as "unset" on the remote path.
+// stable across restarts. It is a non-zero UUID on purpose - the zero value
+// (uuid.Nil) is treated as "unset" on the remote path (see the
+// `user.ID == uuid.Nil` guards in this package).
 var LocalProviderUserID = uuid.NewV5(uuid.NamespaceDNS, "meshery-local-provider-user")
 
 // User - represents a user in Meshery
