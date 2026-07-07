@@ -488,24 +488,22 @@ const MeshAdapterConfigComponent = () => {
               />
             </div>
             <React.Fragment>
-              <AdapterButtons sx={{ paddingTop: 0 }}>
-                <AdapterButton
-                  type="submit"
-                  variant="contained"
-                  data-testid="adapter-deploy-button"
-                  color="primary"
-                  size="large"
-                  onClick={handleAdapterDeploy}
-                  disabled={
-                    !CAN(
-                      keys.DEPLOY_CLOUD_NATIVE_INFRASTRUCTURE.action,
-                      keys.DEPLOY_CLOUD_NATIVE_INFRASTRUCTURE.subject,
-                    )
-                  }
-                >
-                  Deploy
-                </AdapterButton>
-              </AdapterButtons>
+              <AdapterButton
+                type="submit"
+                variant="contained"
+                data-testid="adapter-deploy-button"
+                color="primary"
+                size="large"
+                onClick={handleAdapterDeploy}
+                disabled={
+                  !CAN(
+                    keys.DEPLOY_CLOUD_NATIVE_INFRASTRUCTURE.action,
+                    keys.DEPLOY_CLOUD_NATIVE_INFRASTRUCTURE.subject,
+                  )
+                }
+              >
+                Deploy
+              </AdapterButton>
             </React.Fragment>
           </Grid2>
         </WrapperStyledDiv>
