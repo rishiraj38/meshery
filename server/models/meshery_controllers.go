@@ -341,10 +341,20 @@ func (mch *MesheryControllersHelper) meshsyncDataHandlersNatsBroker(
 		return nil
 	}
 
+	// Out-of-cluster Meshery can't reach a ClusterIP-only broker directly. Start a
+	// self-healing managed port-forward to the NATS pod first — it selects the pod
+	// by label, so it does not depend on the broker having published an endpoint
+	// yet and can come up (and keep retrying) even when GetPublicEndpoint is still
+	// empty right after deploy. In-cluster Meshery reaches the ClusterIP directly,
+	// so this is a no-op there.
+	forwardAddr := mch.ensureBrokerPortForward(brokerController)
+
 	// brokerStatus := brokerController.GetStatus()
 	// do something if broker is being deployed , maybe try again after sometime
 	brokerEndpoint, err := brokerController.GetPublicEndpoint()
-	if brokerEndpoint == "" {
+	if brokerEndpoint == "" && forwardAddr == "" {
+		// Nothing to connect through: no published endpoint and no managed
+		// port-forward to fall back on. Only now do we give up.
 		if err != nil {
 			mch.log.Warn(err)
 		}
@@ -377,20 +387,19 @@ func (mch *MesheryControllersHelper) meshsyncDataHandlersNatsBroker(
 		}
 	}
 
-	// Out-of-cluster Meshery can't reach a ClusterIP-only broker directly. Start a
-	// self-healing managed port-forward to the NATS pod and prefer its stable local
-	// address, so it works out of the box (no manual `kubectl port-forward`).
-	// In-cluster Meshery reaches the ClusterIP directly, so this is skipped.
-	forwardAddr := mch.ensureBrokerPortForward(brokerController)
-
 	// Self-healing connection: hand NATS the (managed forward, if any) plus the
 	// resolved endpoint and localhost / host.docker.internal on the same port,
 	// retry on failed connect, and reconnect forever. NATS connects as soon as any
 	// candidate becomes reachable (e.g. once the forward is up) and reconnects if
-	// the broker or the tunnel drops — no restart or manual reconnect needed.
-	urls := brokerConnectURLs(brokerEndpoint)
+	// the broker or the tunnel drops — no restart or manual reconnect needed. When
+	// no endpoint is published yet, the managed forward alone carries the
+	// connection until the broker publishes one.
+	var urls []string
 	if forwardAddr != "" {
-		urls = append([]string{forwardAddr}, urls...)
+		urls = append(urls, forwardAddr)
+	}
+	if brokerEndpoint != "" {
+		urls = append(urls, brokerConnectURLs(brokerEndpoint)...)
 	}
 	brokerHandler, err := nats.New(nats.Options{
 		URLS:                 urls,
