@@ -209,6 +209,9 @@ function getConnectionStatus(config) {
  * @returns {Array<string>} connection IDs eligible for controller-status polling
  */
 export function getControllerPollConnectionIDsFromContextIds(contexts, k8sConfig) {
+  if (!Array.isArray(contexts) || !Array.isArray(k8sConfig)) {
+    return [];
+  }
   return k8sConfig
     .filter((config) => contexts.some((context) => context == config.id))
     .filter((config) => getMeshsyncDeploymentMode(config) === MESHSYNC_DEPLOYMENT_TYPE.OPERATOR)

@@ -4719,9 +4719,13 @@ func (l *RemoteProvider) UpdateConnectionById(token string, connection *connecti
 	ep, _ := l.Capabilities.GetEndpointForFeature(PersistConnection)
 	// Ensure the payload carries the URL id so the remote provider keys the
 	// update on the intended connection even if the client omitted `id`
-	// (avoids duplicate-row creation).
+	// (avoids duplicate-row creation). Fail fast on an unparseable connId.
 	if connection.ID == uuid.Nil {
-		connection.ID = uuid.FromStringOrNil(connId)
+		parsedID, err := uuid.FromString(connId)
+		if err != nil {
+			return nil, err
+		}
+		connection.ID = parsedID
 	}
 	// A partial payload (e.g. the UI's connect action sending only {status}, or an
 	// FSM status transition sending only {kind, metadata, status}) must not

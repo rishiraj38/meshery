@@ -149,6 +149,12 @@ func (h *Handler) setMeshsyncDeploymentModeAction(
 		writeMeshkitError(w, _err, http.StatusInternalServerError)
 		return
 	}
+	// A provider can return (nil, nil) on a 2xx with an empty connection body.
+	// Fall back to the merged existing connection (it already carries the new
+	// mode) so the response and the downstream name lookups don't nil-deref.
+	if updated == nil {
+		updated = existing
+	}
 
 	// Redeploy MeshSync for the new mode without blocking the response; the
 	// controller-status SSE stream reflects the deploy/undeploy progress.

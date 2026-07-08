@@ -1402,10 +1402,15 @@ func (l *DefaultLocalProvider) UpdateConnectionById(token string, conn *connecti
 	// that omits `id` (e.g. an RTK mutation that only forwards status+metadata)
 	// would otherwise carry a nil id, and GORM's Save() with a zero primary key
 	// INSERTs a new row — silently creating a duplicate connection instead of
-	// updating the intended one.
+	// updating the intended one. Fail fast on an unparseable connId rather than
+	// falling back to a nil id and INSERTing that duplicate.
 	id := conn.ID
 	if id == uuid.Nil {
-		id = uuid.FromStringOrNil(connId)
+		parsedID, err := uuid.FromString(connId)
+		if err != nil {
+			return nil, err
+		}
+		id = parsedID
 	}
 	conn.ID = id
 	// A partial payload (e.g. the UI's connect action sending only {status}, or an
