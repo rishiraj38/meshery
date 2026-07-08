@@ -317,6 +317,22 @@ var BrokerUnreachableRemediation = []string{
 	"Or run Meshery inside the same cluster, so it can reach the broker's internal (ClusterIP) address.",
 }
 
+// BrokerTokenUnavailableLongDescription explains why Meshery has deferred the
+// broker connection: the operator provisions NATS with token auth (secret
+// meshery-nats-auth) and Meshery cannot authenticate until that token exists.
+// This is normally a brief startup race that resolves on its own once the
+// operator finishes provisioning the broker.
+const BrokerTokenUnavailableLongDescription = "Meshery could not read the Meshery Broker (NATS) authentication token yet, so it deferred connecting to avoid an authorization failure. The Meshery Operator provisions the broker's auth token (secret meshery-nats-auth) as part of bringing NATS up; this is usually a brief startup race that clears on its own once provisioning completes, and Meshery retries automatically on the next connect cycle."
+
+// BrokerTokenUnavailableRemediation is surfaced when the broker's auth token is
+// not yet available. It self-heals in the common case; the steps below help only
+// if the token never appears (a stuck or misconfigured operator).
+var BrokerTokenUnavailableRemediation = []string{
+	"No action is usually needed — Meshery retries automatically once the operator provisions the broker.",
+	"If this persists, check the Meshery Operator is healthy: kubectl get pods -n meshery",
+	"Confirm the broker auth secret exists: kubectl get secret meshery-nats-auth -n meshery",
+}
+
 func (mch *MesheryControllersHelper) meshsyncDataHandlersNatsBroker(
 	k8scontext K8sContext,
 	userID core.Uuid,
@@ -374,17 +390,41 @@ func (mch *MesheryControllersHelper) meshsyncDataHandlersNatsBroker(
 		}, userID)
 		return nil
 	}
-	// The operator (>= 1.0.2) provisions NATS with token auth; without the token
+	// The operator (>= 1.0.2) provisions NATS with token auth: without the token
 	// the connection is rejected with an authorization violation even when the
-	// endpoint is reachable. Read it from the broker controller (empty for
-	// tokenless brokers, preserving backward compatibility).
+	// endpoint is reachable, and the NATS client treats that rejection as terminal
+	// (RetryOnFailedConnect only retries unreachability, never auth), so a handler
+	// built with the wrong/empty token is permanently poisoned. The token lives in
+	// the meshery-nats-auth secret, which the operator may create moments *after*
+	// the broker pod becomes selectable by label — so proceeding here as soon as we
+	// have a port-forward races that secret and can capture an empty token.
+	//
+	// Read the token and, if it isn't available yet, treat the broker as not-ready
+	// and bail: leaving ctxMeshsyncDataHandler nil means the next connect cycle
+	// retries, by which time the secret exists and we connect cleanly. We no longer
+	// support tokenless brokers, so an empty token is always "not ready yet", never
+	// a legitimately unauthenticated broker.
 	var brokerToken string
-	if tokenProvider, ok := brokerController.(interface{ GetToken() (string, error) }); ok {
-		if token, terr := tokenProvider.GetToken(); terr != nil {
+	tokenProvider, ok := brokerController.(interface{ GetToken() (string, error) })
+	if ok {
+		token, terr := tokenProvider.GetToken()
+		if terr != nil {
 			mch.log.Warn(terr)
-		} else {
-			brokerToken = token
 		}
+		brokerToken = token
+	}
+	if brokerToken == "" {
+		mch.log.Info(
+			fmt.Sprintf("Meshery Broker auth token not available yet for Kubernetes context (%v); the operator is still provisioning it, retrying on the next connect cycle", ctxID),
+		)
+		mch.emitWarningEvent("Meshery Broker not ready", nil, map[string]any{
+			"k8sContextID":         ctxID,
+			"k8sContextName":       k8scontext.Name,
+			"connectionID":         k8scontext.ConnectionID,
+			"LongDescription":      BrokerTokenUnavailableLongDescription,
+			"SuggestedRemediation": BrokerTokenUnavailableRemediation,
+		}, userID)
+		return nil
 	}
 
 	// Self-healing connection: hand NATS the (managed forward, if any) plus the
