@@ -12,17 +12,17 @@ describe('canEditDesign', () => {
     canMock.mockReset();
   });
 
-  it('allows any holder of the EDIT_DESIGN permission, even a non-owner', () => {
+  it('allows any holder of the CatalogManagementEditDesign permission, even a non-owner', () => {
     canMock.mockReturnValue(true);
     expect(canEditDesign({ id: 'user-1' }, { userId: 'someone-else' })).toBe(true);
   });
 
-  it('allows the owner even without the EDIT_DESIGN permission', () => {
+  it('allows the owner even without the CatalogManagementEditDesign permission', () => {
     canMock.mockReturnValue(false);
     expect(canEditDesign({ id: 'owner-1' }, { userId: 'owner-1' })).toBe(true);
   });
 
-  it('denies a non-owner who lacks the EDIT_DESIGN permission', () => {
+  it('denies a non-owner who lacks the CatalogManagementEditDesign permission', () => {
     canMock.mockReturnValue(false);
     expect(canEditDesign({ id: 'user-1' }, { userId: 'owner-2' })).toBe(false);
   });
