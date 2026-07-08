@@ -187,8 +187,8 @@ describe('buildPatternColumns', () => {
 });
 
 describe('buildPatternsTableOptions', () => {
-  it('returns a config preserving the supplied page, page size and counts', () => {
-    const options = buildPatternsTableOptions({
+  const build = (overrides: any = {}) =>
+    buildPatternsTableOptions({
       patterns: [],
       columns: [],
       count: 42,
@@ -196,7 +196,7 @@ describe('buildPatternsTableOptions', () => {
       page: 3,
       search: '',
       sortOrder: 'name asc',
-      user: null,
+      isLocalProvider: false,
       searchTimeout: { current: null },
       setPage: vi.fn(),
       setPageSize: vi.fn(),
@@ -206,7 +206,11 @@ describe('buildPatternsTableOptions', () => {
       deletePatterns: vi.fn(),
       showModal: vi.fn(),
       initPatternsSubscription: vi.fn(),
+      ...overrides,
     });
+
+  it('returns a config preserving the supplied page, page size and counts', () => {
+    const options = build();
 
     expect(options.count).toBe(42);
     expect(options.rowsPerPage).toBe(10);
@@ -214,5 +218,10 @@ describe('buildPatternsTableOptions', () => {
     expect(options.sortOrder).toEqual({ name: 'name', direction: 'asc' });
     expect(options.print).toBe(false);
     expect(options.download).toBe(false);
+  });
+
+  it('disables sort on the local provider and enables it on a remote provider', () => {
+    expect(build({ isLocalProvider: true }).sort).toBe(false);
+    expect(build().sort).toBe(true);
   });
 });

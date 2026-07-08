@@ -178,7 +178,7 @@ const MainDesignsContent = ({
         isDesignOpenInExtension() &&
         CAN(Keys.CatalogManagementEditDesign.id, Keys.CatalogManagementEditDesign.function),
     },
-    CatalogManagementExportDesign: {
+    EXPORT_DESIGN: {
       id: 'export_design',
       title: 'Export Design',
       icon: <ExportIcon fill={theme.palette.icon.default} />,
@@ -199,7 +199,7 @@ const MainDesignsContent = ({
           Keys.WorkspaceManagementRemoveDesignsFromWorkspaces.function,
         ),
     },
-    CatalogManagementShareDesign: {
+    SHARE_DESIGN: {
       id: 'share',
       title: 'Share Design',
       icon: <ShareIcon fill={theme.palette.icon.default} />,
@@ -244,12 +244,12 @@ const MainDesignsContent = ({
         handler: () => handleMerge(design),
       },
       {
-        ...DESIGN_ACTIONS.CatalogManagementExportDesign,
+        ...DESIGN_ACTIONS.EXPORT_DESIGN,
         handler: () => handleDesignDownloadModal(design),
       },
 
       {
-        ...DESIGN_ACTIONS.CatalogManagementShareDesign,
+        ...DESIGN_ACTIONS.SHARE_DESIGN,
         handler: () => handleShare(design),
       },
 

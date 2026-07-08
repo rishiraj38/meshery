@@ -45,6 +45,7 @@ import {
 } from '@/rtk-query/design';
 // import { useGetUserPrefQuery } from '@/rtk-query/user';
 import { useGetProviderCapabilitiesQuery } from '@/rtk-query/user';
+import { isLocalProvider } from '@/utils/provider';
 import { useSelector } from 'react-redux';
 import { ACTION_TYPES, resetSelectedPattern } from './MesheryPatterns.constants';
 import YAMLEditor from './YAMLEditor';
@@ -415,7 +416,8 @@ function MesheryPatterns({
   const userCanEdit = (pattern) => {
     return (
       CAN(Keys.CatalogManagementEditDesign.id, Keys.CatalogManagementEditDesign.function) &&
-      user?.userId == pattern?.userId
+      !!user?.id &&
+      user.id === pattern?.userId
     );
   };
 
@@ -474,7 +476,7 @@ function MesheryPatterns({
     page,
     search,
     sortOrder,
-    user,
+    isLocalProvider: isLocalProvider(capabilitiesData),
     searchTimeout,
     setPage,
     setPageSize,

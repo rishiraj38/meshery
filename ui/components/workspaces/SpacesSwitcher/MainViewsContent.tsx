@@ -136,8 +136,8 @@ const MainViewsContent = ({
       icon: <ShareIcon fill={theme.palette.icon.default} />,
       enabled: () => true,
     },
-    KanvasDeleteView: {
-      id: 'KanvasDeleteView',
+    DELETE_VIEW: {
+      id: 'DELETE_VIEW',
       title: 'Delete View',
       icon: <DeleteIcon fill={theme.palette.icon.default} />,
       enabled: ({ view, userId }) =>
@@ -168,7 +168,7 @@ const MainViewsContent = ({
         handler: () => handleOpenInfoModal(view, user),
       },
       {
-        ...VIEW_ACTIONS.KanvasDeleteView,
+        ...VIEW_ACTIONS.DELETE_VIEW,
         handler: () => handleDelete([view], RESOURCE_TYPE.VIEW, refetch),
       },
     ];
