@@ -44,6 +44,7 @@ import { MESHERY_CLOUD_PROD } from '../../../constants/endpoints';
 import { useGetUserByIdQuery } from '../../../rtk-query/user';
 import CAN from '@/utils/can';
 import { Keys } from '@meshery/schemas/permissions';
+import { canEditDesign } from './design-permissions';
 import ActionButton from './ActionButton';
 import DryRunIcon from '@/assets/icons/DryRunIcon';
 import CheckIcon from '@/assets/icons/CheckIcon';
@@ -101,9 +102,7 @@ function MesheryPatternCard_({
   const editInConfigurator = () => {
     router.push('/configuration/designs/configurator?design_id=' + id);
   };
-  const isOwner = !!user?.id && user.id === pattern?.userId;
-  const userCanEdit =
-    CAN(Keys.CatalogManagementEditDesign.id, Keys.CatalogManagementEditDesign.function) || isOwner;
+  const userCanEdit = canEditDesign(user, pattern);
 
   const formatPatternFile = (file) => {
     try {
