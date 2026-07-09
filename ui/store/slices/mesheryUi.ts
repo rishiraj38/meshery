@@ -45,6 +45,7 @@ const coreSlice = createSlice({
     },
     updateUser: (state, action) => {
       state.user = action.payload.user;
+      sessionStorage.setItem('user', JSON.stringify(action.payload.user));
     },
     updateK8SConfig: (state, action) => {
       state.k8sConfig = action.payload.k8sConfig;
