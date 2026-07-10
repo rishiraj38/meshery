@@ -33,7 +33,6 @@ import {
   TOGGLER,
 } from '../../../constants/navigator';
 import { iconSmall } from '../../../css/icons.styles';
-import CAN from '@/utils/can';
 import { CustomTextTooltip } from '../../meshery-mesh-interface/PatternService/CustomTextTooltip';
 import {
   HideScrollbar,
@@ -602,7 +601,8 @@ const NavigatorContent = () => {
                       router.push(hrefc);
                     }
                   }}
-                  disabled={permissionc ? !CAN(permissionc.action, permissionc.subject) : false}
+                  permissionKey={permissionc}
+                  permissionAction="showShield"
                 >
                   {linkContent(iconc, titlec, hrefc, false, isDrawerCollapsed)}
                 </ListItemComponent>
@@ -723,7 +723,8 @@ const NavigatorContent = () => {
                   onMouseLeave={() =>
                     !submenu || !openItems.includes(childId) ? setHoveredId(null) : null
                   }
-                  disabled={permission ? !CAN(permission.action, permission.subject) : false}
+                  permissionKey={permission}
+                  permissionAction="showShield"
                   {...(link && href ? { component: Link, href } : {})}
                 >
                   <NavigatorLink data-testid={childId}>

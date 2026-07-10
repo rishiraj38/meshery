@@ -2,6 +2,7 @@ import {
   CheckCircleIcon as CheckCircle,
   ErrorIcon as Error,
   InfoIcon as Info,
+  PermissionProvider,
   WarningIcon as Warning,
 } from '@sistent/sistent';
 import { Footer, KubernetesSubscription, NavigationBar } from '../components/AppComponents';
@@ -74,6 +75,7 @@ import { useThemePreference } from '@/themes/hooks';
 import { CssBaseline, NoSsr, SistentThemeProvider } from '@/theme';
 import { ErrorBoundary } from '@sistent/sistent';
 import { LoadSessionGuard } from '@/rtk-query/ability';
+import { useGetLoggedInUserQuery, useGetSelectedOrganization } from '@/rtk-query/user';
 import CustomErrorFallback from '@/components/shared/ErrorBoundary/ErrorBoundary';
 import { normalizeLoadTestPrefs } from '../lib/load-test-prefs';
 import {
@@ -139,6 +141,32 @@ const MesheryApp = ({ Component, pageProps, relayEnvironment, emotionCache }) =>
     abilities: [],
     abilityUpdated: false,
   });
+
+  // ── PermissionProvider: CASL adapter ──────────────────────
+  // This is the ONLY place CASL is referenced for UI component permissions.
+  // To drop CASL later, change this one function — zero Sistent changes needed.
+  const userHasPermission = useCallback(
+    (key) => ability.can(key.id, _.lowerCase(key.function)),
+    // `ability` is a module-level singleton; the reference never changes.
+    // Re-creating this callback is intentionally avoided.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  const { data: loggedInUser } = useGetLoggedInUserQuery({});
+  const { selectedOrganization } = useGetSelectedOrganization();
+
+  const permissionUserContext = useMemo(() => {
+    const firstName = loggedInUser?.firstName || loggedInUser?.first_name || '';
+    const lastName = loggedInUser?.lastName || loggedInUser?.last_name || '';
+    const userName =
+      `${firstName} ${lastName}`.trim() || loggedInUser?.name || loggedInUser?.email;
+    return {
+      userName,
+      orgName: selectedOrganization?.name,
+      roleNames: loggedInUser?.roleNames || [],
+    };
+  }, [loggedInUser, selectedOrganization]);
 
   // Mirror the dispose callback into a ref so the bootstrap effect's cleanup
   // can call the latest value rather than the (always-null) initial-mount
@@ -479,6 +507,10 @@ const MesheryApp = ({ Component, pageProps, relayEnvironment, emotionCache }) =>
 
   return (
     <DynamicFullScreenLoader isLoading={state.isLoading}>
+      <PermissionProvider
+        userHasPermission={userHasPermission}
+        userContext={permissionUserContext}
+      >
       <DynamicComponentProvider>
         <RelayEnvironmentProvider environment={relayEnvironment}>
           <MesheryThemeProvider emotionCache={emotionCache}>
@@ -576,6 +608,7 @@ const MesheryApp = ({ Component, pageProps, relayEnvironment, emotionCache }) =>
           </MesheryThemeProvider>
         </RelayEnvironmentProvider>
       </DynamicComponentProvider>
+      </PermissionProvider>
     </DynamicFullScreenLoader>
   );
 };
