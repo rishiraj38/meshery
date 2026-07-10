@@ -143,8 +143,8 @@ const MesheryApp = ({ Component, pageProps, relayEnvironment, emotionCache }) =>
   });
 
   // ── PermissionProvider: CASL adapter ──────────────────────
-  // This is the ONLY place CASL is referenced for UI component permissions.
-  // To drop CASL later, change this one function — zero Sistent changes needed.
+  // Sistent permission checks are delegated to the existing CASL `ability` instance here.
+  // If CASL is replaced later, only this adapter should need to change.
   const userHasPermission = useCallback(
     (key) => ability.can(key.id, _.lowerCase(key.function)),
     // `ability` is a module-level singleton; the reference never changes.
