@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { FavoriteIcon, Hidden, Typography, useTheme } from '@sistent/sistent';
 import Navigator from './layout/Navigator/Navigator';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { useDispatch, useSelector } from 'react-redux';
 import { connectionsToK8sContexts } from '@/rtk-query/transforms';
 import { useGetConnectionsQuery } from '@/rtk-query/connection';
@@ -71,8 +71,8 @@ type SetAppState = (partial: Record<string, unknown>) => void;
 export const KubernetesSubscription = ({ setAppState }: { setAppState: SetAppState }) => {
   const dispatch = useDispatch();
   const canViewClusters = CAN(
-    keys.VIEW_ALL_KUBERNETES_CLUSTERS.action,
-    keys.VIEW_ALL_KUBERNETES_CLUSTERS.subject,
+    Keys.IdentityAccessManagementViewAllKubernetesClusters.id,
+    Keys.IdentityAccessManagementViewAllKubernetesClusters.function,
   );
 
   const { data: connectionData } = useGetConnectionsQuery(

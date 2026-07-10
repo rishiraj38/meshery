@@ -25,12 +25,6 @@ vi.mock('@/utils/can', () => ({
   default: () => true,
 }));
 
-vi.mock('@/utils/permission_constants', () => ({
-  keys: {
-    VIEW_ALL_KUBERNETES_CLUSTERS: { action: 'view', subject: 'k8s' },
-  },
-}));
-
 vi.mock('@/utils/Enum', () => ({
   CONNECTION_KINDS: { KUBERNETES: 'kubernetes' },
 }));
