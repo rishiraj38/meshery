@@ -48,9 +48,7 @@
             "patch": {
               "mutatorRef": [
                 [
-                  "configuration",
-                  "spec",
-                  "name"
+                  "displayName"
                 ]
               ],
               "patchStrategy": "replace"
@@ -80,7 +78,9 @@
                 [
                   "configuration",
                   "spec",
-                  "clusterName"
+                  "clusterRef",
+                  "from",
+                  "name"
                 ]
               ],
               "patchStrategy": "replace"
