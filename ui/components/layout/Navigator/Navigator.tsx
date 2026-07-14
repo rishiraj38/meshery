@@ -570,7 +570,7 @@ const NavigatorContent = () => {
             show: showc,
             link: linkc,
             children: childrenc,
-            permission: permissionc,
+            permissionKey: permissionc,
           }) => {
             if (typeof showc !== 'undefined' && !showc) {
               return null;
@@ -699,7 +699,7 @@ const NavigatorContent = () => {
             children,
             hovericon,
             submenu,
-            permission,
+            permissionKey,
           }) => {
             const hasChildren = Array.isArray(children) && children.length > 0;
             return (
@@ -723,7 +723,7 @@ const NavigatorContent = () => {
                   onMouseLeave={() =>
                     !submenu || !openItems.includes(childId) ? setHoveredId(null) : null
                   }
-                  permissionKey={permission}
+                  permissionKey={permissionKey}
                   permissionAction="showShield"
                   {...(link && href ? { component: Link, href } : {})}
                 >
