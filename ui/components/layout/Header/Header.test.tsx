@@ -284,6 +284,44 @@ describe('K8sContextConnectionChip', () => {
     expect(screen.getByRole('button', { name: 'cluster-a' })).toBeInTheDocument();
   });
 
+  it('prefers ctx.connectionStatus over the connections-list lookup', () => {
+    render(
+      <K8sContextConnectionChip
+        ctx={{
+          id: 'ctx-1',
+          name: 'cluster-a',
+          server: 'https://a',
+          connectionId: 'conn-1',
+          connectionStatus: 'disconnected',
+        }}
+        connectionMetadataState={{}}
+        meshsyncControllerState={{}}
+        connections={[{ id: 'conn-1', status: 'connected' }]}
+      />,
+    );
+
+    expect(screen.getByTestId('connection-chip')).toHaveAttribute('data-status', 'disconnected');
+  });
+
+  it('uses ctx.connectionStatus when the connections list is empty', () => {
+    render(
+      <K8sContextConnectionChip
+        ctx={{
+          id: 'ctx-1',
+          name: 'cluster-a',
+          server: 'https://a',
+          connectionId: 'conn-1',
+          connectionStatus: 'registered',
+        }}
+        connectionMetadataState={{}}
+        meshsyncControllerState={{}}
+        connections={[]}
+      />,
+    );
+
+    expect(screen.getByTestId('connection-chip')).toHaveAttribute('data-status', 'registered');
+  });
+
   it('does not render a delete control when onDelete is not provided', () => {
     render(
       <K8sContextConnectionChip

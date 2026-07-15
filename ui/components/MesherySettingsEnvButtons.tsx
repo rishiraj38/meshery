@@ -307,6 +307,7 @@ const K8sConnectionItems = ({ status, contexts, ping }) => {
               >
                 <TooltipWrappedConnectionChip
                   title={context.name}
+                  status={status}
                   handlePing={() => {
                     ping(context.name, context.server, context.connectionId);
                   }}
