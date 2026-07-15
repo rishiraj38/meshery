@@ -12806,7 +12806,7 @@ paths:
           in: query
           description: Get responses by page
           schema:
-            type: string
+            type: integer
         - name: pageSize
           in: query
           description: >-
@@ -13524,7 +13524,7 @@ paths:
           in: query
           description: Get responses by page
           schema:
-            type: string
+            type: integer
         - name: pageSize
           in: query
           description: >-
@@ -27413,7 +27413,7 @@ paths:
           in: query
           description: Get responses by page
           schema:
-            type: string
+            type: integer
         - name: pageSize
           in: query
           description: >-
@@ -28192,7 +28192,7 @@ paths:
           in: query
           description: Get responses by page
           schema:
-            type: string
+            type: integer
         - name: pageSize
           in: query
           description: >-
@@ -28603,7 +28603,7 @@ paths:
           in: query
           description: Get responses by page
           schema:
-            type: string
+            type: integer
         - name: pagesize
           in: query
           description: Get responses by pagesize
@@ -30197,7 +30197,7 @@ paths:
           in: query
           description: Get responses by page
           schema:
-            type: string
+            type: integer
         - name: pagesize
           in: query
           description: Get responses by pagesize
@@ -30417,7 +30417,7 @@ paths:
           in: query
           description: Get responses by page
           schema:
-            type: string
+            type: integer
         - name: pagesize
           in: query
           description: Get responses by pagesize
@@ -30661,7 +30661,7 @@ paths:
           in: query
           description: Get responses by page
           schema:
-            type: string
+            type: integer
         - name: pageSize
           in: query
           description: >-
@@ -31499,7 +31499,7 @@ paths:
           in: query
           description: Get responses by page
           schema:
-            type: string
+            type: integer
         - name: pageSize
           in: query
           description: >-
@@ -31940,7 +31940,7 @@ paths:
           in: query
           description: Get responses by page
           schema:
-            type: string
+            type: integer
         - name: pageSize
           in: query
           description: >-
@@ -32444,7 +32444,7 @@ paths:
           in: query
           description: Get responses by page
           schema:
-            type: string
+            type: integer
         - name: pageSize
           in: query
           description: >-
@@ -37330,7 +37330,7 @@ paths:
           in: query
           description: Get responses by page
           schema:
-            type: string
+            type: integer
         - name: pageSize
           in: query
           description: >-
