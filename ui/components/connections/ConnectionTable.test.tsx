@@ -34,6 +34,15 @@ vi.mock('@sistent/sistent', () => ({
   CustomColumnVisibilityControl: () => <div data-testid="column-visibility-control" />,
   SearchBar: () => <div data-testid="search-bar" />,
   UniversalFilter: () => <div data-testid="universal-filter" />,
+
+  DataTableToolbar: ({ primaryActions, search, filter, columnVisibility }: any) => (
+    <div data-testid="data-table-toolbar">
+      {primaryActions}
+      {search}
+      {filter}
+      {columnVisibility}
+    </div>
+  ),
   ResponsiveDataTable: (props) => {
     dataTableProps = props;
     return <div data-testid="responsive-data-table" />;
