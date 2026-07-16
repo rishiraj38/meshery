@@ -7,7 +7,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { connectionsToK8sContexts } from '@/rtk-query/transforms';
 import { useGetConnectionsQuery } from '@/rtk-query/connection';
 import { CONNECTION_KINDS } from '@/utils/Enum';
-import { updateK8SConfig } from '@/store/slices/mesheryUi';
+import { setK8sContexts, updateK8SConfig } from '@/store/slices/mesheryUi';
+import { loadSelectedK8sContexts } from '@/utils/multi-ctx';
+import { store } from '@/store';
 import { StyledDrawer, StyledFooterBody, StyledFooterText } from '../themes/App.styles';
 
 type FooterProps = {
@@ -88,18 +90,44 @@ export const KubernetesSubscription = ({ setAppState }: { setAppState: SetAppSta
     }
 
     const normalizedK8sContext = connectionsToK8sContexts(connectionData?.connections);
-    const allContexts: string[] = [];
-    if (normalizedK8sContext?.contexts?.length > 0) {
-      normalizedK8sContext.contexts.forEach((ctx: { id: string }) => allContexts.push(ctx.id));
-      allContexts.push('all');
+    const availableIds: string[] = (normalizedK8sContext?.contexts ?? []).map(
+      (ctx: { id: string }) => ctx.id,
+    );
+    const allContexts: string[] = availableIds.length > 0 ? [...availableIds, 'all'] : [];
+
+    // Honor the selection persisted for this browser session instead of
+    // force-selecting every context on each refetch of the connections query
+    // (which previously wiped the user's include/exclude choices on every
+    // navigation-triggered cache refresh).
+    const persisted = loadSelectedK8sContexts();
+    let activeContexts = allContexts;
+    if (persisted !== null && !persisted.includes('all')) {
+      const valid = persisted.filter((id) => availableIds.includes(id));
+      if (valid.length === availableIds.length || (valid.length === 0 && persisted.length > 0)) {
+        // Every context is selected (restore the implicit 'all'), or every
+        // persisted id is stale (contexts were replaced) — default to all.
+        activeContexts = allContexts;
+      } else {
+        // Partial selection — includes the explicit "none selected" case.
+        activeContexts = valid;
+      }
     }
 
     setAppState({
       k8sContexts: normalizedK8sContext,
-      activeK8sContexts: allContexts,
+      activeK8sContexts: activeContexts,
     });
 
     dispatch(updateK8SConfig({ k8sConfig: normalizedK8sContext?.contexts ?? [] }));
+
+    // Keep the redux selection (what dashboards, deploys, and queries consume)
+    // in step with the restored selection; redux boots with ['all'] and would
+    // otherwise disagree with the header checkboxes after a reload.
+    const resolvedSelection = activeContexts.includes('all') ? ['all'] : activeContexts;
+    const currentSelection = store.getState().ui.selectedK8sContexts;
+    if (JSON.stringify(currentSelection) !== JSON.stringify(resolvedSelection)) {
+      dispatch(setK8sContexts({ selectedK8sContexts: resolvedSelection }));
+    }
   }, [connectionData, canViewClusters, dispatch, setAppState]);
 
   return null;

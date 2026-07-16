@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { getK8sClusterIdsFromCtxId } from '@/utils/multi-ctx';
+import { getK8sClusterIdsFromCtxId, persistSelectedK8sContexts } from '@/utils/multi-ctx';
 import { mesheryEventBus } from '@/utils/eventBus';
 import { store } from '..';
 
@@ -51,6 +51,9 @@ const coreSlice = createSlice({
     },
     setK8sContexts: (state, action) => {
       state.selectedK8sContexts = action.payload.selectedK8sContexts;
+      // Session-persist the selection so it survives navigation and reloads
+      // (same inline pattern as setOrganization/setWorkspace below).
+      persistSelectedK8sContexts(action.payload.selectedK8sContexts);
       // Note: Event bus publication would be handled in the thunk action
     },
     updateProgress: (state, action) => {
