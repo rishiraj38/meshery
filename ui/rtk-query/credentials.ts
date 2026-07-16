@@ -36,10 +36,13 @@ const credentialsApi = api.injectEndpoints({
 export const { useDeleteCredentialMutation } = credentialsApi;
 
 // Backed by the schemas-generated `getUserCredentials` (GET
-// /api/integrations/credentials). Callers pass no list args, so the schemas
-// params stay undefined and the request matches what this module used to build.
+// /api/integrations/credentials). Callers pass no list args, so every schemas
+// param stays undefined and the request matches what this module used to build.
+// queryArg is forwarded as-is rather than defaulted to `{}`, because RTK derives
+// the cache key from it: `{}` would key separately from a plain schemas call,
+// and from `connection.ts`'s wrapper over the same endpoint.
 export const useGetCredentialsQuery = (queryArg?: undefined, options?: object) =>
-  useSchemasGetUserCredentialsQuery(queryArg ?? {}, options);
+  useSchemasGetUserCredentialsQuery(queryArg, options);
 
 // Callers pass a bare id; the schemas endpoints take `{ credentialId }`.
 export const useGetCredentialByIdQuery = (credentialId: string, options?: object) =>

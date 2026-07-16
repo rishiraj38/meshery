@@ -124,10 +124,12 @@ export const {
 
 // Backed by the schemas-generated `getUserCredentials` (GET
 // /api/integrations/credentials) rather than a local re-declaration of the same
-// endpoint. Callers pass no list args, so the schemas params stay undefined and
-// the request is byte-identical to the one this module used to build.
+// endpoint. Callers pass no list args, so every schemas param stays undefined
+// and the request is the bare GET this module used to build. queryArg is
+// forwarded as-is rather than defaulted to `{}`, because RTK derives the cache
+// key from it: `{}` would key separately from a plain schemas call.
 export const useGetCredentialsQuery = (queryArg?: undefined, options?: object) =>
-  useSchemasGetUserCredentialsQuery(queryArg ?? {}, options);
+  useSchemasGetUserCredentialsQuery(queryArg, options);
 
 // Backed by the schemas-generated `updateConnection` (PUT
 // /api/integrations/connections/{connectionId}). The body is still narrowed to

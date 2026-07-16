@@ -111,7 +111,9 @@ describe('credentials hooks delegate to schemas', () => {
   it('reads the list through the schemas getUserCredentials query', async () => {
     const { useGetCredentialsQuery } = await import('../credentials');
     useGetCredentialsQuery();
-    expect(schemasGetUserCredentials).toHaveBeenCalledWith({}, undefined);
+    // Forwarded as-is rather than defaulted to `{}`, so this shares a cache key
+    // with connection.ts's wrapper over the same schemas endpoint.
+    expect(schemasGetUserCredentials).toHaveBeenCalledWith(undefined, undefined);
   });
 
   it('accepts a bare id and hands schemas the { credentialId } it expects', async () => {

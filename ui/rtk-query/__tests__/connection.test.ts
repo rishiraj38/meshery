@@ -301,14 +301,15 @@ describe('useGetCredentialsQuery wrapper', () => {
 
   it('delegates to the schemas getUserCredentials query', () => {
     useGetCredentialsQuery();
-    // No list args, so the schemas params stay undefined and the request is the
-    // same bare GET /api/integrations/credentials this module used to build.
-    expect(schemasGetUserCredentials).toHaveBeenCalledWith({}, undefined);
+    // Forwarded as-is, not defaulted to `{}`: RTK keys the cache off this arg,
+    // so `{}` would key separately from a plain schemas call. Either way every
+    // param is undefined, giving the bare GET /api/integrations/credentials.
+    expect(schemasGetUserCredentials).toHaveBeenCalledWith(undefined, undefined);
   });
 
   it('forwards options so callers can still skip the query', () => {
     useGetCredentialsQuery(undefined, { skip: true });
-    expect(schemasGetUserCredentials).toHaveBeenCalledWith({}, { skip: true });
+    expect(schemasGetUserCredentials).toHaveBeenCalledWith(undefined, { skip: true });
   });
 });
 
@@ -342,10 +343,11 @@ describe('useUpdateConnectionByIdMutation wrapper', () => {
 
   it('narrows the body to status + metadata', () => {
     const [trigger] = useUpdateConnectionByIdMutation();
+    // @ts-expect-error extra fields are passed on purpose, to prove they are stripped
     trigger({
       connectionId: 'conn-1',
       body: { status: 'CONNECTED', metadata: { a: 1 }, name: 'nope', kind: 'nope' },
-    } as never);
+    });
 
     // `name`/`kind` must not reach the server: the endpoint only honours status
     // and metadata, and the local declaration used to strip everything else.
