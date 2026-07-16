@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import {
   Alert,
   Box,
@@ -16,6 +16,8 @@ import { useGetControllerDiagnosticsQuery } from '@/rtk-query/connection';
 import { formatWizardError } from './errors';
 import { StepHeader } from '../ConnectionWizardStepContent';
 import { ConnectionStatusSelect } from '../ConnectionStatusSelect';
+import ConnectionStateTransitionModal from '../ConnectionStateTransitionModal';
+import type { ConnectionStateTransitionModalRef } from '../ConnectionStateTransitionModal';
 import type { ConnectionTransitionMap } from '../ConnectionTable.constants';
 import {
   MeshsyncDeploymentModePicker,
@@ -96,10 +98,27 @@ const SettingsStepBody = ({ ctx }: { ctx: WizardContext }) => {
   // since the UI supplies its own label.
   const brokerTransport = (networking?.summary ?? '').replace(/^Broker networking:\s*/i, '');
 
+  const transitionModalRef = useRef<ConnectionStateTransitionModalRef | null>(null);
+
   // Transition the connection to the picked lifecycle state (reuses the shared
-  // status selector). Applied immediately, like the table.
+  // status selector). Confirmed through the same state-transition modal the
+  // Connections table uses - this dropdown previously applied destructive
+  // transitions (e.g. deleted) with no confirmation at all.
   const changeStatus = async (nextStatus: string) => {
     if (!connectionId || nextStatus === status) {
+      return;
+    }
+    const transitionDescription = transitionMap?.[status]?.find(
+      (transition) => transition.nextState === nextStatus,
+    )?.description;
+    const confirmed = await transitionModalRef.current?.show({
+      targetStatus: nextStatus,
+      currentStatus: status,
+      kind: String(connection.kind ?? 'kubernetes'),
+      connections: [{ id: connectionId, name: getCurrentName(ctx) }],
+      transitionDescription,
+    });
+    if (!confirmed) {
       return;
     }
     setStatusBusy(true);
@@ -146,6 +165,7 @@ const SettingsStepBody = ({ ctx }: { ctx: WizardContext }) => {
 
   return (
     <Box sx={{ display: 'grid', gap: 2.5 }}>
+      <ConnectionStateTransitionModal ref={transitionModalRef} />
       <StepHeader
         title="Settings"
         subtitle="Rename the connection, change its lifecycle status, choose how MeshSync runs, and flush MeshSync data for this cluster."

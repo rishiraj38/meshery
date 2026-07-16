@@ -185,12 +185,12 @@ vi.mock('../../assets/icons/disconnect', () => ({
   default: () => <svg />,
 }));
 
-vi.mock('../PromptComponent', () => ({
-  default: React.forwardRef(function PromptComponentMock(_, ref) {
+vi.mock('./ConnectionStateTransitionModal', () => ({
+  default: React.forwardRef(function ConnectionStateTransitionModalMock(_, ref) {
     React.useImperativeHandle(ref, () => ({
       show: modalShow,
     }));
-    return <div data-testid="prompt-component" />;
+    return <div data-testid="connection-transition-modal" />;
   }),
 }));
 
@@ -273,7 +273,8 @@ describe('ConnectionTable', () => {
     saveEnvironmentMutator.mockImplementation(() => ({
       unwrap: () => Promise.resolve({ id: 'env-1', name: 'dev' }),
     }));
-    modalShow.mockResolvedValue('DELETE');
+    // The transition modal resolves `true` when the user confirms.
+    modalShow.mockResolvedValue(true);
 
     router.query = {};
 
@@ -365,7 +366,16 @@ describe('ConnectionTable', () => {
     await user.click(screen.getByRole('button', { name: /delete/i }));
 
     await waitFor(() => {
-      expect(modalShow).toHaveBeenCalled();
+      expect(modalShow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          targetStatus: 'deleted',
+          kind: 'kubernetes',
+          connections: [
+            expect.objectContaining({ id: 'connection-1', name: 'cluster-a' }),
+            expect.objectContaining({ id: 'connection-2', name: 'cluster-b' }),
+          ],
+        }),
+      );
       expect(updateConnectionByIdMutator).toHaveBeenCalledTimes(2);
     });
 

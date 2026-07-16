@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { PROMPT_VARIANTS, ResponsiveDataTable } from '@sistent/sistent';
+import { ResponsiveDataTable } from '@sistent/sistent';
 import LoadingScreen from '../shared/LoadingState/LoadingComponent';
 import { EVENT_TYPES } from '../../lib/event-types';
-import _PromptComponent from '../PromptComponent';
+import ConnectionStateTransitionModal from './ConnectionStateTransitionModal';
+import type { ConnectionStateTransitionModalRef } from './ConnectionStateTransitionModal';
 
 import { CONNECTION_KINDS, CONNECTION_STATES } from '../../utils/Enum';
 import useKubernetesHook from '@/utils/hooks/useKubernetesHook';
@@ -30,7 +31,6 @@ import {
   CONNECTION_DOCS_URL,
   ENVIRONMENT_DOCS_URL,
   getErrorMessage,
-  getStatusTransition,
 } from './ConnectionTable.constants';
 import type { ConnectionTransitionMap } from './ConnectionTable.constants';
 import { useConnectionActions } from './ConnectionTable.hooks';
@@ -138,7 +138,7 @@ const ConnectionTable = ({
   const [controllersConfigConnection, setControllersConfigConnection] =
     useState<ConfigurableConnection | null>(null);
   const open = Boolean(anchorEl);
-  const modalRef = useRef<{ show: (options: unknown) => Promise<string | null> } | null>(null);
+  const modalRef = useRef<ConnectionStateTransitionModalRef | null>(null);
   const lastNotifiedErrorsRef = useRef<{ environments: string; connections: string }>({
     environments: '',
     connections: '',
@@ -307,19 +307,19 @@ const ConnectionTable = ({
         return;
       }
 
-      const response = await modalRef.current.show({
-        title: `Delete Connection`,
-        subtitle: `Are you sure that you want to delete the connection?`,
-        primaryOption: 'DELETE',
-        showInfoIcon: `Learn more about the [lifecycle of connections and the behavior of state transitions](https://docs.meshery.io/concepts/logical/connections) in Meshery Docs.`,
-        variant: PROMPT_VARIANTS.DANGER,
+      const connection = filteredConnections.find((conn) => conn.id === connectionId);
+      const confirmed = await modalRef.current.show({
+        targetStatus: CONNECTION_STATES.DELETED,
+        currentStatus: connection?.status,
+        kind: connection?.kind,
+        connections: [{ id: connectionId, name: connection?.name }],
       });
 
-      if (response === 'DELETE') {
+      if (confirmed) {
         await updateConnectionStatus(connectionId, CONNECTION_STATES.DELETED);
       }
     },
-    [updateConnectionStatus],
+    [filteredConnections, updateConnectionStatus],
   );
 
   const handleDeleteConnections = useCallback(
@@ -333,26 +333,27 @@ const ConnectionTable = ({
       // be invalidated/reordered by an in-flight refetch in that window — using
       // the index after-the-fact dereferenced stale rows and silently no-op'd
       // (no PUT, no notification), which surfaced as a hung e2e snackbar wait.
-      const ids = selected.data
-        .map(({ index }) => filteredConnections[index]?.id)
-        .filter(Boolean) as string[];
+      const selectedConnections = selected.data
+        .map(({ index }) => filteredConnections[index])
+        .filter(Boolean);
 
-      if (ids.length === 0) {
+      if (selectedConnections.length === 0) {
         return;
       }
 
-      const response = await modalRef.current.show({
-        title: `Delete Connections`,
-        subtitle: `Are you sure that you want to delete the connections?`,
-        primaryOption: 'DELETE',
-        showInfoIcon: `Learn more about the [lifecycle of connections and the behavior of state transitions](https://docs.meshery.io/concepts/logical/connections) in Meshery Docs.`,
-        variant: PROMPT_VARIANTS.DANGER,
+      // Kind-specific ramifications only apply when the whole selection is of
+      // one kind; a mixed selection gets the generic copy.
+      const kinds = new Set(selectedConnections.map((connection) => connection.kind));
+      const confirmed = await modalRef.current.show({
+        targetStatus: CONNECTION_STATES.DELETED,
+        kind: kinds.size === 1 ? selectedConnections[0].kind : undefined,
+        connections: selectedConnections.map(({ id, name }) => ({ id, name })),
       });
 
-      if (response === 'DELETE') {
+      if (confirmed) {
         await Promise.all(
-          ids.map((connectionId) =>
-            updateConnectionStatus(connectionId, CONNECTION_STATES.DELETED),
+          selectedConnections.map(({ id }) =>
+            updateConnectionStatus(id, CONNECTION_STATES.DELETED),
           ),
         );
       }
@@ -462,24 +463,26 @@ const ConnectionTable = ({
         return;
       }
 
-      const subtitle = getStatusTransition(
-        connectionMetadataState?.[connectionKind]?.transitionMap,
-        connectionStatus,
-        status.toLowerCase(),
-      );
-      const response = await modalRef.current.show({
-        title: `Transition connection to ${status.toUpperCase()}?`,
-        subtitle,
-        primaryOption: 'Confirm',
-        showInfoIcon: `Learn more about the [lifecycle of connections and the behavior of state transitions](https://docs.meshery.io/concepts/logical/connections) in Meshery Docs.`,
-        variant: PROMPT_VARIANTS.WARNING,
+      const connection = filteredConnections.find((conn) => conn.id === connectionId);
+      // Only surface a description the connection definition actually
+      // authored; the modal supplies its own confirmation copy, so the
+      // generic "Are you sure...?" fallback would just repeat it.
+      const transitionDescription = connectionMetadataState?.[connectionKind]?.transitionMap?.[
+        connectionStatus
+      ]?.find((transition) => transition.nextState === status.toLowerCase())?.description;
+      const confirmed = await modalRef.current.show({
+        targetStatus: status.toLowerCase(),
+        currentStatus: connectionStatus,
+        kind: connectionKind,
+        connections: [{ id: connectionId, name: connection?.name }],
+        transitionDescription,
       });
 
-      if (response === 'Confirm') {
+      if (confirmed) {
         await updateConnectionStatus(connectionId, status);
       }
     },
-    [connectionMetadataState, updateConnectionStatus],
+    [connectionMetadataState, filteredConnections, updateConnectionStatus],
   );
 
   const handleActionMenuOpen = useCallback((event, tableMeta: RowData) => {
@@ -652,7 +655,7 @@ const ConnectionTable = ({
         columnVisibility={columnVisibility}
       />
 
-      <_PromptComponent ref={modalRef} />
+      <ConnectionStateTransitionModal ref={modalRef} />
       <ConnectionActionMenu
         anchorEl={anchorEl}
         open={open}
