@@ -13,8 +13,12 @@ import { StyledDrawer, StyledFooterBody, StyledFooterText } from '../themes/App.
 
 // Order-insensitive equality for context-id selections: ['a','b'] and
 // ['b','a'] are the same selection.
-const isSameSelection = (a: string[], b: string[]) =>
-  a.length === b.length && [...a].sort().every((id, index) => id === [...b].sort()[index]);
+const isSameSelection = (a: string[], b: string[]) => {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  return sortedA.every((id, index) => id === sortedB[index]);
+};
 
 type FooterProps = {
   providerCapabilities?: { restrictedAccess?: { isMesheryUiRestricted?: boolean } } | null;

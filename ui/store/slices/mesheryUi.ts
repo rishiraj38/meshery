@@ -52,7 +52,7 @@ const coreSlice = createSlice({
     setK8sContexts: (state, action) => {
       state.selectedK8sContexts = action.payload.selectedK8sContexts;
       // Note: Side effects (session persistence, event bus publication) are
-      // handled in the setK8sContexts thunk below - reducers stay pure.
+      // handled in the setK8sContexts thunk below; this reducer is side-effect free.
     },
     updateProgress: (state, action) => {
       state.showProgress = action.payload.showProgress;
