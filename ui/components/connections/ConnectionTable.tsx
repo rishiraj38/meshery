@@ -33,6 +33,7 @@ import {
   getErrorMessage,
   getStatusTransition,
   toServerSortOrder,
+  toUiSortOrder,
 } from './ConnectionTable.constants';
 import type { ConnectionTransitionMap } from './ConnectionTable.constants';
 import { useConnectionActions } from './ConnectionTable.hooks';
@@ -583,7 +584,10 @@ const ConnectionTable = ({
     pageSize,
     setPage,
     setPageSize,
-    sortOrder,
+    // Normalized to column names: a bookmarked snake_case param would not
+    // match any column, dropping the active-sort indicator. The server query
+    // above translates the other way, via toServerSortOrder.
+    sortOrder: toUiSortOrder(sortOrder),
     setSortOrder,
     rowsExpanded,
     setRowsExpanded,

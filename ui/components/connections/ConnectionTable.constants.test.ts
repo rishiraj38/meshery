@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { toServerSortOrder } from './ConnectionTable.constants';
+import { toServerSortOrder, toUiSortOrder } from './ConnectionTable.constants';
 
 describe('toServerSortOrder', () => {
   it('maps camelCase wire fields to the server DB sort columns', () => {
@@ -25,5 +25,30 @@ describe('toServerSortOrder', () => {
   it('returns a valid default when the input is empty or whitespace-only', () => {
     expect(toServerSortOrder('')).toBe('created_at desc');
     expect(toServerSortOrder('   ')).toBe('created_at desc');
+  });
+});
+
+describe('toUiSortOrder', () => {
+  it('maps a bookmarked snake_case param back to the table column name', () => {
+    expect(toUiSortOrder('created_at desc')).toBe('createdAt desc');
+    expect(toUiSortOrder('updated_at asc')).toBe('updatedAt asc');
+  });
+
+  it('leaves an order that already uses column names untouched', () => {
+    expect(toUiSortOrder('createdAt desc')).toBe('createdAt desc');
+    expect(toUiSortOrder('name asc')).toBe('name asc');
+  });
+
+  it('defaults the direction and guards empty input', () => {
+    expect(toUiSortOrder('created_at')).toBe('createdAt desc');
+    expect(toUiSortOrder('')).toBe('createdAt desc');
+    expect(toUiSortOrder('   ')).toBe('createdAt desc');
+  });
+
+  it('round-trips with toServerSortOrder so the sort survives a bookmarked URL', () => {
+    // The legacy URL still drives the correct server column...
+    expect(toServerSortOrder('created_at desc')).toBe('created_at desc');
+    // ...and resolves to a real column for the active-sort indicator.
+    expect(toUiSortOrder('created_at desc')).toBe('createdAt desc');
   });
 });

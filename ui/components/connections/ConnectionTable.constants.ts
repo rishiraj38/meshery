@@ -100,6 +100,13 @@ const UI_TO_SERVER_SORT_COLUMN: Record<string, string> = {
   updatedAt: 'updated_at',
 };
 
+const SERVER_TO_UI_SORT_COLUMN: Record<string, string> = Object.fromEntries(
+  Object.entries(UI_TO_SERVER_SORT_COLUMN).map(([uiColumn, serverColumn]) => [
+    serverColumn,
+    uiColumn,
+  ]),
+);
+
 export const toServerSortOrder = (sortOrder: string): string => {
   const trimmed = sortOrder.trim();
   // Guard against empty / whitespace-only input so we never emit " desc".
@@ -109,4 +116,17 @@ export const toServerSortOrder = (sortOrder: string): string => {
   // SanitizeOrderInput accepts exactly "<column> <asc|desc>"; a bare column
   // would be silently dropped server-side, so default the direction.
   return `${serverField} ${direction || 'desc'}`;
+};
+
+// The inverse of toServerSortOrder, for the table's active-sort indicator:
+// mui-datatables matches `options.sortOrder.name` against a column name, so a
+// bookmarked snake_case param (created_at desc) has to be mapped back to the
+// camelCase column before it reaches the table, or the indicator matches
+// nothing and silently disappears.
+export const toUiSortOrder = (sortOrder: string): string => {
+  const trimmed = sortOrder.trim();
+  if (!trimmed) return 'createdAt desc';
+  const [field, direction] = trimmed.split(/\s+/);
+  const uiField = SERVER_TO_UI_SORT_COLUMN[field] ?? field;
+  return `${uiField} ${direction || 'desc'}`;
 };

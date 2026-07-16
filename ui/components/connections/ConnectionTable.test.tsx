@@ -345,6 +345,26 @@ describe('ConnectionTable', () => {
     expect(dataTableProps.options.sortOrder).toEqual({ name: 'createdAt', direction: 'desc' });
   });
 
+  it('keeps a bookmarked snake_case sort working, indicator included', async () => {
+    // A URL bookmarked before the columns moved to the camelCase wire shape.
+    router.query = { con_sort: 'created_at desc' };
+
+    render(<ConnectionTable />);
+
+    await waitFor(() => {
+      expect(dataTableProps).toBeDefined();
+    });
+
+    // The server column is already snake_case, so it passes straight through...
+    expect(getConnectionsQuery).toHaveBeenLastCalledWith(
+      expect.objectContaining({ order: 'created_at desc' }),
+      undefined,
+    );
+    // ...and the indicator resolves to a real column rather than silently
+    // matching nothing.
+    expect(dataTableProps.options.sortOrder).toEqual({ name: 'createdAt', direction: 'desc' });
+  });
+
   it('shows the Discovered At column by default and populates it from createdAt', async () => {
     render(<ConnectionTable />);
 
