@@ -44,7 +44,7 @@ const MesherySettingsEnvButtons = ({ onOpened }: MesherySettingsEnvButtonsProps)
         disabled={
           !CAN(Keys.LifecycleManagementAddCluster.id, Keys.LifecycleManagementAddCluster.function)
         }
-        data-cy="btnResetDatabase"
+        data-cy="btnAddCluster"
       >
         <AddIconCircleBorder style={{ width: '20px', height: '20px' }} />
         <Typography

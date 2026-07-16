@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/meshery/schemas/models/core"
@@ -62,10 +63,9 @@ type MesheryControllersHelper struct {
 
 	// meshsyncConnectedEventEmitted tracks whether we already published the
 	// "MeshSync connected in <mode> mode" event for the current data-handler
-	// session. AddMeshsyncDataHandlers can be invoked multiple times while the
-	// handler stays attached; without this flag each call re-broadcasts the
-	// same informational snackbar.
-	meshsyncConnectedEventEmitted bool
+	// session. AddMeshsyncDataHandlers can be invoked concurrently while the
+	// handler stays attached; atomic avoids a data race and re-broadcast spam.
+	meshsyncConnectedEventEmitted atomic.Bool
 
 	// brokerPortForward is the self-healing port-forward to the NATS pod used when
 	// Meshery runs out-of-cluster and the broker is only reachable on a ClusterIP.
@@ -286,9 +286,10 @@ func (mch *MesheryControllersHelper) AddMeshsyncDataHandlers(ctx context.Context
 	// already surfaced the "unreachable, retrying" warning + remediation, and a
 	// later AddMeshsyncDataHandlers call (once IsConnected) emits the event once.
 	// Deduplicate so repeated reconcile calls do not spam the same snackbar.
+	// CompareAndSwap so concurrent AddMeshsyncDataHandlers callers emit once.
 	if mch.ctxMeshsyncDataHandler != nil &&
 		mch.ctxMeshsyncDataHandler.IsConnected() &&
-		!mch.meshsyncConnectedEventEmitted {
+		mch.meshsyncConnectedEventEmitted.CompareAndSwap(false, true) {
 		description := "MeshSync connected"
 		if mch.meshsyncDeploymentMode != "" {
 			description = fmt.Sprintf("MeshSync connected in %s mode", string(mch.meshsyncDeploymentMode))
@@ -304,7 +305,6 @@ func (mch *MesheryControllersHelper) AddMeshsyncDataHandlers(ctx context.Context
 			},
 			userID,
 		)
-		mch.meshsyncConnectedEventEmitted = true
 	}
 
 	return mch
@@ -626,7 +626,7 @@ func (mch *MesheryControllersHelper) RemoveMeshSyncDataHandler(ctx context.Conte
 		mch.ctxMeshsyncDataHandler = nil
 	}
 	// Allow a fresh "MeshSync connected" event when a new handler is attached.
-	mch.meshsyncConnectedEventEmitted = false
+	mch.meshsyncConnectedEventEmitted.Store(false)
 	// Tear down the managed broker port-forward alongside the data handler.
 	if mch.brokerPortForward != nil {
 		mch.brokerPortForward.Stop()
