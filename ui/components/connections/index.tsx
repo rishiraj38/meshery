@@ -141,42 +141,47 @@ function Connections() {
     [updateUrlParams],
   );
 
-  if (!isReady) return null;
-
   // Rendered by whichever table is active (ConnectionTable or MeshSyncTable) so
   // the tab switcher stays visible - and functional - on both tabs, between
-  // that table's own toolbar and its data grid.
-  const tabs = (
-    <AppBar position="static" color="default" style={{ marginBottom: '3rem' }}>
-      <ConnectionTabs
-        value={tab}
-        onChange={handleTabChange}
-        indicatorColor="primary"
-        textColor="primary"
-        variant="fullWidth"
-        sx={{
-          height: '10%',
-        }}
-      >
-        <ConnectionTab
-          label={
-            <ConnectionIconText>
-              <span style={{ marginRight: '0.3rem' }}>Connections</span>
-              <ConnectionIcon width="20" height="20" />
-            </ConnectionIconText>
-          }
-        />
-        <ConnectionTab
-          label={
-            <ConnectionIconText>
-              <span style={{ marginRight: '0.3rem' }}>MeshSync</span>
-              <MeshsyncIcon width="20" height="20" />
-            </ConnectionIconText>
-          }
-        />
-      </ConnectionTabs>
-    </AppBar>
+  // that table's own toolbar and its data grid. Memoized so the unstable JSX
+  // identity doesn't cascade into the tables' props on every render (this page
+  // has previously hit React error #185 from exactly this kind of churn).
+  const tabs = useMemo(
+    () => (
+      <AppBar position="static" color="default" style={{ marginBottom: '3rem' }}>
+        <ConnectionTabs
+          value={tab}
+          onChange={handleTabChange}
+          indicatorColor="primary"
+          textColor="primary"
+          variant="fullWidth"
+          sx={{
+            height: '10%',
+          }}
+        >
+          <ConnectionTab
+            label={
+              <ConnectionIconText>
+                <span style={{ marginRight: '0.3rem' }}>Connections</span>
+                <ConnectionIcon width="20" height="20" />
+              </ConnectionIconText>
+            }
+          />
+          <ConnectionTab
+            label={
+              <ConnectionIconText>
+                <span style={{ marginRight: '0.3rem' }}>MeshSync</span>
+                <MeshsyncIcon width="20" height="20" />
+              </ConnectionIconText>
+            }
+          />
+        </ConnectionTabs>
+      </AppBar>
+    ),
+    [tab, handleTabChange],
   );
+
+  if (!isReady) return null;
 
   return (
     <NoSsr>
