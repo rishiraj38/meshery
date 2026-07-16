@@ -85,6 +85,16 @@ export const useConnectionColumns = ({
         },
       },
       {
+        // The wire metadata for meshery-kind connections uses camelCase
+        // (`serverLocation`, see BuildMesheryConnectionPayload); the snake_case
+        // sibling above is kept for older records.
+        name: 'metadata.serverLocation',
+        label: 'Server Location',
+        options: {
+          display: false,
+        },
+      },
+      {
         name: 'metadata.server',
         label: 'Server',
         options: {
@@ -112,6 +122,7 @@ export const useConnectionColumns = ({
           customBodyRender: (value, tableMeta) => {
             const server =
               getColumnValue(tableMeta.rowData, 'metadata.server', nextColumns) ||
+              getColumnValue(tableMeta.rowData, 'metadata.serverLocation', nextColumns) ||
               getColumnValue(tableMeta.rowData, 'metadata.server_location', nextColumns);
             const name = getColumnValue(tableMeta.rowData, 'metadata.name', nextColumns);
             const kind = getColumnValue(tableMeta.rowData, 'kind', nextColumns);
@@ -292,7 +303,11 @@ export const useConnectionColumns = ({
         },
       },
       {
-        name: 'sub_type',
+        // Connections arrive in the v1beta3 camelCase wire shape (see
+        // server/models/connections type aliases): subType, createdAt,
+        // updatedAt. Column names must match those row fields; the server's
+        // snake_case sort columns are mapped in toServerSortOrder.
+        name: 'subType',
         label: 'Sub Category',
         options: {
           sort: true,
@@ -312,7 +327,7 @@ export const useConnectionColumns = ({
         },
       },
       {
-        name: 'updated_at',
+        name: 'updatedAt',
         label: 'Updated At',
         options: {
           sort: true,
@@ -333,7 +348,7 @@ export const useConnectionColumns = ({
         },
       },
       {
-        name: 'created_at',
+        name: 'createdAt',
         label: 'Discovered At',
         options: {
           sort: true,
@@ -462,7 +477,7 @@ export const useConnectionColumns = ({
           },
           customBodyRender: function CustomBody(_, tableMeta) {
             return (
-              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
                 {getColumnValue(tableMeta.rowData, 'kind', nextColumns) ===
                 CONNECTION_KINDS.KUBERNETES ? (
                   <IconButton

@@ -32,6 +32,8 @@ import {
   ENVIRONMENT_DOCS_URL,
   getErrorMessage,
   getStatusTransition,
+  toServerSortOrder,
+  toUiSortOrder,
 } from './ConnectionTable.constants';
 import type { ConnectionTransitionMap } from './ConnectionTable.constants';
 import { useConnectionActions } from './ConnectionTable.hooks';
@@ -93,7 +95,7 @@ const ConnectionTable = ({
     defaults: {
       page: 0,
       pageSize: 10,
-      sortOrder: 'created_at desc',
+      sortOrder: 'createdAt desc',
       search: '',
       filters: { status: '', kind: '' },
     },
@@ -194,7 +196,7 @@ const ConnectionTable = ({
       page: page,
       pageSize: pageSize,
       search: search,
-      order: sortOrder,
+      order: toServerSortOrder(sortOrder),
       // Repeated query params (?status=connected, ?kind=kubernetes) — no JSON.
       status: statusFilter || undefined,
       kind: selectedFilter || kindFilter || undefined,
@@ -294,8 +296,10 @@ const ConnectionTable = ({
       ['environments', 'm'],
       ['kind', 'm'],
       ['type', 's'],
-      ['sub_type', 'na'],
-      ['created_at', 'na'],
+      // subType stays hidden by default, as it was before; users can enable it
+      // from the column-visibility control.
+      ['subType', 'na'],
+      ['createdAt', 'xs'],
       ['status', 'xs'],
       ['Actions', 'xs'],
       ['transitionMap', 'xs'],
@@ -580,7 +584,10 @@ const ConnectionTable = ({
     pageSize,
     setPage,
     setPageSize,
-    sortOrder,
+    // Normalized to column names: a bookmarked snake_case param would not
+    // match any column, dropping the active-sort indicator. The server query
+    // above translates the other way, via toServerSortOrder.
+    sortOrder: toUiSortOrder(sortOrder),
     setSortOrder,
     rowsExpanded,
     setRowsExpanded,
