@@ -79,7 +79,6 @@ const K8sContextConnection = ({ connection, environment }) => {
       selectable
       meshsyncControllerState={meshsyncControllerState}
       connectionMetadataState={connectionMetadataState}
-      connections={[connection]}
     />
   );
 };
