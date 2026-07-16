@@ -111,6 +111,37 @@ describe('ConnectionStateTransitionModal', () => {
     expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
   });
 
+  it('settles an in-flight confirmation as cancelled when show() is re-entered', async () => {
+    const ref = setup();
+
+    let firstResolved: boolean | undefined;
+    act(() => {
+      ref.current
+        .show({
+          targetStatus: 'deleted',
+          connections: [{ id: 'c1', name: 'first' }],
+        })
+        .then((value) => (firstResolved = value));
+    });
+
+    let secondResolved: boolean | undefined;
+    act(() => {
+      ref.current
+        .show({
+          targetStatus: 'deleted',
+          connections: [{ id: 'c2', name: 'second' }],
+        })
+        .then((value) => (secondResolved = value));
+    });
+
+    // The superseded caller resolves false instead of hanging forever.
+    await screen.findByTestId('connection-transition-confirm');
+    expect(firstResolved).toBe(false);
+
+    await userEvent.click(screen.getByTestId('connection-transition-confirm'));
+    expect(secondResolved).toBe(true);
+  });
+
   it('resolves false on cancel', async () => {
     const ref = setup();
 
@@ -196,6 +227,11 @@ describe('ConnectionStateTransitionModal', () => {
       (tooltip.getAttribute('data-title') || '').includes(KUBERNETES_CONNECTION_LIFECYCLE_DOCS_URL),
     );
     expect(docsTooltip).toBeDefined();
+    // Kubernetes-kind transitions link both the k8s lifecycle guide and the
+    // generic connections concept docs.
+    expect(docsTooltip.getAttribute('data-title')).toContain(
+      KUBERNETES_CONNECTION_LIFECYCLE_DOCS_URL,
+    );
     expect(docsTooltip.getAttribute('data-title')).toContain(
       'docs.meshery.io/concepts/logical/connections',
     );

@@ -141,10 +141,20 @@ const ConnectionStateTransitionModal = forwardRef<ConnectionStateTransitionModal
     const theme = useTheme();
     const [params, setParams] = useState<ConnectionStateTransitionShowParams | null>(null);
     const promiseRef = useRef<{ resolve: (confirmed: boolean) => void }>({ resolve: () => {} });
+    // Retains the last shown params so the modal can keep rendering its
+    // content during the dialog's exit transition after params clears.
+    const lastParamsRef = useRef<ConnectionStateTransitionShowParams | null>(null);
+    if (params) {
+      lastParamsRef.current = params;
+    }
 
     useImperativeHandle(ref, () => ({
       show: (showParams) =>
         new Promise<boolean>((resolve) => {
+          // Settle any in-flight confirmation as cancelled so a re-entrant
+          // show() (e.g. a double-click) can never leave the first caller's
+          // promise hanging.
+          promiseRef.current.resolve(false);
           promiseRef.current = { resolve };
           setParams(showParams);
         }),
@@ -152,14 +162,18 @@ const ConnectionStateTransitionModal = forwardRef<ConnectionStateTransitionModal
 
     const settle = (confirmed: boolean) => {
       setParams(null);
-      promiseRef.current.resolve(confirmed);
+      const { resolve } = promiseRef.current;
+      // Reset so a later settle (or re-entrant show) cannot re-invoke it.
+      promiseRef.current = { resolve: () => {} };
+      resolve(confirmed);
     };
 
-    if (!params) {
+    const displayParams = params ?? lastParamsRef.current;
+    if (!displayParams) {
       return null;
     }
 
-    const { targetStatus, currentStatus, kind, connections, transitionDescription } = params;
+    const { targetStatus, currentStatus, kind, connections, transitionDescription } = displayParams;
     const isDelete = targetStatus === CONNECTION_STATES.DELETED;
     const count = connections.length;
     const plural = count > 1;
@@ -190,7 +204,7 @@ const ConnectionStateTransitionModal = forwardRef<ConnectionStateTransitionModal
 
     return (
       <Modal
-        open
+        open={Boolean(params)}
         closeModal={() => settle(false)}
         title={title}
         headerIcon={

@@ -9,6 +9,7 @@ import { useLazyGetSystemSyncQuery } from '../../../rtk-query/system';
 import { useUpdateConnectionStatusMutation } from '../../../rtk-query/connection';
 import { CONNECTION_KINDS, CONNECTION_STATES } from '../../../utils/Enum';
 import ConnectionStateTransitionModal from '../../connections/ConnectionStateTransitionModal';
+import type { ConnectionStateTransitionModalRef } from '../../connections/ConnectionStateTransitionModal';
 import { iconMedium, iconSmall } from '../../../css/icons.styles';
 import { createPathForRemoteComponent } from '../../ExtensionSandbox';
 import RemoteComponent from '../../RemoteComponent';
@@ -146,7 +147,7 @@ function K8sContextMenu({
   // The dropdown slides up from below; its translate distance scales with the
   // number of context rows it will render so it ends up flush against the badge.
   // useRef (not createRef) so the same ref instance survives re-renders.
-  const deleteCtxtRef = React.useRef(null);
+  const deleteCtxtRef = React.useRef<ConnectionStateTransitionModalRef | null>(null);
   const { notify } = useNotification();
   const [fetchSystemSync] = useLazyGetSystemSyncQuery();
   const [updateConnectionStatus] = useUpdateConnectionStatusMutation();
