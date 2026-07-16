@@ -40,17 +40,20 @@ vi.mock('@sistent/sistent', () => ({
     search,
     filter,
     columnVisibility,
+    tabs,
   }: {
     primaryActions?: React.ReactNode;
     search?: React.ReactNode;
     filter?: React.ReactNode;
     columnVisibility?: React.ReactNode;
+    tabs?: React.ReactNode;
   }) => (
     <div data-testid="data-table-toolbar">
       {primaryActions}
       {search}
       {filter}
       {columnVisibility}
+      {tabs}
     </div>
   ),
   ResponsiveDataTable: (props) => {
@@ -582,5 +585,21 @@ describe('ConnectionTable', () => {
     rerender(<ConnectionTable />);
 
     expect(dataTableProps.options).toBe(firstOptions);
+  });
+
+  // Regression coverage for the review feedback on PR #20695: the
+  // Connections/MeshSync tab switcher must be passed down through the
+  // toolbar (rendered between the toolbar and the data table), not dropped.
+  it('renders the tabs prop inside the toolbar, ahead of the data table', () => {
+    render(<ConnectionTable tabs={<div data-testid="connection-tabs">tabs</div>} />);
+
+    const toolbar = screen.getByTestId('data-table-toolbar');
+    expect(toolbar).toContainElement(screen.getByTestId('connection-tabs'));
+
+    const positions = screen
+      .getByTestId('connection-tabs')
+      .compareDocumentPosition(screen.getByTestId('responsive-data-table'));
+
+    expect(positions & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });
