@@ -31,8 +31,14 @@ vi.mock('next/router', () => ({
 }));
 
 vi.mock('@sistent/sistent', () => ({
-  CustomTooltip: ({ children }) => <div>{children}</div>,
-  FormattedTime: ({ date }) => <span data-testid="formatted-time">{String(date)}</span>,
+  CustomTooltip: ({ children, title }) => (
+    <div data-testid="custom-tooltip" data-title={String(title)}>
+      {children}
+    </div>
+  ),
+  // Same helpers FormattedTime uses; identity stubs keep cell tests deterministic.
+  getRelativeTime: (date: string) => `rel(${date})`,
+  getFullFormattedTime: (date: string) => `full(${date})`,
   CustomColumnVisibilityControl: () => <div data-testid="column-visibility-control" />,
   SearchBar: () => <div data-testid="search-bar" />,
   UniversalFilter: () => <div data-testid="universal-filter" />,
@@ -227,14 +233,14 @@ const makeConnection = (overrides = {}) => ({
   kind: 'kubernetes',
   status: 'connected',
   type: 'cluster',
+  // v1beta3 camelCase wire shape (subType/createdAt/updatedAt), matching what
+  // GET /api/integrations/connections actually returns.
   subType: 'managed',
   metadata: {
     name: 'cluster-a',
     server: 'https://cluster-a.local',
   },
   environments: [],
-  // API wire contract is camelCase (schemas v1beta3); ConnectionTable bridges
-  // this to the snake_case column key used for display + ORDER BY.
   createdAt: '2026-05-08T12:00:00Z',
   updatedAt: '2026-05-09T12:00:00Z',
   ...overrides,
@@ -329,6 +335,97 @@ describe('ConnectionTable', () => {
     });
   });
 
+  it('defaults to Discovered At (createdAt) descending, mapped to the server sort column', async () => {
+    render(<ConnectionTable />);
+
+    await waitFor(() => {
+      expect(dataTableProps).toBeDefined();
+    });
+
+    // The server's order param addresses the DB column...
+    expect(getConnectionsQuery).toHaveBeenLastCalledWith(
+      expect.objectContaining({ order: 'created_at desc' }),
+      undefined,
+    );
+    // ...while the table's active-sort indicator uses the wire/column name.
+    expect(dataTableProps.options.sortOrder).toEqual({ name: 'createdAt', direction: 'desc' });
+  });
+
+  it('keeps a bookmarked snake_case sort working, indicator included', async () => {
+    // A URL bookmarked before the columns moved to the camelCase wire shape.
+    router.query = { con_sort: 'created_at desc' };
+
+    render(<ConnectionTable />);
+
+    await waitFor(() => {
+      expect(dataTableProps).toBeDefined();
+    });
+
+    // The server column is already snake_case, so it passes straight through...
+    expect(getConnectionsQuery).toHaveBeenLastCalledWith(
+      expect.objectContaining({ order: 'created_at desc' }),
+      undefined,
+    );
+    // ...and the indicator resolves to a real column rather than silently
+    // matching nothing.
+    expect(dataTableProps.options.sortOrder).toEqual({ name: 'createdAt', direction: 'desc' });
+  });
+
+  it('shows the Discovered At column by default and renders a shrink-wrapped timestamp cell', async () => {
+    render(<ConnectionTable />);
+
+    await waitFor(() => {
+      expect(dataTableProps).toBeDefined();
+    });
+
+    // The responsive defaults are computed from colViews; 'xs' marks the
+    // column visible at every breakpoint (previously 'na' = always hidden).
+    const colViewsArg = updateVisibleColumns.mock.calls[0][1];
+    expect(colViewsArg).toContainEqual(['createdAt', 'xs']);
+
+    const discoveredAtColumn = dataTableProps.tableCols.find((col) => col.name === 'createdAt');
+    expect(discoveredAtColumn?.label).toBe('Discovered At');
+    // Header carries an info tooltip explaining Discovered At.
+    expect(discoveredAtColumn.options.customHeadRender).toEqual(expect.any(Function));
+
+    const { container, unmount } = render(
+      <>{discoveredAtColumn.options.customBodyRender('2026-05-08T12:00:00Z')}</>,
+    );
+    const stamp = container.querySelector('[data-testid="formatted-time"]') as HTMLElement;
+    expect(stamp).toHaveTextContent('rel(2026-05-08T12:00:00Z)');
+    // Inline shrink-wrap so the full-datetime tooltip anchors on the text,
+    // not the full table-cell width (Sistent FormattedTime uses a block div).
+    expect(stamp.style.display).toBe('inline-block');
+    expect(container.querySelector('[data-testid="custom-tooltip"]')).toHaveAttribute(
+      'data-title',
+      'full(2026-05-08T12:00:00Z)',
+    );
+    unmount();
+
+    // Empty and Go zero-time sentinel render as '-' (not "2025 years ago").
+    const { container: emptyContainer, unmount: unmountEmpty } = render(
+      <>{discoveredAtColumn.options.customBodyRender(undefined)}</>,
+    );
+    expect(emptyContainer.textContent).toBe('-');
+    unmountEmpty();
+
+    const { container: zeroContainer, unmount: unmountZero } = render(
+      <>{discoveredAtColumn.options.customBodyRender('0001-01-01T00:00:00Z')}</>,
+    );
+    expect(zeroContainer.textContent).toBe('-');
+    unmountZero();
+
+    // Updated At shares the same cell renderer when enabled via View Columns.
+    const updatedAtColumn = dataTableProps.tableCols.find((col) => col.name === 'updatedAt');
+    const { container: updatedContainer, unmount: unmountUpdated } = render(
+      <>{updatedAtColumn.options.customBodyRender('2026-05-09T12:00:00Z')}</>,
+    );
+    expect(updatedContainer.querySelector('[data-testid="formatted-time"]')).toHaveTextContent(
+      'rel(2026-05-09T12:00:00Z)',
+    );
+    unmountUpdated();
+  });
+
   it('surfaces query failures through notifications', async () => {
     getConnectionsQuery.mockReturnValue({
       data: { connections: [], totalCount: 0 },
@@ -398,41 +495,6 @@ describe('ConnectionTable', () => {
     await waitFor(() => {
       expect(dataTableProps.columnVisibility.kind).toBe(false);
     });
-  });
-
-  // Regression: API returns camelCase createdAt (schemas v1beta3) while the
-  // Discovered At column reads created_at. Without the bridge the cell value
-  // is undefined and renders as empty/invalid. Also assert default visibility
-  // and Sistent FormattedTime (same pattern as MeshSync tab).
-  it('bridges camelCase createdAt for Discovered At and shows the column by default', () => {
-    render(<ConnectionTable />);
-
-    expect(dataTableProps.data[0].created_at).toBe('2026-05-08T12:00:00Z');
-    expect(dataTableProps.data[0].updated_at).toBe('2026-05-09T12:00:00Z');
-    expect(dataTableProps.data[0].sub_type).toBe('managed');
-
-    // getResponsiveColumnVisibility is mocked as updateVisibleColumns(...args),
-    // so args are (columnNames, colViews, width).
-    const colViewsArg = updateVisibleColumns.mock.calls[0][1];
-    expect(colViewsArg).toEqual(expect.arrayContaining([['created_at', 'm']]));
-    expect(colViewsArg).not.toEqual(expect.arrayContaining([['created_at', 'na']]));
-
-    const discoveredAt = dataTableProps.columns.find((col) => col.name === 'created_at');
-    expect(discoveredAt?.label).toBe('Discovered At');
-
-    const { container, unmount } = render(
-      <>{discoveredAt.options.customBodyRender(dataTableProps.data[0].created_at)}</>,
-    );
-    expect(container.querySelector('[data-testid="formatted-time"]')).toHaveTextContent(
-      '2026-05-08T12:00:00Z',
-    );
-    unmount();
-
-    const { container: emptyContainer, unmount: unmountEmpty } = render(
-      <>{discoveredAt.options.customBodyRender(undefined)}</>,
-    );
-    expect(emptyContainer.textContent).toBe('-');
-    unmountEmpty();
   });
 
   // Regression: the Environments select disappeared from the table. The cells

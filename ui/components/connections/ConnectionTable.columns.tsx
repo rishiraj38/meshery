@@ -5,8 +5,10 @@ import {
   Grid2,
   TableCell,
   InfoOutlinedIcon,
-  FormattedTime,
   MoreVertIcon,
+  CustomTooltip,
+  getRelativeTime,
+  getFullFormattedTime,
 } from '@sistent/sistent';
 import { FormatId } from '../data-formatter';
 import { iconMedium } from '../../css/icons.styles';
@@ -22,6 +24,53 @@ import { CustomTextTooltip } from '../meshery-mesh-interface/PatternService/Cust
 import { getFallbackImageBasedOnKind, normalizeStaticImagePath } from '@/utils/fallback';
 import type { ConnectionTransitionMap } from './ConnectionTable.constants';
 import type { EnvironmentOption, RowData } from './ConnectionTable.types';
+
+/** Shared header info button for column tooltips (environments, status, timestamps). */
+const ColumnInfoIcon = () => (
+  <IconButton
+    disableRipple={true}
+    disableFocusRipple={true}
+    onClick={(event) => {
+      event.stopPropagation();
+    }}
+  >
+    <InfoOutlinedIcon
+      style={{
+        cursor: 'pointer',
+        height: 20,
+        width: 20,
+      }}
+    />
+  </IconButton>
+);
+
+/**
+ * Relative time cell for connection timestamps. Guards empty values, unparsable
+ * dates, and Go's zero-time sentinel (`0001-01-01T00:00:00Z`; no omitempty on
+ * schemas v1beta3 CreatedAt/UpdatedAt).
+ *
+ * Same content as Sistent FormattedTime (relative text + full datetime tooltip),
+ * but the tooltip target is an inline shrink-wrap so MUI anchors over the text
+ * instead of the full table-cell width. FormattedTime uses a block-level div,
+ * which makes the popup sit far from left-aligned values like "an hour ago".
+ */
+const renderTimestampCell = (value: unknown) => {
+  if (value == null || value === '') {
+    return <span>-</span>;
+  }
+  const dateStr = String(value);
+  const parsed = value instanceof Date ? value : new Date(dateStr);
+  if (Number.isNaN(parsed.getTime()) || parsed.getUTCFullYear() <= 1) {
+    return <span>-</span>;
+  }
+  return (
+    <CustomTooltip title={getFullFormattedTime(dateStr)} disableInteractive>
+      <span data-testid="formatted-time" style={{ display: 'inline-block' }}>
+        {getRelativeTime(dateStr)}
+      </span>
+    </CustomTooltip>
+  );
+};
 
 type UseConnectionColumnsArgs = {
   url: string;
@@ -84,6 +133,16 @@ export const useConnectionColumns = ({
         },
       },
       {
+        // The wire metadata for meshery-kind connections uses camelCase
+        // (`serverLocation`, see BuildMesheryConnectionPayload); the snake_case
+        // sibling above is kept for older records.
+        name: 'metadata.serverLocation',
+        label: 'Server Location',
+        options: {
+          display: false,
+        },
+      },
+      {
         name: 'metadata.server',
         label: 'Server',
         options: {
@@ -111,6 +170,7 @@ export const useConnectionColumns = ({
           customBodyRender: (value, tableMeta) => {
             const server =
               getColumnValue(tableMeta.rowData, 'metadata.server', nextColumns) ||
+              getColumnValue(tableMeta.rowData, 'metadata.serverLocation', nextColumns) ||
               getColumnValue(tableMeta.rowData, 'metadata.server_location', nextColumns);
             const name = getColumnValue(tableMeta.rowData, 'metadata.name', nextColumns);
             const kind = getColumnValue(tableMeta.rowData, 'kind', nextColumns);
@@ -186,23 +246,7 @@ export const useConnectionColumns = ({
             return (
               <DefaultTableCell
                 columnData={column}
-                icon={
-                  <IconButton
-                    disableRipple={true}
-                    disableFocusRipple={true}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                    }}
-                  >
-                    <InfoOutlinedIcon
-                      style={{
-                        cursor: 'pointer',
-                        height: 20,
-                        width: 20,
-                      }}
-                    />
-                  </IconButton>
-                }
+                icon={<ColumnInfoIcon />}
                 tooltip={`Meshery Environments allow you to logically group related Connections and their associated Credentials. [Learn more](${envUrl})`}
               />
             );
@@ -291,7 +335,11 @@ export const useConnectionColumns = ({
         },
       },
       {
-        name: 'sub_type',
+        // Connections arrive in the v1beta3 camelCase wire shape (see
+        // server/models/connections type aliases): subType, createdAt,
+        // updatedAt. Column names must match those row fields; the server's
+        // snake_case sort columns are mapped in toServerSortOrder.
+        name: 'subType',
         label: 'Sub Category',
         options: {
           sort: true,
@@ -311,7 +359,7 @@ export const useConnectionColumns = ({
         },
       },
       {
-        name: 'updated_at',
+        name: 'updatedAt',
         label: 'Updated At',
         options: {
           sort: true,
@@ -324,15 +372,17 @@ export const useConnectionColumns = ({
                 columnData={column}
                 columnMeta={columnMeta}
                 onSort={() => sortColumn(index)}
-                icon={null}
-                tooltip=""
+                icon={<ColumnInfoIcon />}
+                tooltip="When this connection was last modified in Meshery, such as a status or metadata change. Values show relative time (for example, 2 hours ago). Hover the value for the full local date and time."
               />
             );
           },
+          // Same timestamp treatment as Discovered At when enabled via View Columns.
+          customBodyRender: renderTimestampCell,
         },
       },
       {
-        name: 'created_at',
+        name: 'createdAt',
         label: 'Discovered At',
         options: {
           sort: true,
@@ -344,22 +394,13 @@ export const useConnectionColumns = ({
                 columnData={column}
                 columnMeta={columnMeta}
                 onSort={() => sortColumn(index)}
-                icon={null}
-                tooltip=""
+                icon={<ColumnInfoIcon />}
+                tooltip="When Meshery first recorded this connection through discovery or registration. This timestamp is set at creation and is not updated on later MeshSync events. Values show relative time (for example, 2 hours ago). Hover the value for the full local date and time."
               />
             );
           },
-          // Match MeshSync tab: relative time in-cell, full local datetime on hover.
-          customBodyRender: function CustomBody(value) {
-            if (value == null || value === '') {
-              return <span>-</span>;
-            }
-            const parsed = new Date(value);
-            if (Number.isNaN(parsed.getTime())) {
-              return <span>-</span>;
-            }
-            return <FormattedTime date={value} />;
-          },
+          // Relative time in-cell, full local datetime on hover (inline tooltip target).
+          customBodyRender: renderTimestampCell,
         },
       },
       {
@@ -399,23 +440,7 @@ export const useConnectionColumns = ({
                 columnData={column}
                 columnMeta={columnMeta}
                 onSort={() => sortColumn(index)}
-                icon={
-                  <IconButton
-                    disableRipple={true}
-                    disableFocusRipple={true}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                    }}
-                  >
-                    <InfoOutlinedIcon
-                      style={{
-                        cursor: 'pointer',
-                        height: 20,
-                        width: 20,
-                      }}
-                    />
-                  </IconButton>
-                }
+                icon={<ColumnInfoIcon />}
                 tooltip={`Every connection can be in one of the states at any given point of time. Eg: Connected, Registered, Discovered, etc. It allow users more control over whether the discovered infrastructure is to be managed or not (registered for use or not). [Learn more](${url})`}
               />
             );
@@ -464,7 +489,7 @@ export const useConnectionColumns = ({
           },
           customBodyRender: function CustomBody(_, tableMeta) {
             return (
-              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
                 {getColumnValue(tableMeta.rowData, 'kind', nextColumns) ===
                 CONNECTION_KINDS.KUBERNETES ? (
                   <IconButton
