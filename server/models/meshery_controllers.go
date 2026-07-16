@@ -60,6 +60,13 @@ type MesheryControllersHelper struct {
 	// meshsync data handler for a particular context
 	ctxMeshsyncDataHandler *MeshsyncDataHandler
 
+	// meshsyncConnectedEventEmitted tracks whether we already published the
+	// "MeshSync connected in <mode> mode" event for the current data-handler
+	// session. AddMeshsyncDataHandlers can be invoked multiple times while the
+	// handler stays attached; without this flag each call re-broadcasts the
+	// same informational snackbar.
+	meshsyncConnectedEventEmitted bool
+
 	// brokerPortForward is the self-healing port-forward to the NATS pod used when
 	// Meshery runs out-of-cluster and the broker is only reachable on a ClusterIP.
 	// nil when running in-cluster or when managed forwarding is disabled.
@@ -276,9 +283,12 @@ func (mch *MesheryControllersHelper) AddMeshsyncDataHandlers(ctx context.Context
 	// Emit the success event only when the data path is actually up. With the
 	// self-healing broker connection, the handler may be attached but still
 	// connecting in the background; in that case meshsyncDataHandlersNatsBroker has
-	// already surfaced the "unreachable, retrying" warning + remediation, and the
-	// status/diagnostics flip to Connected on their own once it connects.
-	if mch.ctxMeshsyncDataHandler != nil && mch.ctxMeshsyncDataHandler.IsConnected() {
+	// already surfaced the "unreachable, retrying" warning + remediation, and a
+	// later AddMeshsyncDataHandlers call (once IsConnected) emits the event once.
+	// Deduplicate so repeated reconcile calls do not spam the same snackbar.
+	if mch.ctxMeshsyncDataHandler != nil &&
+		mch.ctxMeshsyncDataHandler.IsConnected() &&
+		!mch.meshsyncConnectedEventEmitted {
 		description := "MeshSync connected"
 		if mch.meshsyncDeploymentMode != "" {
 			description = fmt.Sprintf("MeshSync connected in %s mode", string(mch.meshsyncDeploymentMode))
@@ -294,6 +304,7 @@ func (mch *MesheryControllersHelper) AddMeshsyncDataHandlers(ctx context.Context
 			},
 			userID,
 		)
+		mch.meshsyncConnectedEventEmitted = true
 	}
 
 	return mch
@@ -614,6 +625,8 @@ func (mch *MesheryControllersHelper) RemoveMeshSyncDataHandler(ctx context.Conte
 		mch.ctxMeshsyncDataHandler.Stop()
 		mch.ctxMeshsyncDataHandler = nil
 	}
+	// Allow a fresh "MeshSync connected" event when a new handler is attached.
+	mch.meshsyncConnectedEventEmitted = false
 	// Tear down the managed broker port-forward alongside the data handler.
 	if mch.brokerPortForward != nil {
 		mch.brokerPortForward.Stop()
