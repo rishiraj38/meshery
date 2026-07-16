@@ -498,7 +498,6 @@ const Environments = () => {
               </Typography>
               <Button
                 onClick={handleBulkDeleteEnvironmentConfirm}
-                disabled={selectedEnvironments.length === 0}
                 permissionKey={Keys.WorkspaceManagementDeleteEnvironment}
               >
                 <DeleteIcon fill="red" style={{ margin: '0 2px' }} />

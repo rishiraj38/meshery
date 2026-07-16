@@ -150,7 +150,7 @@ const MesheryApp = ({ Component, pageProps, relayEnvironment, emotionCache }) =>
     (key) => ability.can(key.id, _.lowerCase(key.function)),
     // `ability` is a module-level singleton; the reference never changes.
     // Re-creating this callback is intentionally avoided.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [],
   );
 

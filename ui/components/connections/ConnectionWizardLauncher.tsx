@@ -30,7 +30,6 @@ const ConnectionWizardLauncher = () => {
         type="button"
         variant="contained"
         onClick={() => setIsOpen(true)}
-        disabled={!hasPermission}
         permissionKey={!hasPermission ? Keys.LifecycleManagementAddCluster : undefined}
         data-testid="connection-create-connection"
       >
