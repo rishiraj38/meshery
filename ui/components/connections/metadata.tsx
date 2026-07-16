@@ -267,7 +267,13 @@ const KubernetesMetadataFormatter = ({ meshsyncControllerState, connection, meta
                       wordWrap: 'break-word',
                     }}
                     primary="Server"
-                    secondary={<Link href={metadata.server} title={metadata.server} />}
+                    secondary={
+                      metadata.server ? (
+                        <Link href={metadata.server} title={metadata.server} />
+                      ) : (
+                        '-'
+                      )
+                    }
                   />
                 </ListItem>
               </List>

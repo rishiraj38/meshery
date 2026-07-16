@@ -223,6 +223,27 @@ describe('FormatConnectionMetadata', () => {
     expect(screen.getByTestId('structured-data')).toHaveTextContent('meshery.local');
   });
 
+  it('shows a dash when kubernetes metadata.server is missing', () => {
+    render(
+      <FormatConnectionMetadata
+        meshsyncControllerState={{}}
+        connection={{
+          id: 'connection-2',
+          kind: 'kubernetes',
+          status: 'connected',
+          metadata: {
+            name: 'cluster-b',
+            // no server field
+          },
+        }}
+      />,
+    );
+
+    // The Server row should render a plain dash, not an invalid link.
+    expect(screen.queryByRole('link')).toBeNull();
+    expect(screen.getByText('-')).toBeInTheDocument();
+  });
+
   it('falls back to the generic structured formatter for other connection kinds', () => {
     render(
       <FormatConnectionMetadata

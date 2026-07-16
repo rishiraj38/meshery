@@ -21,4 +21,9 @@ describe('toServerSortOrder', () => {
   it('normalizes extra whitespace between column and direction', () => {
     expect(toServerSortOrder('createdAt  desc')).toBe('created_at desc');
   });
+
+  it('returns a valid default when the input is empty or whitespace-only', () => {
+    expect(toServerSortOrder('')).toBe('created_at desc');
+    expect(toServerSortOrder('   ')).toBe('created_at desc');
+  });
 });
