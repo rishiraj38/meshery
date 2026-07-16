@@ -269,8 +269,16 @@ const ConnectionTable = ({
     // for missing fields (the Name column uses `metadata.name`/kind, etc.).
     // Do NOT drop connections for a missing name/kind/status: that wrongly hid
     // real connections. The only guard is against null/undefined array entries.
+    // Wire contract is camelCase (schemas v1beta3: createdAt, updatedAt,
+    // subType). Table columns and server ORDER BY still use the DB snake_case
+    // keys (created_at, etc.) so sort keeps working with SanitizeOrderInput.
+    // Bridge both spellings so the Discovered At cell is not undefined
+    // ("Invalid Date") when the API only sends camelCase.
     return connectionData.connections.filter(Boolean).map((connection) => ({
       ...connection,
+      created_at: connection.created_at ?? connection.createdAt,
+      updated_at: connection.updated_at ?? connection.updatedAt,
+      sub_type: connection.sub_type ?? connection.subType,
       nextStatus: connection.nextStatus || connectionMetadataState?.[connection.kind]?.transitions,
       kindLogo: connection.kindLogo || connectionMetadataState?.[connection.kind]?.icon,
     }));
@@ -293,7 +301,9 @@ const ConnectionTable = ({
       ['kind', 'm'],
       ['type', 's'],
       ['sub_type', 'na'],
-      ['created_at', 'na'],
+      // Show Discovered At by default from medium widths up; still toggleable
+      // via the View Columns control (was 'na' = never visible by default).
+      ['created_at', 'm'],
       ['status', 'xs'],
       ['Actions', 'xs'],
       ['transitionMap', 'xs'],

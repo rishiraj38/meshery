@@ -228,7 +228,10 @@ const makeConnection = (overrides = {}) => ({
     server: 'https://cluster-a.local',
   },
   environments: [],
-  created_at: '2026-05-08',
+  // API wire contract is camelCase (schemas v1beta3); ConnectionTable bridges
+  // this to the snake_case column key used for display + ORDER BY.
+  createdAt: '2026-05-08T12:00:00Z',
+  updatedAt: '2026-05-09T12:00:00Z',
   ...overrides,
 });
 
@@ -390,6 +393,39 @@ describe('ConnectionTable', () => {
     await waitFor(() => {
       expect(dataTableProps.columnVisibility.kind).toBe(false);
     });
+  });
+
+  // Regression: API returns camelCase createdAt (schemas v1beta3) while the
+  // Discovered At column reads created_at. Without the bridge the cell value
+  // is undefined → formatDate prints "Invalid Date". Also assert the column
+  // is no longer default-hidden via colViews 'na'.
+  it('bridges camelCase createdAt for Discovered At and shows the column by default', () => {
+    render(<ConnectionTable />);
+
+    expect(dataTableProps.data[0].created_at).toBe('2026-05-08T12:00:00Z');
+    expect(dataTableProps.data[0].updated_at).toBe('2026-05-09T12:00:00Z');
+    expect(dataTableProps.data[0].sub_type).toBe('managed');
+
+    // getResponsiveColumnVisibility is mocked as updateVisibleColumns(...args),
+    // so args are (columnNames, colViews, width).
+    const colViewsArg = updateVisibleColumns.mock.calls[0][1];
+    expect(colViewsArg).toEqual(expect.arrayContaining([['created_at', 'm']]));
+    expect(colViewsArg).not.toEqual(expect.arrayContaining([['created_at', 'na']]));
+
+    const discoveredAt = dataTableProps.columns.find((col) => col.name === 'created_at');
+    expect(discoveredAt?.label).toBe('Discovered At');
+
+    const { container, unmount } = render(
+      <>{discoveredAt.options.customBodyRender(dataTableProps.data[0].created_at)}</>,
+    );
+    expect(container.textContent).toBe('2026-05-08T12:00:00Z');
+    unmount();
+
+    const { container: emptyContainer, unmount: unmountEmpty } = render(
+      <>{discoveredAt.options.customBodyRender(undefined)}</>,
+    );
+    expect(emptyContainer.textContent).toBe('-');
+    unmountEmpty();
   });
 
   // Regression: the Environments select disappeared from the table. The cells

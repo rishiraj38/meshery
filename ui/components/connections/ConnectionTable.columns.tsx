@@ -342,6 +342,13 @@ export const useConnectionColumns = ({
             );
           },
           customBodyRender: function CustomBody(value) {
+            if (value == null || value === '') {
+              return <span>-</span>;
+            }
+            const parsed = new Date(value);
+            if (Number.isNaN(parsed.getTime())) {
+              return <span>-</span>;
+            }
             const renderValue = formatDate(value);
             return (
               <CustomTooltip title={renderValue} placement="top" arrow interactive>
