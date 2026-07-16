@@ -35,7 +35,17 @@ vi.mock('@sistent/sistent', () => ({
   SearchBar: () => <div data-testid="search-bar" />,
   UniversalFilter: () => <div data-testid="universal-filter" />,
 
-  DataTableToolbar: ({ primaryActions, search, filter, columnVisibility }: any) => (
+  DataTableToolbar: ({
+    primaryActions,
+    search,
+    filter,
+    columnVisibility,
+  }: {
+    primaryActions?: React.ReactNode;
+    search?: React.ReactNode;
+    filter?: React.ReactNode;
+    columnVisibility?: React.ReactNode;
+  }) => (
     <div data-testid="data-table-toolbar">
       {primaryActions}
       {search}
