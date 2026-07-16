@@ -75,27 +75,31 @@ func TestGetUserCredentialsRejectsUnsanitizedOrderInput(t *testing.T) {
 		}
 	}
 
-	// "foobar" is not a real column. Pre-fix, this string was handed straight to
-	// gorm's Order(), which built `ORDER BY foobar asc` and the query failed with
-	// a driver-level "no such column" error -- proof the raw input reached SQL
-	// construction unsanitized. Post-fix, SanitizeOrderInput rejects it outright
-	// and Order() becomes a no-op, so the query must still succeed.
-	page, err := provider.GetUserCredentials(nil, userID.String(), 0, 10, "", "foobar asc")
-	if err != nil {
-		t.Fatalf("unsanitized order value reached the query and caused an error: %v", err)
-	}
-	if page.TotalCount != 2 {
-		t.Errorf("got TotalCount=%d, want 2", page.TotalCount)
-	}
+	t.Run("rejects unsanitized order input", func(t *testing.T) {
+		// "foobar" is not a real column. Pre-fix, this string was handed straight to
+		// gorm's Order(), which built `ORDER BY foobar asc` and the query failed with
+		// a driver-level "no such column" error -- proof the raw input reached SQL
+		// construction unsanitized. Post-fix, SanitizeOrderInput rejects it outright
+		// and Order() becomes a no-op, so the query must still succeed.
+		page, err := provider.GetUserCredentials(nil, userID.String(), 0, 10, "", "foobar asc")
+		if err != nil {
+			t.Fatalf("unsanitized order value reached the query and caused an error: %v", err)
+		}
+		if page.TotalCount != 2 {
+			t.Errorf("got TotalCount=%d, want 2", page.TotalCount)
+		}
+	})
 
-	// A legitimate, allowlisted order value must still work after sanitization.
-	page, err = provider.GetUserCredentials(nil, userID.String(), 0, 10, "", "name asc")
-	if err != nil {
-		t.Fatalf("unexpected error with legitimate order value: %v", err)
-	}
-	if len(page.Credentials) != 2 || page.Credentials[0].Name != "a-cred" || page.Credentials[1].Name != "b-cred" {
-		t.Fatalf("got order %v, want [a-cred b-cred]", credentialNames(page.Credentials))
-	}
+	t.Run("accepts legitimate order input", func(t *testing.T) {
+		// A legitimate, allowlisted order value must still work after sanitization.
+		page, err := provider.GetUserCredentials(nil, userID.String(), 0, 10, "", "name asc")
+		if err != nil {
+			t.Fatalf("unexpected error with legitimate order value: %v", err)
+		}
+		if len(page.Credentials) != 2 || page.Credentials[0].Name != "a-cred" || page.Credentials[1].Name != "b-cred" {
+			t.Fatalf("got order %v, want [a-cred b-cred]", credentialNames(page.Credentials))
+		}
+	})
 }
 
 func credentialNames(creds []Credential) []string {
