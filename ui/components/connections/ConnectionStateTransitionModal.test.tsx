@@ -34,11 +34,15 @@ vi.mock('@sistent/sistent', () => ({
       {children}
     </div>
   ),
-  IconButton: ({ children, onClick, ...props }) => (
-    <button onClick={onClick} type="button" {...props}>
-      {children}
-    </button>
-  ),
+  IconButton: ({ children, onClick, ...props }) => {
+    // Drop MUI-only props so React does not warn in the unit mock.
+    const { disableRipple: _disableRipple, sx: _sx, size: _size, ...domProps } = props;
+    return (
+      <button onClick={onClick} type="button" {...domProps}>
+        {children}
+      </button>
+    );
+  },
   InfoOutlinedIcon: () => <svg data-testid="info-outlined-icon" />,
   // Capture fill so we can assert amber/warning theming.
   WarningIcon: (props) => <svg data-testid="warning-icon" data-fill={props.fill} />,
@@ -278,7 +282,7 @@ describe('ConnectionStateTransitionModal', () => {
     expect(resolved).toBe(false);
   });
 
-  it('uses the primary (non-danger) button and transition copy for non-destructive transitions', async () => {
+  it('uses action-style titles and primary confirm for forward transitions', async () => {
     const ref = setup();
 
     act(() => {
@@ -291,20 +295,64 @@ describe('ConnectionStateTransitionModal', () => {
       });
     });
 
-    expect(await screen.findByText('Transition connection to REGISTERED?')).toBeInTheDocument();
+    // Reuses CONNECTION_STATE_TO_TRANSITION_MAP verbs (Register), same shape as Delete.
+    expect(await screen.findByText('Register Kubernetes connection?')).toBeInTheDocument();
     expect(screen.getByTestId('connection-transition-lead')).toHaveTextContent(
+      'You are about to register the connection',
+    );
+    expect(screen.getByTestId('connection-transition-lead')).toHaveTextContent('prod-cluster');
+    // Do not restate from→to in the lead; title/verb already carry the target.
+    expect(screen.getByTestId('connection-transition-lead')).not.toHaveTextContent(
       'from DISCOVERED to REGISTERED',
     );
-    expect(screen.getByTestId('connection-transition-confirm')).toHaveAttribute(
-      'data-variant',
-      'primary',
-    );
+    const confirm = screen.getByTestId('connection-transition-confirm');
+    expect(confirm).toHaveAttribute('data-variant', 'primary');
+    expect(confirm).toHaveAttribute('data-severity', 'primary');
+    expect(confirm).toHaveTextContent('Register');
     expect(screen.getByTestId('connection-transition-will')).toHaveTextContent(
       'Register the connection with Meshery',
     );
     expect(screen.getByTestId('connection-transition-description')).toHaveTextContent(
       'Registration description from the connection definition.',
     );
+  });
+
+  it('frames disconnect with a caution (warning) confirm, not delete-red or bare Confirm', async () => {
+    const ref = setup();
+
+    act(() => {
+      ref.current.show({
+        targetStatus: 'disconnected',
+        currentStatus: 'connected',
+        kind: 'kubernetes',
+        connections: [{ id: 'c1', name: 'prod-cluster' }],
+      });
+    });
+
+    expect(await screen.findByText('Disconnect Kubernetes connection?')).toBeInTheDocument();
+    expect(screen.getByTestId('connection-transition-lead')).toHaveTextContent(
+      'You are about to disconnect the connection',
+    );
+    const confirm = screen.getByTestId('connection-transition-confirm');
+    expect(confirm).toHaveAttribute('data-severity', 'caution');
+    expect(confirm).toHaveTextContent('Disconnect');
+    // Still the primary component (Sistent has no warning button); severity is via sx.
+    expect(confirm).toHaveAttribute('data-variant', 'primary');
+  });
+
+  it('uses Discover verb for discovered transitions (consistent with Delete/Disconnect)', async () => {
+    const ref = setup();
+
+    act(() => {
+      ref.current.show({
+        targetStatus: 'discovered',
+        currentStatus: 'not found',
+        connections: [{ id: 'c1', name: 'prom' }],
+      });
+    });
+
+    expect(await screen.findByText('Discover connection?')).toBeInTheDocument();
+    expect(screen.getByTestId('connection-transition-confirm')).toHaveTextContent('Discover');
   });
 
   it('summarizes bulk deletions and notes the per-connection scope', async () => {

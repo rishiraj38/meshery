@@ -15,7 +15,11 @@ import {
   useTheme,
 } from '@sistent/sistent';
 import { iconLarge } from '../../css/icons.styles';
-import { CONNECTION_KINDS, CONNECTION_STATES } from '../../utils/Enum';
+import {
+  CONNECTION_KINDS,
+  CONNECTION_STATES,
+  CONNECTION_STATE_TO_TRANSITION_MAP,
+} from '../../utils/Enum';
 import { formatToTitleCase } from '../../utils/utils';
 import { CONNECTION_DOCS_URL } from './ConnectionTable.constants';
 
@@ -205,6 +209,94 @@ const dangerButtonSx = {
   },
 };
 
+// Caution transitions (disconnect / ignore / maintenance) are reversible and
+// must not look like delete (red). There is no ModalButtonWarning in Sistent.
+//
+// Important: ModalButtonPrimary / MUI contained force light (white) label color.
+// White-on-amber fails contrast (label looks "invisible"). We raise specificity
+// and pin a dark label on the warning fill for both default and hover.
+// Prefer true black for WCAG contrast on amber; fall back to inverse/default.
+const cautionLabelColor = (theme) =>
+  theme.palette.common?.black ?? theme.palette.text?.inverse ?? theme.palette.text?.default;
+
+const cautionFill = (theme) =>
+  theme.palette.background?.warning?.default ?? theme.palette.status?.warning;
+
+const cautionFillHover = (theme) =>
+  theme.palette.background?.warning?.hover ??
+  theme.palette.background?.warning?.default ??
+  theme.palette.status?.warning;
+
+const cautionButtonSx = {
+  // Match primary + contained + brand class chains MUI emits on this button.
+  '&&.MuiButton-contained, &&.MuiButton-containedPrimary': {
+    backgroundColor: cautionFill,
+    backgroundImage: 'none',
+    color: cautionLabelColor,
+    // Some builds paint label via -webkit-text-fill-color on the root.
+    WebkitTextFillColor: cautionLabelColor,
+    '&:hover': {
+      backgroundColor: cautionFillHover,
+      backgroundImage: 'none',
+      color: cautionLabelColor,
+      WebkitTextFillColor: cautionLabelColor,
+    },
+    '& .MuiButton-label, & .MuiButton-startIcon, & .MuiButton-endIcon': {
+      color: cautionLabelColor,
+      WebkitTextFillColor: cautionLabelColor,
+    },
+  },
+};
+
+/** Lifecycle states that pause or step back management without purging the connection. */
+const CAUTION_TARGET_STATES = new Set([
+  CONNECTION_STATES.DISCONNECTED,
+  CONNECTION_STATES.IGNORED,
+  CONNECTION_STATES.MAINTENANCE,
+]);
+
+/**
+ * Action verb for titles and confirm labels. Reuses the shared transition map
+ * so chip labels, dropdowns, and this modal stay consistent (Delete / Disconnect /
+ * Discover / …). A few states need a fuller phrase so the title reads as English.
+ */
+export const getTransitionActionLabel = (targetStatus: string): string => {
+  if (targetStatus === CONNECTION_STATES.NOTFOUND) {
+    return 'Mark as not found';
+  }
+  if (targetStatus === CONNECTION_STATES.MAINTENANCE) {
+    return 'Put into maintenance';
+  }
+  return (
+    CONNECTION_STATE_TO_TRANSITION_MAP[targetStatus] || formatToTitleCase(targetStatus) || 'Confirm'
+  );
+};
+
+export const buildTransitionTitle = ({
+  targetStatus,
+  kind,
+  count,
+}: {
+  targetStatus: string;
+  kind?: string;
+  count: number;
+}): string => {
+  const plural = count > 1;
+  const kindLabel = kind ? `${formatToTitleCase(kind)} ` : '';
+  const connectionWord = `connection${plural ? 's' : ''}`;
+  const countLabel = plural ? `${count} ` : '';
+
+  if (targetStatus === CONNECTION_STATES.NOTFOUND) {
+    return `Mark ${countLabel}${kindLabel}${connectionWord} as not found?`;
+  }
+  if (targetStatus === CONNECTION_STATES.MAINTENANCE) {
+    return `Put ${countLabel}${kindLabel}${connectionWord} into maintenance?`;
+  }
+
+  const action = getTransitionActionLabel(targetStatus);
+  return `${action} ${countLabel}${kindLabel}${connectionWord}?`;
+};
+
 const ConsequenceSection = ({
   title,
   items,
@@ -312,9 +404,9 @@ const ConnectionStateTransitionModal = forwardRef<ConnectionStateTransitionModal
 
     const { targetStatus, currentStatus, kind, connections, transitionDescription } = displayParams;
     const isDelete = targetStatus === CONNECTION_STATES.DELETED;
+    const isCaution = CAUTION_TARGET_STATES.has(targetStatus);
     const count = connections.length;
     const plural = count > 1;
-    const kindLabel = kind ? `${formatToTitleCase(kind)} ` : '';
     const secondaryColor = theme.palette.text.secondary;
     const consequences = getConsequences(kind, targetStatus);
     const showTransitionDescription = shouldShowTransitionDescription(transitionDescription, {
@@ -322,19 +414,28 @@ const ConnectionStateTransitionModal = forwardRef<ConnectionStateTransitionModal
       currentStatus,
       targetStatus,
     });
-
-    const title = isDelete
-      ? `Delete ${plural ? `${count} ` : ''}${kindLabel}connection${plural ? 's' : ''}?`
-      : `Transition ${plural ? `${count} connections` : 'connection'} to ${targetStatus.toUpperCase()}?`;
-
-    const leadSentence = (
+    const actionLabel = getTransitionActionLabel(targetStatus);
+    const title = buildTransitionTitle({ targetStatus, kind, count });
+    const connectionPhrase = (
       <>
-        You are about to {isDelete ? 'delete' : 'transition'}{' '}
         {plural ? `${count} connections` : 'the connection'}
         <ConnectionNames connections={connections} />
-        {!isDelete && currentStatus
-          ? ` from ${currentStatus.toUpperCase()} to ${targetStatus.toUpperCase()}`
-          : ''}
+      </>
+    );
+    // Lead mirrors the title verb family. Multi-word actions need the object
+    // in the middle so English stays grammatical
+    // ("mark the connection as not found", not "mark as not found the connection").
+    const leadSentence = (
+      <>
+        {targetStatus === CONNECTION_STATES.NOTFOUND ? (
+          <>You are about to mark {connectionPhrase} as not found</>
+        ) : targetStatus === CONNECTION_STATES.MAINTENANCE ? (
+          <>You are about to put {connectionPhrase} into maintenance</>
+        ) : (
+          <>
+            You are about to {actionLabel.toLowerCase()} {connectionPhrase}
+          </>
+        )}
         {isDelete && kind === CONNECTION_KINDS.KUBERNETES
           ? plural
             ? ' and their associated credentials'
@@ -344,7 +445,12 @@ const ConnectionStateTransitionModal = forwardRef<ConnectionStateTransitionModal
       </>
     );
 
+    // Delete = danger red. Caution (disconnect/ignore/maintenance) = warning
+    // amber with dark text. Forward transitions (connect/register/discover) =
+    // primary teal. Matches prior Prompt WARNING vs DANGER intent without a
+    // third Sistent button primitive.
     const ConfirmButton = isDelete ? ModalButtonDanger : ModalButtonPrimary;
+    const confirmButtonSx = isDelete ? dangerButtonSx : isCaution ? cautionButtonSx : undefined;
 
     return (
       <Modal
@@ -354,7 +460,7 @@ const ConnectionStateTransitionModal = forwardRef<ConnectionStateTransitionModal
         headerIcon={
           <WarningIcon
             {...iconLarge}
-            // Amber/yellow via Sistent status warning (#F0A303), not white on the header.
+            // Amber via Sistent status/background warning tokens (not white on the header).
             fill={
               theme.palette.status?.warning ??
               theme.palette.background?.warning?.default ??
@@ -366,21 +472,40 @@ const ConnectionStateTransitionModal = forwardRef<ConnectionStateTransitionModal
         data-testid="connection-transition-modal"
       >
         <ModalBody>
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '0.25rem' }}>
-            <Typography variant="body1" data-testid="connection-transition-lead">
-              {leadSentence}
-            </Typography>
+          {/*
+            Keep the info control inline with the lead copy so it tracks the
+            text baseline (flex-row + default IconButton padding sat above/
+            beside the sentence, which was most visible on short non-k8s leads
+            like Prometheus delete). One layout covers all five entry paths.
+          */}
+          <Typography
+            variant="body1"
+            component="div"
+            data-testid="connection-transition-lead"
+            sx={{ lineHeight: 1.5 }}
+          >
+            {leadSentence}
             <CustomTooltip title={getDocsTooltipMarkdown(kind)} placement="top">
               <IconButton
                 aria-label="Learn more about connection state transitions"
                 data-testid="connection-transition-info"
                 size="small"
+                disableRipple
                 onClick={(event) => event.stopPropagation()}
+                sx={{
+                  display: 'inline-flex',
+                  verticalAlign: 'text-bottom',
+                  // Tight padding so the 18px glyph sits on the body1 line,
+                  // not in a tall hit-target that drifts off the sentence.
+                  padding: '0 0 0 0.25rem',
+                  marginLeft: '0.125rem',
+                  color: 'inherit',
+                }}
               >
-                <InfoOutlinedIcon height={20} width={20} />
+                <InfoOutlinedIcon height={18} width={18} />
               </IconButton>
             </CustomTooltip>
-          </Box>
+          </Typography>
 
           <Box data-testid="connection-transition-ramifications" sx={{ marginTop: '0.5rem' }}>
             <ConsequenceSection
@@ -439,9 +564,10 @@ const ConnectionStateTransitionModal = forwardRef<ConnectionStateTransitionModal
             <ConfirmButton
               onClick={() => settle(true)}
               data-testid="connection-transition-confirm"
-              sx={isDelete ? dangerButtonSx : undefined}
+              data-severity={isDelete ? 'danger' : isCaution ? 'caution' : 'primary'}
+              sx={confirmButtonSx}
             >
-              {isDelete ? 'Delete' : 'Confirm'}
+              {actionLabel}
             </ConfirmButton>
           </Box>
         </ModalFooter>
