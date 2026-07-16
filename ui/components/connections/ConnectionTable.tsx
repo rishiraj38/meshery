@@ -273,6 +273,8 @@ const ConnectionTable = ({
     // for missing fields (the Name column uses `metadata.name`/kind, etc.).
     // Do NOT drop connections for a missing name/kind/status: that wrongly hid
     // real connections. The only guard is against null/undefined array entries.
+    // Columns read the v1beta3 camelCase wire shape (createdAt, updatedAt,
+    // subType). Sort clicks map to DB snake_case via toServerSortOrder.
     return connectionData.connections.filter(Boolean).map((connection) => ({
       ...connection,
       nextStatus: connection.nextStatus || connectionMetadataState?.[connection.kind]?.transitions,
@@ -299,6 +301,7 @@ const ConnectionTable = ({
       // subType stays hidden by default, as it was before; users can enable it
       // from the column-visibility control.
       ['subType', 'na'],
+      // Discovered At visible by default at every breakpoint (master: 'xs').
       ['createdAt', 'xs'],
       ['status', 'xs'],
       ['Actions', 'xs'],
