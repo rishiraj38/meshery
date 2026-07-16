@@ -1,29 +1,27 @@
 import React, { useMemo } from 'react';
 import {
   CustomTooltip,
-  MenuItem,
   Box,
   IconButton,
   Grid2,
-  FormControl,
   TableCell,
   InfoOutlinedIcon,
 } from '@sistent/sistent';
-import { ConnectionStyledSelect } from './styles';
 import { FormatId } from '../data-formatter';
 import { MoreVertIcon } from '@sistent/sistent';
 import { iconMedium } from '../../css/icons.styles';
 import { CONNECTION_KINDS } from '../../utils/Enum';
-import { ConnectionStateChip, TooltipWrappedConnectionChip } from './ConnectionChip';
+import { TooltipWrappedConnectionChip } from './ConnectionChip';
+import { ConnectionStatusSelect } from './ConnectionStatusSelect';
 import { DefaultTableCell, SortableTableCell } from './common';
 import { getColumnValue } from '../../utils/utils';
 import MultiSelectWrapper from '../multi-select-wrapper';
 import CAN from '@/utils/can';
-import { keys } from '@/utils/permission_constants';
+import { Keys } from '@meshery/schemas/permissions';
 import { CustomTextTooltip } from '../meshery-mesh-interface/PatternService/CustomTextTooltip';
 import { formatDate } from '../data-formatter';
 import { getFallbackImageBasedOnKind, normalizeStaticImagePath } from '@/utils/fallback';
-import { CONNECTION_STATE_TRANSITIONS } from './ConnectionTable.constants';
+import type { ConnectionTransitionMap } from './ConnectionTable.constants';
 import type { EnvironmentOption, RowData } from './ConnectionTable.types';
 
 type UseConnectionColumnsArgs = {
@@ -41,13 +39,18 @@ type UseConnectionColumnsArgs = {
     unSelectedEnvironments: EnvironmentOption[],
   ) => void | Promise<void>;
   handleStatusChange: (
-    event: any,
+    status: string,
     connectionId: string,
     connectionKind: string,
     connectionStatus: string,
   ) => void | Promise<void>;
   handleActionMenuOpen: (event: any, tableMeta: RowData) => void;
   ping: (name: string, server: string, id: string) => void;
+  pingGrafana: (connectionID: string, name?: string) => void;
+  pingPrometheus: (connectionID: string, name?: string) => void;
+  // Per-kind connection state machine, keyed by connection kind. Sourced from
+  // the connection definitions' `transitionMap` (see `_app.tsx`).
+  transitionMapByKind: Record<string, ConnectionTransitionMap | undefined> | null;
 };
 
 export const useConnectionColumns = ({
@@ -61,6 +64,9 @@ export const useConnectionColumns = ({
   handleStatusChange,
   handleActionMenuOpen,
   ping,
+  pingGrafana,
+  pingPrometheus,
+  transitionMapByKind,
 }: UseConnectionColumnsArgs) => {
   return useMemo(() => {
     const nextColumns = [
@@ -73,6 +79,16 @@ export const useConnectionColumns = ({
       },
       {
         name: 'metadata.server_location',
+        label: 'Server Location',
+        options: {
+          display: false,
+        },
+      },
+      {
+        // The wire metadata for meshery-kind connections uses camelCase
+        // (`serverLocation`, see BuildMesheryConnectionPayload); the snake_case
+        // sibling above is kept for older records.
+        name: 'metadata.serverLocation',
         label: 'Server Location',
         options: {
           display: false,
@@ -106,32 +122,46 @@ export const useConnectionColumns = ({
           customBodyRender: (value, tableMeta) => {
             const server =
               getColumnValue(tableMeta.rowData, 'metadata.server', nextColumns) ||
+              getColumnValue(tableMeta.rowData, 'metadata.serverLocation', nextColumns) ||
               getColumnValue(tableMeta.rowData, 'metadata.server_location', nextColumns);
             const name = getColumnValue(tableMeta.rowData, 'metadata.name', nextColumns);
             const kind = getColumnValue(tableMeta.rowData, 'kind', nextColumns);
+            const connectionId = getColumnValue(tableMeta.rowData, 'id', nextColumns);
             const iconSrc = normalizeStaticImagePath(
               getColumnValue(tableMeta.rowData, 'kindLogo', nextColumns) ||
                 getFallbackImageBasedOnKind(kind),
             );
 
+            // Only attach handlePing for kinds that support a chip ping. An
+            // always-defined no-op handler still makes the chip swallow row
+            // clicks (stopPropagation) even when it cannot ping.
+            let handlePing: (() => void) | undefined;
+            if (kind === CONNECTION_KINDS.KUBERNETES) {
+              handlePing = () =>
+                ping(
+                  getColumnValue(tableMeta.rowData, 'metadata.name', nextColumns),
+                  getColumnValue(tableMeta.rowData, 'metadata.server', nextColumns),
+                  connectionId,
+                );
+            } else if (kind === CONNECTION_KINDS.GRAFANA) {
+              handlePing = () =>
+                pingGrafana(connectionId, getColumnValue(tableMeta.rowData, 'name', nextColumns));
+            } else if (kind === CONNECTION_KINDS.PROMETHEUS) {
+              handlePing = () =>
+                pingPrometheus(
+                  connectionId,
+                  getColumnValue(tableMeta.rowData, 'name', nextColumns),
+                );
+            }
+
             return (
               <>
                 <TooltipWrappedConnectionChip
                   tooltip={server ? `Server: ${server}` : ''}
-                  title={kind === CONNECTION_KINDS.KUBERNETES ? name : value}
+                  title={kind === CONNECTION_KINDS.KUBERNETES ? name : value || name || kind}
                   status={getColumnValue(tableMeta.rowData, 'status', nextColumns)}
-                  onDelete={() =>
-                    handleDeleteConnection(getColumnValue(tableMeta.rowData, 'id', nextColumns))
-                  }
-                  handlePing={() => {
-                    if (getColumnValue(tableMeta.rowData, 'kind', nextColumns) === 'kubernetes') {
-                      ping(
-                        getColumnValue(tableMeta.rowData, 'metadata.name', nextColumns),
-                        getColumnValue(tableMeta.rowData, 'metadata.server', nextColumns),
-                        getColumnValue(tableMeta.rowData, 'id', nextColumns),
-                      );
-                    }
-                  }}
+                  onDelete={() => handleDeleteConnection(connectionId)}
+                  handlePing={handlePing}
                   iconSrc={iconSrc}
                   width="12rem"
                 />
@@ -219,8 +249,8 @@ export const useConnectionColumns = ({
                         menuPlacement={'bottom'}
                         disabled={
                           !CAN(
-                            keys.ASSIGN_CONNECTIONS_TO_ENVIRONMENT.action,
-                            keys.ASSIGN_CONNECTIONS_TO_ENVIRONMENT.subject,
+                            Keys.WorkspaceManagementAssignConnectionsToEnvironment.id,
+                            Keys.WorkspaceManagementAssignConnectionsToEnvironment.function,
                           )
                         }
                       />
@@ -273,7 +303,11 @@ export const useConnectionColumns = ({
         },
       },
       {
-        name: 'sub_type',
+        // Connections arrive in the v1beta3 camelCase wire shape (see
+        // server/models/connections type aliases): subType, createdAt,
+        // updatedAt. Column names must match those row fields; the server's
+        // snake_case sort columns are mapped in toServerSortOrder.
+        name: 'subType',
         label: 'Sub Category',
         options: {
           sort: true,
@@ -293,7 +327,7 @@ export const useConnectionColumns = ({
         },
       },
       {
-        name: 'updated_at',
+        name: 'updatedAt',
         label: 'Updated At',
         options: {
           sort: true,
@@ -314,7 +348,7 @@ export const useConnectionColumns = ({
         },
       },
       {
-        name: 'created_at',
+        name: 'createdAt',
         label: 'Discovered At',
         options: {
           sort: true,
@@ -400,70 +434,29 @@ export const useConnectionColumns = ({
             );
           },
           customBodyRender: function CustomBody(value, tableMeta) {
-            const currentStatus = value;
             const kind = getColumnValue(tableMeta.rowData, 'kind', nextColumns);
-
-            const nextStatus = Object.keys(
-              CONNECTION_STATE_TRANSITIONS?.[kind]?.[currentStatus] ?? {},
-            );
-            nextStatus.push(currentStatus);
-
             const disabled =
               value === 'deleted'
                 ? true
-                : !CAN(keys.CHANGE_CONNECTION_STATE.action, keys.CHANGE_CONNECTION_STATE.subject);
+                : !CAN(
+                    Keys.LifecycleManagementChangeConnectionState.id,
+                    Keys.LifecycleManagementChangeConnectionState.function,
+                  );
 
             return (
-              <FormControl>
-                <ConnectionStyledSelect
-                  labelId="connection-status-select-label"
-                  id="connection-status-select"
-                  disabled={disabled}
-                  value={value}
-                  defaultValue={value}
-                  onClick={(event) => event.stopPropagation()}
-                  onChange={(event) =>
-                    handleStatusChange(
-                      event,
-                      getColumnValue(tableMeta.rowData, 'id', nextColumns),
-                      getColumnValue(tableMeta.rowData, 'kind', nextColumns),
-                      getColumnValue(tableMeta.rowData, 'status', nextColumns),
-                    )
-                  }
-                  disableUnderline
-                  MenuProps={{
-                    anchorOrigin: {
-                      vertical: 'bottom',
-                      horizontal: 'left',
-                    },
-                    transformOrigin: {
-                      vertical: 'top',
-                      horizontal: 'left',
-                    },
-                    getContentAnchorEl: null,
-                    MenuListProps: { disablePadding: true },
-                    PaperProps: { square: true },
-                  }}
-                >
-                  {nextStatus.length === 1 && (
-                    <MenuItem disabled>No transitions Available</MenuItem>
-                  )}
-                  {nextStatus.map((status) => (
-                    <MenuItem
-                      disabled={status === value}
-                      style={{
-                        padding: 0,
-                        display: status === value ? 'none' : 'flex',
-                        justifyContent: 'center',
-                      }}
-                      value={status}
-                      key={status}
-                    >
-                      <ConnectionStateChip status={status} actionable={status !== value} />
-                    </MenuItem>
-                  ))}
-                </ConnectionStyledSelect>
-              </FormControl>
+              <ConnectionStatusSelect
+                status={value}
+                transitionMap={transitionMapByKind?.[kind]}
+                disabled={disabled}
+                onChange={(nextStatus) =>
+                  handleStatusChange(
+                    nextStatus,
+                    getColumnValue(tableMeta.rowData, 'id', nextColumns),
+                    kind,
+                    getColumnValue(tableMeta.rowData, 'status', nextColumns),
+                  )
+                }
+              />
             );
           },
         },
@@ -484,7 +477,7 @@ export const useConnectionColumns = ({
           },
           customBodyRender: function CustomBody(_, tableMeta) {
             return (
-              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
                 {getColumnValue(tableMeta.rowData, 'kind', nextColumns) ===
                 CONNECTION_KINDS.KUBERNETES ? (
                   <IconButton
@@ -536,6 +529,9 @@ export const useConnectionColumns = ({
     handleStatusChange,
     isEnvironmentsSuccess,
     ping,
+    pingGrafana,
+    pingPrometheus,
+    transitionMapByKind,
     updatingConnection,
     url,
   ]);

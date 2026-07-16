@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { getK8sClusterIdsFromCtxId } from '@/utils/multi-ctx';
+import { getK8sClusterIdsFromCtxId, persistSelectedK8sContexts } from '@/utils/multi-ctx';
 import { mesheryEventBus } from '@/utils/eventBus';
 import { store } from '..';
 
@@ -51,7 +51,8 @@ const coreSlice = createSlice({
     },
     setK8sContexts: (state, action) => {
       state.selectedK8sContexts = action.payload.selectedK8sContexts;
-      // Note: Event bus publication would be handled in the thunk action
+      // Note: Side effects (session persistence, event bus publication) are
+      // handled in the setK8sContexts thunk below; this reducer is side-effect free.
     },
     updateProgress: (state, action) => {
       state.showProgress = action.payload.showProgress;
@@ -115,6 +116,12 @@ export const {
 export const setK8sContexts = (payload) => (dispatch) => {
   dispatch(setK8sContextsAction(payload));
 
+  // Session-persist the selection so it survives navigation and reloads.
+  // Every selection change in the app flows through this thunk (header
+  // checkboxes, deploy modal, context search), making it the single
+  // persistence funnel while keeping the reducer pure.
+  persistSelectedK8sContexts(payload.selectedK8sContexts);
+
   mesheryEventBus.publish({
     type: 'K8S_CONTEXTS_UPDATED',
     data: {
@@ -130,17 +137,8 @@ export const updateProgress = (progressData) => {
 export const coreMiddleware = (getDefaultMiddleware) =>
   getDefaultMiddleware({
     serializableCheck: {
-      // Ignore these action types
-      ignoredActions: ['core/updateGrafanaConfig', 'core/updatePrometheusConfig'],
-      // Ignore these field paths in all actions
-      ignoredActionPaths: ['payload.grafana.ts', 'payload.prometheus.ts'],
       // Ignore these paths in the state
-      ignoredPaths: [
-        'core.grafana.ts',
-        'core.prometheus.ts',
-        'core.loadTestPref.ts',
-        'core.meshAdaptersts',
-      ],
+      ignoredPaths: ['core.loadTestPref.ts', 'core.meshAdaptersts'],
     },
   });
 

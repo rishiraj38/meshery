@@ -7,6 +7,8 @@ import ConnectionTable from './ConnectionTable';
 const notify = vi.fn();
 const push = vi.fn();
 const ping = vi.fn();
+const pingGrafana = vi.fn();
+const pingPrometheus = vi.fn();
 const modalShow = vi.fn();
 const updateConnectionByIdMutator = vi.fn();
 const addConnectionToEnvironmentMutator = vi.fn();
@@ -44,6 +46,7 @@ vi.mock('@sistent/sistent', () => ({
   MenuItem: ({ children }) => <div>{children}</div>,
   Box: ({ children }) => <div>{children}</div>,
   SyncAltIcon: () => <svg data-testid="sync-alt-icon" />,
+  SettingsIcon: () => <svg data-testid="settings-icon" />,
   MoreVertIcon: () => <svg data-testid="more-vert-icon" />,
   InfoOutlinedIcon: () => <svg data-testid="info-outlined-icon" />,
   IconButton: ({ children, onClick, ...props }) => (
@@ -108,8 +111,8 @@ vi.mock('@/assets/styles/general/tool.styles', () => ({
   ToolWrapper: ({ children }) => <div>{children}</div>,
 }));
 
-vi.mock('../MesherySettingsEnvButtons', () => ({
-  default: () => <div data-testid="settings-buttons" />,
+vi.mock('./ConnectionWizardLauncher', () => ({
+  default: () => <div data-testid="connection-wizard-launcher" />,
 }));
 
 vi.mock('../../utils/utils', () => ({
@@ -120,12 +123,16 @@ vi.mock('../../utils/utils', () => ({
   },
 }));
 
-vi.mock('@/graphql/queries/ResetDatabaseQuery', () => ({
-  default: vi.fn(),
-}));
-
 vi.mock('@/utils/hooks/useKubernetesHook', () => ({
   default: () => ping,
+}));
+
+vi.mock('@/utils/hooks/useGrafanaPingHook', () => ({
+  default: () => pingGrafana,
+}));
+
+vi.mock('@/utils/hooks/usePrometheusPingHook', () => ({
+  default: () => pingPrometheus,
 }));
 
 vi.mock('./ConnectionChip', () => ({
@@ -173,18 +180,10 @@ vi.mock('@/utils/can', () => ({
   default: () => true,
 }));
 
-vi.mock('@/utils/permission_constants', () => ({
-  keys: {
-    ASSIGN_CONNECTIONS_TO_ENVIRONMENT: { action: 'assign', subject: 'environment' },
-    CHANGE_CONNECTION_STATE: { action: 'change', subject: 'connection' },
-    DELETE_A_CONNECTION: { action: 'delete', subject: 'connection' },
-    FLUSH_MESHSYNC_DATA: { action: 'flush', subject: 'meshsync' },
-  },
-}));
-
 vi.mock('@/rtk-query/connection', () => ({
   useGetConnectionsQuery: (...args) => getConnectionsQuery(...args),
   useUpdateConnectionByIdMutation: () => [updateConnectionByIdMutator],
+  usePerformConnectionActionMutation: () => [vi.fn(() => ({ unwrap: () => Promise.resolve({}) }))],
 }));
 
 vi.mock('../../assets/icons/disconnect', () => ({
@@ -228,13 +227,16 @@ const makeConnection = (overrides = {}) => ({
   kind: 'kubernetes',
   status: 'connected',
   type: 'cluster',
+  // v1beta3 camelCase wire shape (subType/createdAt/updatedAt), matching what
+  // GET /api/integrations/connections actually returns.
   subType: 'managed',
   metadata: {
     name: 'cluster-a',
     server: 'https://cluster-a.local',
   },
   environments: [],
-  created_at: '2026-05-08',
+  createdAt: '2026-05-08',
+  updatedAt: '2026-05-09',
   ...overrides,
 });
 
@@ -315,7 +317,7 @@ describe('ConnectionTable', () => {
   });
 
   it('hydrates search from a string router query and passes it to the connections query', async () => {
-    router.query = { searchText: 'cluster-a' };
+    router.query = { con_q: 'cluster-a' };
 
     render(<ConnectionTable />);
 
@@ -325,6 +327,65 @@ describe('ConnectionTable', () => {
         undefined,
       );
     });
+  });
+
+  it('defaults to Discovered At (createdAt) descending, mapped to the server sort column', async () => {
+    render(<ConnectionTable />);
+
+    await waitFor(() => {
+      expect(dataTableProps).toBeDefined();
+    });
+
+    // The server's order param addresses the DB column...
+    expect(getConnectionsQuery).toHaveBeenLastCalledWith(
+      expect.objectContaining({ order: 'created_at desc' }),
+      undefined,
+    );
+    // ...while the table's active-sort indicator uses the wire/column name.
+    expect(dataTableProps.options.sortOrder).toEqual({ name: 'createdAt', direction: 'desc' });
+  });
+
+  it('keeps a bookmarked snake_case sort working, indicator included', async () => {
+    // A URL bookmarked before the columns moved to the camelCase wire shape.
+    router.query = { con_sort: 'created_at desc' };
+
+    render(<ConnectionTable />);
+
+    await waitFor(() => {
+      expect(dataTableProps).toBeDefined();
+    });
+
+    // The server column is already snake_case, so it passes straight through...
+    expect(getConnectionsQuery).toHaveBeenLastCalledWith(
+      expect.objectContaining({ order: 'created_at desc' }),
+      undefined,
+    );
+    // ...and the indicator resolves to a real column rather than silently
+    // matching nothing.
+    expect(dataTableProps.options.sortOrder).toEqual({ name: 'createdAt', direction: 'desc' });
+  });
+
+  it('shows the Discovered At column by default and populates it from createdAt', async () => {
+    render(<ConnectionTable />);
+
+    await waitFor(() => {
+      expect(dataTableProps).toBeDefined();
+    });
+
+    // The responsive defaults are computed from colViews; 'xs' marks the
+    // column visible at every breakpoint (previously 'na' = always hidden).
+    const colViewsArg = updateVisibleColumns.mock.calls[0][1];
+    expect(colViewsArg).toContainEqual(['createdAt', 'xs']);
+
+    const discoveredAtColumn = dataTableProps.tableCols.find((col) => col.name === 'createdAt');
+    expect(discoveredAtColumn?.label).toBe('Discovered At');
+    // formatDate is mocked as identity in this file; the real formatting is
+    // covered by data-formatter's own tests.
+    const { container, unmount } = render(
+      <>{discoveredAtColumn.options.customBodyRender('2026-05-08')}</>,
+    );
+    expect(container.textContent).toContain('2026-05-08');
+    unmount();
   });
 
   it('surfaces query failures through notifications', async () => {
@@ -396,6 +457,53 @@ describe('ConnectionTable', () => {
     await waitFor(() => {
       expect(dataTableProps.columnVisibility.kind).toBe(false);
     });
+  });
+
+  // Regression: the Environments select disappeared from the table. The cells
+  // come from a memoized `columns` whose `customBodyRender` closes over
+  // `isEnvironmentsSuccess` at definition time, and ResponsiveDataTable renders
+  // from a `tableCols` *snapshot* that it only re-syncs to the live `columns`
+  // when `columnVisibility` identity changes. On first render the environments
+  // query is still pending (isEnvironmentsSuccess=false), so the snapshot froze
+  // a cell that renders nothing; once the query resolved the snapshot was never
+  // refreshed and the select never reappeared. ConnectionTable now keeps
+  // `tableCols` following `columns`, so the resolved cell reaches the table.
+  it('re-renders the Environments select once the environments query resolves', async () => {
+    getEnvironmentsQuery.mockReturnValue({
+      data: { environments: [] },
+      isSuccess: false,
+      isError: false,
+      error: undefined,
+    });
+
+    const { rerender } = render(<ConnectionTable />);
+
+    // Render the snapshot's environments cell and report whether the select
+    // (mocked as `multi-select-wrapper`) is present.
+    const environmentsSelectIsRendered = () => {
+      const envColumn = dataTableProps.tableCols.find((col) => col.name === 'environments');
+      const { container, unmount } = render(
+        <>{envColumn.options.customBodyRender([], { rowData: [] })}</>,
+      );
+      const present = !!container.querySelector('[data-testid="multi-select-wrapper"]');
+      unmount();
+      return present;
+    };
+
+    expect(environmentsSelectIsRendered()).toBe(false);
+
+    getEnvironmentsQuery.mockReturnValue({
+      data: { environments: [{ id: 'env-1', name: 'dev' }] },
+      isSuccess: true,
+      isError: false,
+      error: undefined,
+    });
+    // Re-render under act() so the tableCols-sync effect flushes; then assert
+    // once (no render() inside waitFor, so a regression fails fast instead of
+    // looping the snapshot render until timeout).
+    rerender(<ConnectionTable />);
+
+    expect(environmentsSelectIsRendered()).toBe(true);
   });
 
   // Regression for issue #19405 — `/management/connections` crashes with
@@ -514,14 +622,9 @@ describe('ConnectionTable', () => {
     expect(setRowsExpandedSpy).not.toHaveBeenCalled();
   });
 
-  it('reuses the same onFlushMeshSync callback across rerenders so children are not invalidated', () => {
+  it('keeps the ResponsiveDataTable options referentially stable across rerenders', () => {
     const { rerender } = render(<ConnectionTable />);
 
-    // The action menu only renders when an anchor is set. Capture the
-    // identity of the JSX-bound `onFlushMeshSync` by re-rendering with the
-    // same props and asserting the prop bag handed to ResponsiveDataTable
-    // (the only render-time reflection of `handleFlushMeshSync` available
-    // here) is referentially stable across renders.
     const firstOptions = dataTableProps.options;
 
     rerender(<ConnectionTable />);

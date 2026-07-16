@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -9,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/meshery/meshery/server/models/httputil"
+	meshkitutils "github.com/meshery/meshkit/utils"
 )
 
 // Response helpers
@@ -100,65 +100,96 @@ func extractBoolQueryParams(r *http.Request, params ...string) (map[string]bool,
 	return result, nil
 }
 
-// SafeFilePath validates a file path to prevent path traversal attacks.
-// It ensures the path is within allowed directories (e.g., ~/.meshery or os.TempDir()).
-func SafeFilePath(providedPath string) (string, error) {
+// allowedDirError signals that a requested path resolved outside every directory
+// the file endpoints may serve. A distinct sentinel type lets callers map it to
+// HTTP 400 while treating any other failure (a missing or unreadable file) as
+// HTTP 500, so a legitimate not-found is never reported as an attack. It is an
+// internal control-flow signal; the handler translates it into a structured
+// MeshKit error at the response boundary.
+type allowedDirError string
+
+func (e allowedDirError) Error() string { return string(e) }
+
+// errFileOutsideAllowedDirs is the sentinel returned by SafeOpenFile for a path
+// outside the allowed directories.
+const errFileOutsideAllowedDirs = allowedDirError("file path is outside allowed directories")
+
+// allowedFileDirs returns the directories the fileView/fileDownload endpoints
+// are permitted to serve from. Only the Meshery registry log directory is
+// exposed: these endpoints exist solely to surface those logs, and broadening
+// the set to the whole home directory or os.TempDir() would let the
+// unauthenticated endpoints read the Meshery database, provider credentials, or
+// other processes' temporary files.
+//
+// Both home-directory derivations are included because the server writes these
+// logs through two different helpers whose results can diverge: registry-logs.log
+// via os.UserHomeDir() ($HOME) in cmd/main.go, and model-generation.log via
+// meshkit's GetHome() (the passwd entry). $HOME and the passwd home differ under
+// systemd units, sudo, or containers started with an explicit HOME.
+func allowedFileDirs() []string {
+	dirs := make([]string, 0, 2)
+	seen := make(map[string]bool, 2)
+	add := func(home string) {
+		if home == "" {
+			return
+		}
+		dir := filepath.Join(home, ".meshery", "logs")
+		if !seen[dir] {
+			seen[dir] = true
+			dirs = append(dirs, dir)
+		}
+	}
+	// A failed home lookup only drops that one entry; it must not disable the
+	// remaining allowed directories.
+	if home, err := os.UserHomeDir(); err == nil {
+		add(home)
+	}
+	add(meshkitutils.GetHome())
+	return dirs
+}
+
+// SafeOpenFile opens providedPath for reading, but only when it resolves to a
+// file inside one of the allowedFileDirs. The file is opened through os.Root so
+// that ".." components and symlinks cannot escape the allowed directory, and so
+// that validation and open are a single operation with no time-of-check/
+// time-of-use gap (validating a path string that the caller later re-opens lets
+// a component be swapped for a symlink in between). The caller owns the returned
+// *os.File and must close it.
+func SafeOpenFile(providedPath string) (*os.File, error) {
 	if providedPath == "" {
-		return "", fmt.Errorf("file path cannot be empty")
+		return nil, errFileOutsideAllowedDirs
 	}
 
-	if strings.Contains(providedPath, "..") {
-		return "", fmt.Errorf("path traversal attempts are not allowed")
-	}
-
+	// filepath.Abs applies filepath.Clean, lexically resolving any ".." elements
+	// up front, so no separate substring check is needed.
 	absPath, err := filepath.Abs(providedPath)
 	if err != nil {
-		return "", fmt.Errorf("failed to get absolute path: %v", err)
+		return nil, err
 	}
 
-	var resolvedPath string
-	if _, err := os.Stat(absPath); err == nil {
-		resolvedPath, err = filepath.EvalSymlinks(absPath)
+	for _, dir := range allowedFileDirs() {
+		rel, err := filepath.Rel(dir, absPath)
+		if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) {
+			continue // absPath is not inside this directory
+		}
+
+		root, err := os.OpenRoot(dir)
 		if err != nil {
-			return "", fmt.Errorf("failed to resolve symlinks: %v", err)
+			continue // directory is missing or not a directory
 		}
-	} else {
-		dir := filepath.Dir(absPath)
-		resolvedDir, err := filepath.EvalSymlinks(dir)
+		// os.Root confines the open to dir: a rel that escapes via ".." or a
+		// symlink pointing outside dir fails here instead of being followed. The
+		// returned file remains valid after the root is closed.
+		file, err := root.Open(rel)
+		_ = root.Close()
 		if err != nil {
-			return "", fmt.Errorf("failed to resolve symlinks for directory: %v", err)
+			// Inside an allowed dir but not openable (missing, unreadable, or a
+			// symlink escaping the root). Never serve it; surface a read error
+			// rather than an out-of-bounds rejection.
+			return nil, err
 		}
-		resolvedPath = filepath.Join(resolvedDir, filepath.Base(absPath))
+		return file, nil
 	}
 
-	// Allowed base directories
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("could not determine user home directory")
-	}
-
-	allowedBaseDirs := []string{
-		filepath.Join(home, ".meshery"),
-		os.TempDir(),
-	}
-
-	isAllowed := false
-	for _, baseDir := range allowedBaseDirs {
-		resolvedBase, err := filepath.EvalSymlinks(baseDir)
-		if err != nil {
-			resolvedBase, _ = filepath.Abs(baseDir)
-		}
-
-		rel, err := filepath.Rel(resolvedBase, resolvedPath)
-		if err == nil && !strings.HasPrefix(rel, "..") {
-			isAllowed = true
-			break
-		}
-	}
-
-	if !isAllowed {
-		return "", fmt.Errorf("file path is outside allowed directories")
-	}
-
-	return resolvedPath, nil
+	return nil, errFileOutsideAllowedDirs
 }
