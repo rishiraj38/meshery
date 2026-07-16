@@ -22,15 +22,7 @@ const canOpenConnectionWizard = () =>
 const ConnectionWizardLauncher = () => {
   const { openCreateConnection } = useConnectionWizardModal();
 
-  const hasAddCluster = CAN(
-    Keys.LifecycleManagementAddCluster.id,
-    Keys.LifecycleManagementAddCluster.function,
-  );
-  const hasConnectMetrics = CAN(
-    Keys.MesherySystemConnectMetrics.id,
-    Keys.MesherySystemConnectMetrics.function,
-  );
-  const hasPermission = hasAddCluster || hasConnectMetrics;
+  const hasPermission = canOpenConnectionWizard();
 
   return (
     <LaunchButton

@@ -40,9 +40,7 @@ const MesherySettingsEnvButtons = ({ onOpened }: MesherySettingsEnvButtonsProps)
           borderRadius: 5,
           padding: '8px',
         }}
-        disabled={
-          !CAN(Keys.LifecycleManagementAddCluster.id, Keys.LifecycleManagementAddCluster.function)
-        }
+        permissionKey={Keys.LifecycleManagementAddCluster}
         data-cy="btnAddCluster"
       >
         <AddIconCircleBorder style={{ width: '20px', height: '20px' }} />
@@ -52,7 +50,6 @@ const MesherySettingsEnvButtons = ({ onOpened }: MesherySettingsEnvButtonsProps)
             width: 'max-content',
             marginRight: '4px',
           }}
-          permissionKey={Keys.LifecycleManagementAddCluster}
           data-testid={testIDs('addCluster')}
         >
           Add Cluster
