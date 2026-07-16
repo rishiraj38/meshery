@@ -22,66 +22,138 @@ import { CONNECTION_DOCS_URL } from './ConnectionTable.constants';
 export const KUBERNETES_CONNECTION_LIFECYCLE_DOCS_URL =
   'https://docs.meshery.io/guides/infrastructure-management/kubernetes-connection-lifecycle';
 
+/**
+ * Scannable consequence blocks for a lifecycle transition. Prefer short
+ * "This will / This will not / Note" lists over prose walls so destructive
+ * confirms stay readable under load.
+ */
+export type StateConsequences = {
+  will: string[];
+  willNot?: string[];
+  note?: string;
+};
+
 // Ramifications of landing in each lifecycle state, phrased for the person
 // about to confirm the transition. Wording follows the Connections concept
 // docs (docs.meshery.io/concepts/logical/connections).
-const STATE_RAMIFICATIONS: Record<string, string> = {
-  [CONNECTION_STATES.DELETED]:
-    "The connection is administratively removed from Meshery's view of management. " +
-    "The connection record and all data collected for it are purged from Meshery's " +
-    'database. The underlying system itself is not deleted or modified. This cannot be undone.',
-  [CONNECTION_STATES.DISCONNECTED]:
-    'Meshery stops communicating with and managing this connection. Previously collected ' +
-    'data is retained, and the connection can be connected again later.',
-  [CONNECTION_STATES.IGNORED]:
-    'Meshery takes no further action on this connection and stops managing it. It remains ' +
-    'listed so you can register it again whenever you choose.',
-  [CONNECTION_STATES.REGISTERED]:
-    'The connection is registered with Meshery but not yet actively managed. Transition it ' +
-    'to Connected when you want Meshery to begin managing it.',
-  [CONNECTION_STATES.CONNECTED]:
-    'Meshery actively manages this connection: it communicates with the system, collects ' +
-    'data, and keeps its state in sync.',
-  [CONNECTION_STATES.MAINTENANCE]:
-    'The connection is placed under administrative maintenance. Meshery pauses management ' +
-    'operations until you transition it back.',
-  [CONNECTION_STATES.DISCOVERED]:
-    'The connection returns to the discovered state: Meshery knows about it but does not ' +
-    'manage it until it is registered and connected.',
-  [CONNECTION_STATES.NOTFOUND]:
-    'The connection is marked as not found. You can delete it or try re-registering it.',
+const STATE_CONSEQUENCES: Record<string, StateConsequences> = {
+  [CONNECTION_STATES.DELETED]: {
+    will: [
+      "Remove the connection from Meshery's view of management",
+      "Purge the connection record and all data collected for it from Meshery's database",
+    ],
+    willNot: ['Delete or modify the underlying system itself'],
+    note: 'This cannot be undone.',
+  },
+  [CONNECTION_STATES.DISCONNECTED]: {
+    will: ['Stop communicating with and managing this connection'],
+    willNot: ['Delete previously collected data'],
+    note: 'You can connect the connection again later.',
+  },
+  [CONNECTION_STATES.IGNORED]: {
+    will: ['Stop managing this connection and take no further action on it'],
+    willNot: ['Remove it from the list — you can register it again whenever you choose'],
+  },
+  [CONNECTION_STATES.REGISTERED]: {
+    will: ['Register the connection with Meshery without actively managing it yet'],
+    note: 'Transition it to Connected when you want Meshery to begin managing it.',
+  },
+  [CONNECTION_STATES.CONNECTED]: {
+    will: [
+      'Actively manage this connection: communicate with the system, collect data, and keep state in sync',
+    ],
+  },
+  [CONNECTION_STATES.MAINTENANCE]: {
+    will: ['Place the connection under administrative maintenance'],
+    note: 'Meshery pauses management operations until you transition it back.',
+  },
+  [CONNECTION_STATES.DISCOVERED]: {
+    will: ['Return the connection to discovered: Meshery knows about it but does not manage it'],
+    note: 'Register and connect it when you want Meshery to manage it again.',
+  },
+  [CONNECTION_STATES.NOTFOUND]: {
+    will: ['Mark the connection as not found'],
+    note: 'You can delete it or try re-registering it.',
+  },
 };
 
 // Kubernetes connections carry extra in-cluster machinery, so a few
 // transitions have broader consequences than the generic ones above.
-const KUBERNETES_STATE_RAMIFICATIONS: Record<string, string> = {
-  [CONNECTION_STATES.DELETED]:
-    "Deleting a Kubernetes connection removes the cluster from Meshery's purview of " +
-    'management: Meshery Operator (along with MeshSync and Meshery Broker) is undeployed ' +
-    'from the cluster, the connection and its associated credential are removed, and all ' +
-    "cluster data collected through MeshSync is purged from Meshery's database. The " +
-    'Kubernetes cluster itself is NOT deleted. Reconnecting: Meshery automatically ' +
-    'reconnects to the cluster when next presented with the same kubeconfig context. To ' +
-    'prevent reconnection, disconnect this connection instead of deleting it.',
-  [CONNECTION_STATES.DISCONNECTED]:
-    'Meshery stops managing the cluster and tears down its communication with the ' +
-    "cluster's controllers. Data already collected through MeshSync is retained, and the " +
-    'cluster can be connected again later without re-registering.',
-  [CONNECTION_STATES.CONNECTED]:
-    'Meshery begins actively managing the cluster: depending on the MeshSync deployment ' +
-    'mode, Meshery Operator, MeshSync, and Meshery Broker are brought up to stream live ' +
-    "cluster state into Meshery's database.",
+// Operator/Broker wording is soft ("when present") so embedded MeshSync mode
+// is not mis-described as always deploying in-cluster components.
+const KUBERNETES_STATE_CONSEQUENCES: Record<string, StateConsequences> = {
+  [CONNECTION_STATES.DELETED]: {
+    will: [
+      'Remove the connection and its associated credential from Meshery',
+      'Undeploy Meshery Operator, MeshSync, and Meshery Broker from the cluster (when present)',
+      "Purge cluster data collected through MeshSync from Meshery's database",
+    ],
+    willNot: ['Delete or modify the Kubernetes cluster itself'],
+    note: 'Presenting the same kubeconfig context again may auto-reconnect. Prefer Disconnect if you want to keep the record and avoid reconnection.',
+  },
+  [CONNECTION_STATES.DISCONNECTED]: {
+    will: ["Stop managing the cluster and tear down communication with the cluster's controllers"],
+    willNot: ['Delete MeshSync data already collected for this connection'],
+    note: 'You can connect the cluster again later without re-registering.',
+  },
+  [CONNECTION_STATES.CONNECTED]: {
+    will: [
+      'Begin actively managing the cluster',
+      'Depending on MeshSync mode, bring up Meshery Operator, MeshSync, and Meshery Broker (when used) to stream live cluster state',
+    ],
+  },
 };
 
-const getRamifications = (kind: string | undefined, targetStatus: string): string =>
-  (kind === CONNECTION_KINDS.KUBERNETES && KUBERNETES_STATE_RAMIFICATIONS[targetStatus]) ||
-  STATE_RAMIFICATIONS[targetStatus] ||
-  `The connection transitions to the ${targetStatus.toUpperCase()} state.`;
+const FALLBACK_CONSEQUENCES = (targetStatus: string): StateConsequences => ({
+  will: [`Transition the connection to the ${targetStatus.toUpperCase()} state`],
+});
+
+export const getConsequences = (
+  kind: string | undefined,
+  targetStatus: string,
+): StateConsequences =>
+  (kind === CONNECTION_KINDS.KUBERNETES && KUBERNETES_STATE_CONSEQUENCES[targetStatus]) ||
+  STATE_CONSEQUENCES[targetStatus] ||
+  FALLBACK_CONSEQUENCES(targetStatus);
 
 const getDocsTooltipMarkdown = (kind: string | undefined): string =>
   kind === CONNECTION_KINDS.KUBERNETES
     ? `Every connection moves through a defined lifecycle of states. Learn more about the [Kubernetes connection lifecycle](${KUBERNETES_CONNECTION_LIFECYCLE_DOCS_URL}) and the [behavior of state transitions](${CONNECTION_DOCS_URL}) in Meshery Docs.`
     : `Every connection moves through a defined lifecycle of states. Learn more about the [lifecycle of connections and the behavior of state transitions](${CONNECTION_DOCS_URL}) in Meshery Docs.`;
+
+/**
+ * Definition-authored transition copy often restates the modal lead
+ * ("Are you sure… transition from X to Y"). Suppress it when it adds no
+ * decision-relevant fact beyond the consequence bullets — especially on delete,
+ * where every entry path should look the same.
+ */
+export const shouldShowTransitionDescription = (
+  description: string | undefined,
+  options: { isDelete: boolean; currentStatus?: string; targetStatus: string },
+): description is string => {
+  if (!description?.trim()) {
+    return false;
+  }
+  if (options.isDelete) {
+    return false;
+  }
+
+  const normalized = description.trim().toLowerCase();
+  // Prompt-style leftovers from connection definitions / getStatusTransition.
+  if (normalized.startsWith('are you sure')) {
+    return false;
+  }
+
+  const { currentStatus, targetStatus } = options;
+  if (currentStatus) {
+    const fromTo = `from ${currentStatus.toLowerCase()} to ${targetStatus.toLowerCase()}`;
+    if (normalized === fromTo || normalized.includes(`transition ${fromTo}`)) {
+      return false;
+    }
+  }
+
+  return true;
+};
 
 export interface TransitioningConnection {
   id?: string;
@@ -99,8 +171,8 @@ export interface ConnectionStateTransitionShowParams {
   connections: TransitioningConnection[];
   /**
    * Transition-specific description from the connection definition's
-   * transitionMap (see getStatusTransition), shown alongside the state
-   * ramifications when available.
+   * transitionMap. Shown only when it adds a fact the consequence list does
+   * not already cover (never for delete — all delete entry paths share one body).
    */
   transitionDescription?: string;
 }
@@ -112,13 +184,69 @@ export interface ConnectionStateTransitionModalRef {
 
 const MAX_LISTED_NAMES = 3;
 
-const ConnectionNames = ({ connections }: { connections: TransitioningConnection[] }) => {
+const bulletListSx = {
+  margin: '0.25rem 0 0',
+  paddingLeft: '1.25rem',
+  color: 'inherit',
+} as const;
+
+// Sistent ModalButtonDanger sets backgroundColor on its own class, but MUI's
+// `.MuiButton-contained` rule wins on specificity and paints brand teal instead
+// of error red. Raise specificity here until Sistent ships the same fix.
+// Theme callbacks use Sistent palette tokens (no hard-coded colors).
+const dangerButtonSx = {
+  '&&.MuiButton-contained': {
+    backgroundColor: (theme) => theme.palette.background?.error?.default,
+    color: (theme) => theme.palette.text?.constant?.white ?? theme.palette.common?.white,
+    '&:hover': {
+      backgroundColor: (theme) =>
+        theme.palette.background?.error?.hover ?? theme.palette.background?.error?.default,
+    },
+  },
+};
+
+const ConsequenceSection = ({
+  title,
+  items,
+  testId,
+  color,
+}: {
+  title: string;
+  items: string[];
+  testId: string;
+  color: string;
+}) => {
+  if (items.length === 0) {
+    return null;
+  }
+  return (
+    <Box data-testid={testId} sx={{ marginTop: '0.5rem', color }}>
+      <Typography variant="body2" sx={{ fontWeight: 600, color: 'inherit' }}>
+        {title}
+      </Typography>
+      <Box component="ul" sx={bulletListSx}>
+        {items.map((item) => (
+          <Typography component="li" key={item} variant="body2" sx={{ color: 'inherit' }}>
+            {item}
+          </Typography>
+        ))}
+      </Box>
+    </Box>
+  );
+};
+
+/**
+ * Lists named connections for the lead sentence. Remainder is computed against
+ * the full selection size (not only named rows) so "Delete N connections" and
+ * "and M more" stay consistent when some rows have empty names.
+ */
+export const ConnectionNames = ({ connections }: { connections: TransitioningConnection[] }) => {
   const names = connections.map((connection) => connection.name).filter(Boolean) as string[];
   if (names.length === 0) {
     return null;
   }
   const listed = names.slice(0, MAX_LISTED_NAMES);
-  const remainder = names.length - listed.length;
+  const remainder = connections.length - listed.length;
   return (
     <>
       {' '}
@@ -127,6 +255,9 @@ const ConnectionNames = ({ connections }: { connections: TransitioningConnection
     </>
   );
 };
+
+const normalizeStatus = (status: string | undefined): string | undefined =>
+  status === undefined ? undefined : status.toLowerCase();
 
 /**
  * The single confirmation experience for every connection state transition -
@@ -156,7 +287,13 @@ const ConnectionStateTransitionModal = forwardRef<ConnectionStateTransitionModal
           // promise hanging.
           promiseRef.current.resolve(false);
           promiseRef.current = { resolve };
-          setParams(showParams);
+          // Normalize status case so isDelete / consequence maps stay reliable
+          // regardless of caller (table lowercases; wizard historically did not).
+          setParams({
+            ...showParams,
+            targetStatus: showParams.targetStatus.toLowerCase(),
+            currentStatus: normalizeStatus(showParams.currentStatus),
+          });
         }),
     }));
 
@@ -178,6 +315,13 @@ const ConnectionStateTransitionModal = forwardRef<ConnectionStateTransitionModal
     const count = connections.length;
     const plural = count > 1;
     const kindLabel = kind ? `${formatToTitleCase(kind)} ` : '';
+    const secondaryColor = theme.palette.text.secondary;
+    const consequences = getConsequences(kind, targetStatus);
+    const showTransitionDescription = shouldShowTransitionDescription(transitionDescription, {
+      isDelete,
+      currentStatus,
+      targetStatus,
+    });
 
     const title = isDelete
       ? `Delete ${plural ? `${count} ` : ''}${kindLabel}connection${plural ? 's' : ''}?`
@@ -210,7 +354,12 @@ const ConnectionStateTransitionModal = forwardRef<ConnectionStateTransitionModal
         headerIcon={
           <WarningIcon
             {...iconLarge}
-            fill={theme.palette.text?.constant?.white ?? theme.palette.common.white}
+            // Amber/yellow via Sistent status warning (#F0A303), not white on the header.
+            fill={
+              theme.palette.status?.warning ??
+              theme.palette.background?.warning?.default ??
+              theme.palette.warning?.main
+            }
           />
         }
         maxWidth="sm"
@@ -232,22 +381,48 @@ const ConnectionStateTransitionModal = forwardRef<ConnectionStateTransitionModal
               </IconButton>
             </CustomTooltip>
           </Box>
-          <Typography variant="body1" sx={{ fontWeight: 600, marginTop: '0.75rem' }}>
-            What happens next
-          </Typography>
-          <Typography
-            variant="body2"
-            data-testid="connection-transition-ramifications"
-            sx={{ marginTop: '0.25rem', color: theme.palette.text.secondary }}
-          >
-            {getRamifications(kind, targetStatus)}
-            {plural ? ' This applies to each selected connection.' : ''}
-          </Typography>
-          {transitionDescription && (
+
+          <Box data-testid="connection-transition-ramifications" sx={{ marginTop: '0.5rem' }}>
+            <ConsequenceSection
+              title="This will:"
+              items={consequences.will}
+              testId="connection-transition-will"
+              color={secondaryColor}
+            />
+            <ConsequenceSection
+              title="This will not:"
+              items={consequences.willNot ?? []}
+              testId="connection-transition-will-not"
+              color={secondaryColor}
+            />
+            {consequences.note && (
+              <Typography
+                variant="body2"
+                data-testid="connection-transition-note"
+                sx={{ marginTop: '0.5rem', color: secondaryColor }}
+              >
+                <Box component="span" sx={{ fontWeight: 600 }}>
+                  Note:{' '}
+                </Box>
+                {consequences.note}
+              </Typography>
+            )}
+            {plural && (
+              <Typography
+                variant="body2"
+                data-testid="connection-transition-bulk-scope"
+                sx={{ marginTop: '0.5rem', color: secondaryColor }}
+              >
+                This applies to each selected connection.
+              </Typography>
+            )}
+          </Box>
+
+          {showTransitionDescription && (
             <Typography
               variant="body2"
               data-testid="connection-transition-description"
-              sx={{ marginTop: '0.5rem', color: theme.palette.text.secondary }}
+              sx={{ marginTop: '0.5rem', color: secondaryColor }}
             >
               {transitionDescription}
             </Typography>
@@ -261,7 +436,11 @@ const ConnectionStateTransitionModal = forwardRef<ConnectionStateTransitionModal
             >
               Cancel
             </ModalButtonSecondary>
-            <ConfirmButton onClick={() => settle(true)} data-testid="connection-transition-confirm">
+            <ConfirmButton
+              onClick={() => settle(true)}
+              data-testid="connection-transition-confirm"
+              sx={isDelete ? dangerButtonSx : undefined}
+            >
               {isDelete ? 'Delete' : 'Confirm'}
             </ConfirmButton>
           </Box>

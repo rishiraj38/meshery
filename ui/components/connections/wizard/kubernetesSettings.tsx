@@ -116,8 +116,11 @@ const SettingsStepBody = ({ ctx }: { ctx: WizardContext }) => {
     // The modal mounts alongside this component, so the ref is always set by
     // the time the dropdown is interactive; if it ever were not, treating the
     // undefined result as "not confirmed" is the safe outcome.
+    // Lowercase so modal maps / isDelete match CONNECTION_STATES (table does
+    // the same). Keep the API payload on the same normalized value.
+    const normalizedStatus = nextStatus.toLowerCase();
     const confirmed = await transitionModalRef.current?.show({
-      targetStatus: nextStatus,
+      targetStatus: normalizedStatus,
       currentStatus: status,
       kind: typeof connection.kind === 'string' ? connection.kind : undefined,
       connections: [{ id: connectionId, name: getCurrentName(ctx) }],
@@ -128,10 +131,10 @@ const SettingsStepBody = ({ ctx }: { ctx: WizardContext }) => {
     }
     setStatusBusy(true);
     try {
-      await ctx.services.updateConnectionById(connectionId, { status: nextStatus });
-      ctx.patch({ registrationResult: { ...connection, status: nextStatus } });
+      await ctx.services.updateConnectionById(connectionId, { status: normalizedStatus });
+      ctx.patch({ registrationResult: { ...connection, status: normalizedStatus } });
       ctx.services.notify({
-        message: `Connection transitioned to ${nextStatus}.`,
+        message: `Connection transitioned to ${normalizedStatus}.`,
         event_type: EVENT_TYPES.SUCCESS,
       });
     } catch (error) {

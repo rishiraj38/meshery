@@ -38,10 +38,6 @@ vi.mock('@sistent/sistent', () => ({
     dataTableProps = props;
     return <div data-testid="responsive-data-table" />;
   },
-  PROMPT_VARIANTS: {
-    DANGER: 'danger',
-    WARNING: 'warning',
-  },
   MenuItem: ({ children }) => <div>{children}</div>,
   Box: ({ children }) => <div>{children}</div>,
   SyncAltIcon: () => <svg data-testid="sync-alt-icon" />,
