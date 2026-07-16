@@ -45,7 +45,9 @@ const parseDate = (date) => {
   if (date === null || date === undefined || date === '') {
     return null;
   }
-  const parsed = new Date(date);
+  // Already a Date (e.g. formatDateTime handing its parsed value to
+  // formatDate/formatTime) — validate without cloning.
+  const parsed = date instanceof Date ? date : new Date(date);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 

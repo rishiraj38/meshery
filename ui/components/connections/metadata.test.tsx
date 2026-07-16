@@ -72,7 +72,7 @@ vi.mock('../data-formatter', () => ({
       <span>{Value}</span>
     </div>
   ),
-  Link: ({ title }) => <span>{title}</span>,
+  Link: ({ href, title }) => <a href={href}>{title}</a>,
   createColumnUiSchema: ({ metadata }) => ({ fields: Object.keys(metadata || {}) }),
 }));
 
@@ -182,8 +182,13 @@ describe('FormatConnectionMetadata', () => {
     expect(screen.getByText('Server Build SHA')).toBeInTheDocument();
     expect(screen.getByText('abc1234')).toBeInTheDocument();
     expect(screen.getByText('Server Location')).toBeInTheDocument();
-    expect(screen.getByText('https://meshery.local:9081')).toBeInTheDocument();
+    // The location renders as a real, navigable link.
+    expect(screen.getByRole('link', { name: 'https://meshery.local:9081' })).toHaveAttribute(
+      'href',
+      'https://meshery.local:9081',
+    );
     expect(screen.getByText('Discovered At')).toBeInTheDocument();
+    expect(screen.getByText('Updated At')).toBeInTheDocument();
     // Only well-known fields are present, so the generic fallback is omitted.
     expect(screen.queryByTestId('structured-data')).not.toBeInTheDocument();
   });

@@ -267,7 +267,7 @@ const KubernetesMetadataFormatter = ({ meshsyncControllerState, connection, meta
                       wordWrap: 'break-word',
                     }}
                     primary="Server"
-                    secondary={<Link title={metadata.server}>{metadata.server}</Link>}
+                    secondary={<Link href={metadata.server} title={metadata.server} />}
                   />
                 </ListItem>
               </List>
@@ -455,7 +455,7 @@ const MesheryMetadataFormatter = ({ connection }) => {
               style={{ wordWrap: 'break-word' }}
               primary="Server Location"
               secondary={
-                serverLocation ? <Link title={serverLocation}>{serverLocation}</Link> : 'Unknown'
+                serverLocation ? <Link href={serverLocation} title={serverLocation} /> : 'Unknown'
               }
             />
           </ListItem>

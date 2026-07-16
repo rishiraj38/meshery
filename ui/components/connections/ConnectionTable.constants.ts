@@ -101,7 +101,9 @@ const UI_TO_SERVER_SORT_COLUMN: Record<string, string> = {
 };
 
 export const toServerSortOrder = (sortOrder: string): string => {
-  const [field, direction] = sortOrder.split(' ');
+  const [field, direction] = sortOrder.trim().split(/\s+/);
   const serverField = UI_TO_SERVER_SORT_COLUMN[field] ?? field;
-  return direction ? `${serverField} ${direction}` : serverField;
+  // SanitizeOrderInput accepts exactly "<column> <asc|desc>"; a bare column
+  // would be silently dropped server-side, so default the direction.
+  return `${serverField} ${direction || 'desc'}`;
 };

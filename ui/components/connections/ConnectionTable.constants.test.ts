@@ -14,7 +14,11 @@ describe('toServerSortOrder', () => {
     expect(toServerSortOrder('created_at desc')).toBe('created_at desc');
   });
 
-  it('tolerates a bare field with no direction', () => {
-    expect(toServerSortOrder('createdAt')).toBe('created_at');
+  it('defaults the direction to desc when missing (a bare column is dropped server-side)', () => {
+    expect(toServerSortOrder('createdAt')).toBe('created_at desc');
+  });
+
+  it('normalizes extra whitespace between column and direction', () => {
+    expect(toServerSortOrder('createdAt  desc')).toBe('created_at desc');
   });
 });
