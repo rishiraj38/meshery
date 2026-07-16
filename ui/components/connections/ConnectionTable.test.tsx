@@ -31,6 +31,7 @@ vi.mock('next/router', () => ({
 
 vi.mock('@sistent/sistent', () => ({
   CustomTooltip: ({ children }) => <div>{children}</div>,
+  FormattedTime: ({ date }) => <span data-testid="formatted-time">{String(date)}</span>,
   CustomColumnVisibilityControl: () => <div data-testid="column-visibility-control" />,
   SearchBar: () => <div data-testid="search-bar" />,
   UniversalFilter: () => <div data-testid="universal-filter" />,
@@ -94,7 +95,6 @@ vi.mock('./styles', () => ({
 
 vi.mock('../data-formatter', () => ({
   FormatId: ({ id }) => <span>{id}</span>,
-  formatDate: (value) => value,
 }));
 
 vi.mock('../../css/icons.styles', () => ({
@@ -397,8 +397,8 @@ describe('ConnectionTable', () => {
 
   // Regression: API returns camelCase createdAt (schemas v1beta3) while the
   // Discovered At column reads created_at. Without the bridge the cell value
-  // is undefined → formatDate prints "Invalid Date". Also assert the column
-  // is no longer default-hidden via colViews 'na'.
+  // is undefined and renders as empty/invalid. Also assert default visibility
+  // and Sistent FormattedTime (same pattern as MeshSync tab).
   it('bridges camelCase createdAt for Discovered At and shows the column by default', () => {
     render(<ConnectionTable />);
 
@@ -418,7 +418,9 @@ describe('ConnectionTable', () => {
     const { container, unmount } = render(
       <>{discoveredAt.options.customBodyRender(dataTableProps.data[0].created_at)}</>,
     );
-    expect(container.textContent).toBe('2026-05-08T12:00:00Z');
+    expect(container.querySelector('[data-testid="formatted-time"]')).toHaveTextContent(
+      '2026-05-08T12:00:00Z',
+    );
     unmount();
 
     const { container: emptyContainer, unmount: unmountEmpty } = render(

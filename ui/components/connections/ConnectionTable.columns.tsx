@@ -1,14 +1,14 @@
 import React, { useMemo } from 'react';
 import {
-  CustomTooltip,
   Box,
   IconButton,
   Grid2,
   TableCell,
   InfoOutlinedIcon,
+  FormattedTime,
+  MoreVertIcon,
 } from '@sistent/sistent';
 import { FormatId } from '../data-formatter';
-import { MoreVertIcon } from '@sistent/sistent';
 import { iconMedium } from '../../css/icons.styles';
 import { CONNECTION_KINDS } from '../../utils/Enum';
 import { TooltipWrappedConnectionChip } from './ConnectionChip';
@@ -19,7 +19,6 @@ import MultiSelectWrapper from '../multi-select-wrapper';
 import CAN from '@/utils/can';
 import { Keys } from '@meshery/schemas/permissions';
 import { CustomTextTooltip } from '../meshery-mesh-interface/PatternService/CustomTextTooltip';
-import { formatDate } from '../data-formatter';
 import { getFallbackImageBasedOnKind, normalizeStaticImagePath } from '@/utils/fallback';
 import type { ConnectionTransitionMap } from './ConnectionTable.constants';
 import type { EnvironmentOption, RowData } from './ConnectionTable.types';
@@ -341,6 +340,7 @@ export const useConnectionColumns = ({
               />
             );
           },
+          // Match MeshSync tab: relative time in-cell, full local datetime on hover.
           customBodyRender: function CustomBody(value) {
             if (value == null || value === '') {
               return <span>-</span>;
@@ -349,12 +349,7 @@ export const useConnectionColumns = ({
             if (Number.isNaN(parsed.getTime())) {
               return <span>-</span>;
             }
-            const renderValue = formatDate(value);
-            return (
-              <CustomTooltip title={renderValue} placement="top" arrow interactive>
-                <span>{renderValue}</span>
-              </CustomTooltip>
-            );
+            return <FormattedTime date={value} />;
           },
         },
       },
