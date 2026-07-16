@@ -6,7 +6,6 @@ import {
   DataTableToolbar,
 } from '@sistent/sistent';
 import { CreateButton } from './styles';
-import { styled } from '@/theme';
 import ConnectionWizardLauncher from './ConnectionWizardLauncher';
 import { getVisibilityColums } from '../../utils/utils';
 import type { SelectedFilters } from './ConnectionTable.types';
@@ -23,13 +22,6 @@ type ConnectionTableToolbarProps = {
   columnVisibility: Record<string, boolean | undefined>;
   setColumnVisibility: (visibility: Record<string, boolean | undefined>) => void;
 };
-
-const ToolbarActions = styled('div')(() => ({
-  display: 'flex',
-  borderRadius: '0.5rem 0.5rem 0 0',
-  width: '100%',
-  justifyContent: 'flex-end',
-}));
 
 export const ConnectionTableToolbar = ({
   isSearchExpanded,
