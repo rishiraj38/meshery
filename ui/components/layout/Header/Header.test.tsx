@@ -180,6 +180,7 @@ vi.mock('@sistent/sistent', () => ({
   useMediaQuery: () => useMediaQueryMock(),
   SearchIcon: () => <svg data-testid="search-icon" />,
   SettingsIcon: () => <svg data-testid="settings-icon" />,
+  FilterAllIcon: () => <svg data-testid="filter-all-icon" />,
   ErrorBoundary: ({ children }: any) => <>{children}</>,
   darkTeal: { main: '#000' },
   AppBar: ({ children }: any) => <header>{children}</header>,
