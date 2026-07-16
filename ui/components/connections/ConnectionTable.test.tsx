@@ -694,4 +694,36 @@ describe('ConnectionTable', () => {
 
     expect(dataTableProps.options).toBe(firstOptions);
   });
+
+  // Every data column's header carries an info affordance explaining what the
+  // column means and how to read its values, so the table is self-describing.
+  // `Actions` is excluded: it holds controls rather than values.
+  it('gives every data column an info icon and tooltip in its header', () => {
+    render(<ConnectionTable />);
+
+    const dataColumns = [
+      'name',
+      'environments',
+      'kind',
+      'type',
+      'subType',
+      'updatedAt',
+      'createdAt',
+      'ConnectionID',
+      'status',
+    ];
+
+    dataColumns.forEach((name) => {
+      const col = dataTableProps.columns.find((c) => c.name === name);
+      expect(col, `column "${name}" is missing`).toBeDefined();
+
+      const head = col.options.customHeadRender({ index: 0, label: col.label, name }, () => {}, {});
+
+      expect(head.props.icon, `column "${name}" has no info icon`).toBeTruthy();
+      expect(
+        typeof head.props.tooltip === 'string' && head.props.tooltip.length > 0,
+        `column "${name}" has no info tooltip`,
+      ).toBe(true);
+    });
+  });
 });
