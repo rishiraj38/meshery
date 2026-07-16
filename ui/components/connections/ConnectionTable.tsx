@@ -295,8 +295,8 @@ const ConnectionTable = ({
       ['environments', 'm'],
       ['kind', 'm'],
       ['type', 's'],
-      // subType stays hidden by default (as before this column read the right
-      // wire field); users can enable it from the column-visibility control.
+      // subType stays hidden by default, as it was before; users can enable it
+      // from the column-visibility control.
       ['subType', 'na'],
       ['createdAt', 'xs'],
       ['status', 'xs'],
