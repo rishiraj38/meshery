@@ -83,11 +83,19 @@ const K8sContextConnectionChip_ = ({
     ctx.connectionId,
   );
 
+  // Prefer status already mapped onto the context (connectionsToK8sContexts
+  // sets `connectionStatus`). Fall back to a connections-list lookup for
+  // callers that only pass connectionId + a connections array.
   const connectionStatus = useMemo(() => {
-    if (!connections || !ctx.connectionId) return null;
+    if (ctx.connectionStatus) {
+      return ctx.connectionStatus;
+    }
+    if (!connections?.length || !ctx.connectionId) {
+      return null;
+    }
     const connection = connections.find((conn) => conn.id === ctx.connectionId);
     return connection?.status || null;
-  }, [connections, ctx.connectionId]);
+  }, [connections, ctx.connectionId, ctx.connectionStatus]);
 
   return (
     <Box id={ctx.id} sx={{ margin: '0.25rem 0' }}>
@@ -156,14 +164,12 @@ function K8sContextMenu({
   );
   const dispatch = useDispatch();
 
-  // ->using same data source as we use in conn.table
+  // Same filter shape as KubernetesSubscription / the connections table:
+  // plain kind=kubernetes (not JSON-encoded) and pageSize=all so status dots
+  // resolve for every cluster in the switcher.
   const { data: connectionData } = useGetConnectionsQuery({
-    page: 0,
-    pagesize: 100,
-    search: '',
-    order: '',
-    status: '',
-    kind: JSON.stringify(['kubernetes']), // -> Kubernetes connections
+    kind: CONNECTION_KINDS.KUBERNETES,
+    pageSize: 'all',
   });
 
   const connections = connectionData?.connections || [];
