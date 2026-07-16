@@ -204,12 +204,7 @@ function MesheryPatternCard_({
                     borderRadius: '8px',
                   }}
                   onClick={(ev) => genericClickHandler(ev, handleUnpublishModal)}
-                  disabled={
-                    !CAN(
-                      Keys.CatalogManagementUnpublishDesign.id,
-                      Keys.CatalogManagementUnpublishDesign.function,
-                    )
-                  }
+                  permissionKey={Keys.CatalogManagementUnpublishDesign}
                   data-testid="pattern-btn-unpublish"
                 >
                   <PublicIcon fill={crimson[40]} style={iconMedium} />
@@ -227,6 +222,7 @@ function MesheryPatternCard_({
                       Keys.CatalogManagementValidateDesign.id,
                       Keys.CatalogManagementValidateDesign.function,
                     ),
+                    permissionKey: Keys.CatalogManagementValidateDesign,
                     'data-testid': 'pattern-btn-validate',
                   },
                   {
@@ -237,6 +233,7 @@ function MesheryPatternCard_({
                       Keys.CatalogManagementValidateDesign.id,
                       Keys.CatalogManagementValidateDesign.function,
                     ),
+                    permissionKey: Keys.CatalogManagementValidateDesign,
                     'data-testid': 'pattern-btn-dryrun',
                   },
                   {
@@ -247,6 +244,7 @@ function MesheryPatternCard_({
                       Keys.CatalogManagementDeployDesign.id,
                       Keys.CatalogManagementDeployDesign.function,
                     ),
+                    permissionKey: Keys.CatalogManagementDeployDesign,
                     'data-testid': 'pattern-btn-deploy',
                   },
                   {
@@ -257,6 +255,7 @@ function MesheryPatternCard_({
                       Keys.CatalogManagementUndeployDesign.id,
                       Keys.CatalogManagementUndeployDesign.function,
                     ),
+                    permissionKey: Keys.CatalogManagementUndeployDesign,
                     'data-testid': 'pattern-btn-undeploy',
                   },
                   {
@@ -267,6 +266,7 @@ function MesheryPatternCard_({
                       Keys.CatalogManagementEvaluateRelationships.id,
                       Keys.CatalogManagementEvaluateRelationships.function,
                     ),
+                    permissionKey: Keys.CatalogManagementEvaluateRelationships,
                     'data-testid': 'pattern-btn-evaluate',
                   },
                 ]}
@@ -299,12 +299,7 @@ function MesheryPatternCard_({
                     padding: '6px 9px',
                     borderRadius: '8px',
                   }}
-                  disabled={
-                    !CAN(
-                      Keys.CatalogManagementEditDesign.id,
-                      Keys.CatalogManagementEditDesign.function,
-                    )
-                  }
+                  permissionKey={Keys.CatalogManagementEditDesign}
                   data-testid="pattern-btn-design"
                 >
                   <img
@@ -324,12 +319,7 @@ function MesheryPatternCard_({
                     padding: '6px 9px',
                     borderRadius: '8px',
                   }}
-                  disabled={
-                    !CAN(
-                      Keys.CatalogManagementCloneDesign.id,
-                      Keys.CatalogManagementCloneDesign.function,
-                    )
-                  }
+                  permissionKey={Keys.CatalogManagementCloneDesign}
                   data-testid="pattern-btn-clone"
                 >
                   <CloneIcon fill={theme.palette.background.constant.white} style={iconMedium} />
@@ -343,12 +333,7 @@ function MesheryPatternCard_({
                   variant="contained"
                   color="primary"
                   onClick={(ev) => genericClickHandler(ev, editInConfigurator)}
-                  disabled={
-                    !CAN(
-                      Keys.CatalogManagementEditDesign.id,
-                      Keys.CatalogManagementEditDesign.function,
-                    )
-                  }
+                  permissionKey={Keys.CatalogManagementEditDesign}
                   style={{ padding: '6px 9px', borderRadius: '8px' }}
                   data-testid="pattern-btn-edit"
                 >
@@ -365,12 +350,7 @@ function MesheryPatternCard_({
                   padding: '6px 9px',
                   borderRadius: '8px',
                 }}
-                disabled={
-                  !CAN(
-                    Keys.CatalogManagementDetailsOfDesign.id,
-                    Keys.CatalogManagementDetailsOfDesign.function,
-                  )
-                }
+                permissionKey={Keys.CatalogManagementDetailsOfDesign}
                 data-testid="pattern-btn-info"
               >
                 <InfoOutlinedIcon
@@ -469,12 +449,7 @@ function MesheryPatternCard_({
                   {/* Save button */}
                   <CustomTooltip title="Save" arrow interactive placement="bottom">
                     <IconButton
-                      disabled={
-                        !CAN(
-                          Keys.CatalogManagementEditDesign.id,
-                          Keys.CatalogManagementEditDesign.function,
-                        )
-                      }
+                      permissionKey={Keys.CatalogManagementEditDesign}
                       onClick={(ev) => genericClickHandler(ev, updateHandler)}
                       data-testid="pattern-btn-save"
                     >
@@ -485,12 +460,7 @@ function MesheryPatternCard_({
                   {/* Delete Button */}
                   <CustomTooltip title="Delete" arrow interactive placement="bottom">
                     <IconButton
-                      disabled={
-                        !CAN(
-                          Keys.CatalogManagementDeleteADesign.id,
-                          Keys.CatalogManagementDeleteADesign.function,
-                        )
-                      }
+                      permissionKey={Keys.CatalogManagementDeleteADesign}
                       onClick={(ev) => genericClickHandler(ev, deleteHandler)}
                       data-testid="pattern-btn-delete"
                     >

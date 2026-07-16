@@ -419,7 +419,7 @@ const Workspaces = ({ onSelectWorkspace }) => {
         </div>
         {!selectedWorkspace.id && (
           <ToolWrapper>
-            <CreateButtonWrapper>
+            <CreateButtonWrapper style={{ marginRight: '2rem' }}>
               <Button
                 type="submit"
                 variant="contained"
@@ -432,14 +432,8 @@ const Workspaces = ({ onSelectWorkspace }) => {
                   backgroundColor: '#607d8b',
                   padding: '8px',
                   borderRadius: '5px',
-                  marginRight: '2rem',
                 }}
-                disabled={
-                  !CAN(
-                    Keys.WorkspaceManagementCreateWorkspace.id,
-                    Keys.WorkspaceManagementCreateWorkspace.function,
-                  )
-                }
+                permissionKey={Keys.WorkspaceManagementCreateWorkspace}
                 data-cy="btnResetDatabase"
               >
                 <AddIconCircleBorder sx={{ width: '20px', height: '20px' }} />

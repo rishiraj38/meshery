@@ -84,7 +84,9 @@ export default function ActionButton({ defaultActionClick, options }) {
                 <MenuItem
                   data-testid={`action-btn-option-${option.label}`}
                   disabled={option.disabled}
-                  key={option}
+                  permissionKey={option.permissionKey}
+                  permissionAction={option.permissionAction}
+                  key={option.label}
                   onClick={(event) => {
                     handleMenuItemClick(event);
                     option.onClick(event, index);

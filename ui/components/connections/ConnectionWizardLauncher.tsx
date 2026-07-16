@@ -11,12 +11,18 @@ const LaunchButton = styled(Button)({
   padding: '8px',
 });
 
-const canOpenConnectionWizard = () =>
-  CAN(Keys.LifecycleManagementAddCluster.id, Keys.LifecycleManagementAddCluster.function) ||
-  CAN(Keys.MesherySystemConnectMetrics.id, Keys.MesherySystemConnectMetrics.function);
-
 const ConnectionWizardLauncher = () => {
   const [isOpen, setIsOpen] = useState(false);
+
+  const hasAddCluster = CAN(
+    Keys.LifecycleManagementAddCluster.id,
+    Keys.LifecycleManagementAddCluster.function,
+  );
+  const hasConnectMetrics = CAN(
+    Keys.MesherySystemConnectMetrics.id,
+    Keys.MesherySystemConnectMetrics.function,
+  );
+  const hasPermission = hasAddCluster || hasConnectMetrics;
 
   return (
     <>
@@ -24,7 +30,8 @@ const ConnectionWizardLauncher = () => {
         type="button"
         variant="contained"
         onClick={() => setIsOpen(true)}
-        disabled={!canOpenConnectionWizard()}
+        disabled={!hasPermission}
+        permissionKey={!hasPermission ? Keys.LifecycleManagementAddCluster : undefined}
         data-testid="connection-create-connection"
       >
         <AddIconCircleBorder style={{ width: '20px', height: '20px' }} />

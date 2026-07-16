@@ -175,12 +175,7 @@ function Dashboard() {
                       <div style={{ margin: '2rem 0 0 auto', width: 'fit-content' }}>
                         <StyledButton
                           onClick={() => setRunTest(true)}
-                          disabled={
-                            !CAN(
-                              Keys.PerformanceManagementRunTest.id,
-                              Keys.PerformanceManagementRunTest.function,
-                            )
-                          }
+                          permissionKey={Keys.PerformanceManagementRunTest}
                           variant="contained"
                         >
                           Run Test

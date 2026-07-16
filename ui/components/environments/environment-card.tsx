@@ -227,27 +227,15 @@ const EnvironmentCard = ({
               >
                 <IconButton
                   onClick={onEdit}
-                  disabled={
-                    selectedEnvironments?.filter((id) => id == environmentDetails.id).length === 1
-                      ? true
-                      : !CAN(
-                          Keys.WorkspaceManagementEditEnvironment.id,
-                          Keys.WorkspaceManagementEditEnvironment.function,
-                        )
-                  }
+                  disabled={selectedEnvironments?.includes(environmentDetails.id)}
+                  permissionKey={Keys.WorkspaceManagementEditEnvironment}
                 >
                   <EditIcon fill="white" style={{ margin: '0 2px' }} />
                 </IconButton>
                 <IconButton
                   onClick={onDelete}
-                  disabled={
-                    selectedEnvironments?.filter((id) => id == environmentDetails.id).length === 1
-                      ? true
-                      : !CAN(
-                          Keys.WorkspaceManagementDeleteEnvironment.id,
-                          Keys.WorkspaceManagementDeleteEnvironment.function,
-                        )
-                  }
+                  disabled={selectedEnvironments?.includes(environmentDetails.id)}
+                  permissionKey={Keys.WorkspaceManagementDeleteEnvironment}
                 >
                   <DeleteIcon fill="white" style={{ margin: '0 2px' }} />
                 </IconButton>

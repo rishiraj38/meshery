@@ -23,7 +23,7 @@ import { getKubernetesContexts } from './connections/ConnectionWizard.helpers';
 import useKubernetesHook from '@/utils/hooks/useKubernetesHook';
 import { Keys } from '@meshery/schemas/permissions';
 import useTestIDsGenerator from '@/utils/hooks/useTestIDs';
-import CAN from '@/utils/can';
+
 import { useAddKubernetesConfigMutation } from '../rtk-query/connection';
 import { updateProgress } from '@/store/slices/mesheryUi';
 
@@ -215,9 +215,7 @@ const MesherySettingsEnvButtons = () => {
             borderRadius: 5,
             padding: '8px',
           }}
-          disabled={
-            !CAN(Keys.LifecycleManagementAddCluster.id, Keys.LifecycleManagementAddCluster.function)
-          }
+          permissionKey={Keys.LifecycleManagementAddCluster}
           data-cy="btnResetDatabase"
         >
           <AddIconCircleBorder style={{ width: '20px', height: '20px' }} />
