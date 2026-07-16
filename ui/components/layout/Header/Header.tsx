@@ -176,13 +176,18 @@ function K8sContextMenu({
   };
 
   const handleKubernetesDelete = async (name, connectionID) => {
-    // The shared transition modal carries the full explanation of what
-    // deleting a Kubernetes connection means (operator undeployment, MeshSync
-    // data purge, reconnect behavior) plus the docs-link info tooltip.
+    // The shared transition modal explains what deleting this connection means
+    // by resolving the Kubernetes connection definition's transition copy for
+    // (current state → deleted); pass the connection's current state so that
+    // lookup can resolve (connectionsToK8sContexts maps it onto each ctx).
+    const currentStatus = contexts?.contexts?.find(
+      (ctx) => ctx.connectionId === connectionID,
+    )?.connectionStatus;
     const confirmed = await deleteCtxtRef.current?.show({
       targetStatus: CONNECTION_STATES.DELETED,
       kind: CONNECTION_KINDS.KUBERNETES,
-      connections: [{ id: connectionID, name }],
+      currentStatus,
+      connections: [{ id: connectionID, name, status: currentStatus }],
     });
     if (confirmed) {
       const successCallback = async () => {

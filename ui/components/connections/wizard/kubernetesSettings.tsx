@@ -108,11 +108,9 @@ const SettingsStepBody = ({ ctx }: { ctx: WizardContext }) => {
     if (!connectionId || nextStatus === status) {
       return;
     }
-    const transitionDescription = transitionMap?.[status]?.find(
-      (transition) => transition.nextState === nextStatus,
-    )?.description;
     // Pass the connection's actual kind (undefined falls back to the modal's
-    // generic copy) rather than forcing kubernetes-specific wording.
+    // generic copy) rather than forcing kubernetes-specific wording. The modal
+    // resolves the definition-authored description for this transition itself.
     // The modal mounts alongside this component, so the ref is always set by
     // the time the dropdown is interactive; if it ever were not, treating the
     // undefined result as "not confirmed" is the safe outcome.
@@ -124,7 +122,6 @@ const SettingsStepBody = ({ ctx }: { ctx: WizardContext }) => {
       currentStatus: status,
       kind: typeof connection.kind === 'string' ? connection.kind : undefined,
       connections: [{ id: connectionId, name: getCurrentName(ctx) }],
-      transitionDescription,
     });
     if (!confirmed) {
       return;

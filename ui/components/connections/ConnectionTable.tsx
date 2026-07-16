@@ -318,7 +318,7 @@ const ConnectionTable = ({
         targetStatus: CONNECTION_STATES.DELETED,
         currentStatus: connection?.status,
         kind: connection?.kind,
-        connections: [{ id: connectionId, name: connection?.name }],
+        connections: [{ id: connectionId, name: connection?.name, status: connection?.status }],
       });
 
       if (confirmed) {
@@ -348,12 +348,14 @@ const ConnectionTable = ({
       }
 
       // Kind-specific ramifications only apply when the whole selection is of
-      // one kind; a mixed selection gets the generic copy.
+      // one kind; a mixed selection gets the generic copy. Per-connection
+      // status lets the modal resolve the definition-authored description when
+      // the selection's current states agree.
       const kinds = new Set(selectedConnections.map((connection) => connection.kind));
       const confirmed = await modalRef.current.show({
         targetStatus: CONNECTION_STATES.DELETED,
         kind: kinds.size === 1 ? selectedConnections[0].kind : undefined,
-        connections: selectedConnections.map(({ id, name }) => ({ id, name })),
+        connections: selectedConnections.map(({ id, name, status }) => ({ id, name, status })),
       });
 
       if (confirmed) {
@@ -470,25 +472,20 @@ const ConnectionTable = ({
       }
 
       const connection = filteredConnections.find((conn) => conn.id === connectionId);
-      // Only surface a description the connection definition actually
-      // authored; the modal supplies its own confirmation copy, so the
-      // generic "Are you sure...?" fallback would just repeat it.
-      const transitionDescription = connectionMetadataState?.[connectionKind]?.transitionMap?.[
-        connectionStatus
-      ]?.find((transition) => transition.nextState === status.toLowerCase())?.description;
+      // The modal resolves the definition-authored description for this
+      // transition itself (kind + currentStatus → connectionMetadataState).
       const confirmed = await modalRef.current.show({
         targetStatus: status.toLowerCase(),
         currentStatus: connectionStatus,
         kind: connectionKind,
         connections: [{ id: connectionId, name: connection?.name }],
-        transitionDescription,
       });
 
       if (confirmed) {
         await updateConnectionStatus(connectionId, status);
       }
     },
-    [connectionMetadataState, filteredConnections, updateConnectionStatus],
+    [filteredConnections, updateConnectionStatus],
   );
 
   const handleActionMenuOpen = useCallback((event, tableMeta: RowData) => {

@@ -1,7 +1,30 @@
 import React, { createRef } from 'react';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+// The real shipped connection definitions: the modal renders their
+// transitionMap descriptions verbatim, so the tests below double as a drift
+// guard on the authored copy.
+import kubernetesDefinition from '../../../models/meshery-core/0.7.2/v1.0.0/connections/KubernetesConnection.json';
+import grafanaDefinition from '../../../models/meshery-core/0.7.2/v1.0.0/connections/GrafanaConnection.json';
+import prometheusDefinition from '../../../models/meshery-core/0.7.2/v1.0.0/connections/PrometheusConnection.json';
+
+// Mutable store state so individual tests can swap in stale/absent definition
+// data. Reset in beforeEach.
+const mockStoreState: {
+  ui: { connectionMetadataState: Record<string, { transitionMap?: unknown }> | null };
+} = { ui: { connectionMetadataState: null } };
+
+const defaultConnectionMetadataState = () => ({
+  kubernetes: { transitionMap: kubernetesDefinition.transitionMap },
+  grafana: { transitionMap: grafanaDefinition.transitionMap },
+  prometheus: { transitionMap: prometheusDefinition.transitionMap },
+});
+
+vi.mock('react-redux', () => ({
+  useSelector: (selector: (state: unknown) => unknown) => selector(mockStoreState),
+}));
 
 vi.mock('@sistent/sistent', () => ({
   Modal: ({ open, title, children, headerIcon }) =>
@@ -91,33 +114,53 @@ const setup = () => {
   return ref;
 };
 
-describe('shouldShowTransitionDescription', () => {
-  it('hides definition copy on delete so every delete entry path matches', () => {
-    expect(
-      shouldShowTransitionDescription(
-        'Are you sure you want to transition from not found to deleted? This will remove the unreachable connection completely by unregistering it.',
-        { isDelete: true, currentStatus: 'not found', targetStatus: 'deleted' },
-      ),
-    ).toBe(false);
-  });
+beforeEach(() => {
+  mockStoreState.ui.connectionMetadataState = defaultConnectionMetadataState();
+});
 
-  it('hides prompt-style "Are you sure" leftovers on non-delete transitions', () => {
+describe('shouldShowTransitionDescription', () => {
+  it('hides prompt-style "Are you sure" leftovers from older definition versions', () => {
     expect(
       shouldShowTransitionDescription(
         'Are you sure you want to transition from discovered to registered?',
-        { isDelete: false, currentStatus: 'discovered', targetStatus: 'registered' },
+        { currentStatus: 'discovered', targetStatus: 'registered' },
       ),
     ).toBe(false);
   });
 
-  it('keeps authored descriptions that add a real transition-specific fact', () => {
+  it('hides copy that merely restates the from→to transition', () => {
+    expect(
+      shouldShowTransitionDescription('transition from discovered to registered', {
+        currentStatus: 'discovered',
+        targetStatus: 'registered',
+      }),
+    ).toBe(false);
+  });
+
+  it('keeps authored descriptions that explain the consequences', () => {
     expect(
       shouldShowTransitionDescription('Registration description from the connection definition.', {
-        isDelete: false,
         currentStatus: 'discovered',
         targetStatus: 'registered',
       }),
     ).toBe(true);
+  });
+
+  it.each([
+    ['KubernetesConnection.json', kubernetesDefinition],
+    ['GrafanaConnection.json', grafanaDefinition],
+    ['PrometheusConnection.json', prometheusDefinition],
+  ])('every authored description in %s is displayable (no prompt-style copy)', (_name, def) => {
+    Object.entries(def.transitionMap).forEach(([currentStatus, transitions]) => {
+      (transitions as { nextState: string; description?: string }[]).forEach((transition) => {
+        expect(
+          shouldShowTransitionDescription(transition.description, {
+            currentStatus,
+            targetStatus: transition.nextState,
+          }),
+        ).toBe(true);
+      });
+    });
   });
 });
 
@@ -127,7 +170,7 @@ describe('ConnectionStateTransitionModal', () => {
     expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
   });
 
-  it('explains a Kubernetes delete with scannable consequences and a red confirm button', async () => {
+  it('explains a Kubernetes delete with the definition-authored copy and a red confirm button', async () => {
     const ref = setup();
 
     let resolved: boolean | undefined;
@@ -135,6 +178,7 @@ describe('ConnectionStateTransitionModal', () => {
       ref.current
         .show({
           targetStatus: 'deleted',
+          currentStatus: 'connected',
           kind: 'kubernetes',
           connections: [{ id: 'c1', name: 'prod-cluster' }],
         })
@@ -144,26 +188,16 @@ describe('ConnectionStateTransitionModal', () => {
     expect(await screen.findByText('Delete Kubernetes connection?')).toBeInTheDocument();
     expect(screen.getByTestId('warning-icon')).toHaveAttribute('data-fill', 'warning-amber');
     expect(screen.getByTestId('connection-transition-lead')).toHaveTextContent('prod-cluster');
-    expect(screen.getByTestId('connection-transition-lead')).toHaveTextContent(
-      'its associated credential',
-    );
 
-    const will = screen.getByTestId('connection-transition-will');
-    expect(will).toHaveTextContent('This will:');
-    expect(will).toHaveTextContent('Meshery Operator');
-    expect(will).toHaveTextContent('when present');
-    expect(will).toHaveTextContent(
-      "Purge cluster data collected through MeshSync from Meshery's database",
-    );
-
-    const willNot = screen.getByTestId('connection-transition-will-not');
-    expect(willNot).toHaveTextContent('This will not:');
-    expect(willNot).toHaveTextContent('Kubernetes cluster itself');
-
-    const note = screen.getByTestId('connection-transition-note');
-    expect(note).toHaveTextContent('Note:');
-    expect(note).toHaveTextContent('auto-reconnect');
-    expect(note).toHaveTextContent('Disconnect');
+    // Body copy comes from KubernetesConnection.json (connected → deleted),
+    // not from anything hardcoded in the UI.
+    const description = screen.getByTestId('connection-transition-description');
+    expect(description).toHaveTextContent('associated credential');
+    expect(description).toHaveTextContent('Meshery Operator');
+    expect(description).toHaveTextContent('when present');
+    expect(description).toHaveTextContent('The Kubernetes cluster itself is not deleted');
+    expect(description).toHaveTextContent('auto-reconnect');
+    expect(screen.queryByTestId('connection-transition-fallback')).not.toBeInTheDocument();
 
     const confirm = screen.getByTestId('connection-transition-confirm');
     expect(confirm).toHaveAttribute('data-variant', 'danger');
@@ -174,7 +208,38 @@ describe('ConnectionStateTransitionModal', () => {
     expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
   });
 
-  it('does not stack definition transitionDescription on delete', async () => {
+  it('falls back to the generic line when the current state is unknown', async () => {
+    const ref = setup();
+
+    act(() => {
+      ref.current.show({
+        targetStatus: 'deleted',
+        kind: 'kubernetes',
+        connections: [{ id: 'c1', name: 'prod-cluster' }],
+      });
+    });
+
+    await screen.findByText('Delete Kubernetes connection?');
+    expect(screen.queryByTestId('connection-transition-description')).not.toBeInTheDocument();
+    expect(screen.getByTestId('connection-transition-fallback')).toHaveTextContent(
+      'This will transition the connection to the Deleted state.',
+    );
+  });
+
+  it('falls back when the definition still carries prompt-style copy (stale registry rows)', async () => {
+    mockStoreState.ui.connectionMetadataState = {
+      kubernetes: {
+        transitionMap: {
+          'not found': [
+            {
+              nextState: 'deleted',
+              description:
+                'Are you sure you want to transition from not found to deleted? This will remove the unreachable connection completely by unregistering it.',
+            },
+          ],
+        },
+      },
+    };
     const ref = setup();
 
     act(() => {
@@ -183,14 +248,29 @@ describe('ConnectionStateTransitionModal', () => {
         currentStatus: 'not found',
         kind: 'kubernetes',
         connections: [{ id: 'c1', name: 'unreachable-cluster' }],
-        transitionDescription:
-          'Are you sure you want to transition from not found to deleted? This will remove the unreachable connection completely by unregistering it.',
       });
     });
 
     await screen.findByText('Delete Kubernetes connection?');
     expect(screen.queryByTestId('connection-transition-description')).not.toBeInTheDocument();
-    expect(screen.getByTestId('connection-transition-will')).toBeInTheDocument();
+    expect(screen.getByTestId('connection-transition-fallback')).toBeInTheDocument();
+  });
+
+  it('falls back for kinds without a connection definition', async () => {
+    const ref = setup();
+
+    act(() => {
+      ref.current.show({
+        targetStatus: 'deleted',
+        currentStatus: 'connected',
+        kind: 'meshery',
+        connections: [{ id: 'c1', name: 'Meshery Cloud' }],
+      });
+    });
+
+    await screen.findByText('Delete Meshery connection?');
+    expect(screen.queryByTestId('connection-transition-description')).not.toBeInTheDocument();
+    expect(screen.getByTestId('connection-transition-fallback')).toBeInTheDocument();
   });
 
   it('normalizes mixed-case targetStatus so delete still uses danger styling', async () => {
@@ -233,6 +313,50 @@ describe('ConnectionStateTransitionModal', () => {
     const lead = screen.getByTestId('connection-transition-lead');
     expect(lead).toHaveTextContent('docker-desktop, meshery, Artifact Hub');
     expect(lead).toHaveTextContent('and 2 more');
+  });
+
+  it('resolves the definition copy for a bulk selection whose current states agree', async () => {
+    const ref = setup();
+
+    act(() => {
+      ref.current.show({
+        targetStatus: 'deleted',
+        kind: 'kubernetes',
+        connections: [
+          { id: 'c1', name: 'alpha', status: 'connected' },
+          { id: 'c2', name: 'beta', status: 'connected' },
+        ],
+      });
+    });
+
+    expect(await screen.findByText('Delete 2 Kubernetes connections?')).toBeInTheDocument();
+    expect(screen.getByTestId('connection-transition-description')).toHaveTextContent(
+      'Meshery Operator',
+    );
+    expect(screen.getByTestId('connection-transition-bulk-scope')).toHaveTextContent(
+      'This applies to each selected connection.',
+    );
+  });
+
+  it('uses the generic line for a bulk selection with mixed current states', async () => {
+    const ref = setup();
+
+    act(() => {
+      ref.current.show({
+        targetStatus: 'deleted',
+        kind: 'kubernetes',
+        connections: [
+          { id: 'c1', name: 'alpha', status: 'connected' },
+          { id: 'c2', name: 'beta', status: 'discovered' },
+        ],
+      });
+    });
+
+    expect(await screen.findByText('Delete 2 Kubernetes connections?')).toBeInTheDocument();
+    expect(screen.queryByTestId('connection-transition-description')).not.toBeInTheDocument();
+    expect(screen.getByTestId('connection-transition-fallback')).toHaveTextContent(
+      'This will transition each selected connection to the Deleted state.',
+    );
   });
 
   it('settles an in-flight confirmation as cancelled when show() is re-entered', async () => {
@@ -291,7 +415,6 @@ describe('ConnectionStateTransitionModal', () => {
         currentStatus: 'discovered',
         kind: 'kubernetes',
         connections: [{ id: 'c1', name: 'prod-cluster' }],
-        transitionDescription: 'Registration description from the connection definition.',
       });
     });
 
@@ -309,11 +432,9 @@ describe('ConnectionStateTransitionModal', () => {
     expect(confirm).toHaveAttribute('data-variant', 'primary');
     expect(confirm).toHaveAttribute('data-severity', 'primary');
     expect(confirm).toHaveTextContent('Register');
-    expect(screen.getByTestId('connection-transition-will')).toHaveTextContent(
-      'Register the connection with Meshery',
-    );
+    // Definition copy for discovered → registered (KubernetesConnection.json).
     expect(screen.getByTestId('connection-transition-description')).toHaveTextContent(
-      'Registration description from the connection definition.',
+      'Registers the discovered cluster with Meshery',
     );
   });
 
@@ -332,6 +453,10 @@ describe('ConnectionStateTransitionModal', () => {
     expect(await screen.findByText('Disconnect Kubernetes connection?')).toBeInTheDocument();
     expect(screen.getByTestId('connection-transition-lead')).toHaveTextContent(
       'You are about to disconnect the connection',
+    );
+    // Definition copy for connected → disconnected (KubernetesConnection.json).
+    expect(screen.getByTestId('connection-transition-description')).toHaveTextContent(
+      'MeshSync data already collected is kept',
     );
     const confirm = screen.getByTestId('connection-transition-confirm');
     expect(confirm).toHaveAttribute('data-severity', 'caution');
@@ -353,31 +478,6 @@ describe('ConnectionStateTransitionModal', () => {
 
     expect(await screen.findByText('Discover connection?')).toBeInTheDocument();
     expect(screen.getByTestId('connection-transition-confirm')).toHaveTextContent('Discover');
-  });
-
-  it('summarizes bulk deletions and notes the per-connection scope', async () => {
-    const ref = setup();
-
-    act(() => {
-      ref.current.show({
-        targetStatus: 'deleted',
-        kind: 'kubernetes',
-        connections: [
-          { id: 'c1', name: 'alpha' },
-          { id: 'c2', name: 'beta' },
-          { id: 'c3', name: 'gamma' },
-          { id: 'c4', name: 'delta' },
-        ],
-      });
-    });
-
-    expect(await screen.findByText('Delete 4 Kubernetes connections?')).toBeInTheDocument();
-    const lead = screen.getByTestId('connection-transition-lead');
-    expect(lead).toHaveTextContent('alpha, beta, gamma');
-    expect(lead).toHaveTextContent('and 1 more');
-    expect(screen.getByTestId('connection-transition-bulk-scope')).toHaveTextContent(
-      'This applies to each selected connection.',
-    );
   });
 
   it('offers an info tooltip linking the relevant docs', async () => {
