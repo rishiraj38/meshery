@@ -15,7 +15,7 @@ export default defineConfig({
       'out',
       'tests/e2e',
       // TODO: these three files use shallow vi.mock() stubs for @sistent/sistent.
-      // Their transitive imports pull in styled-component modules that the
+      // Their transitive imports pull in styled-components modules that the
       // stubs don't cover. Fixing properly requires either (a) converting the
       // mock to vi.mock(..., async (importOriginal) => ...) and wrapping render()
       // in SistentThemeProvider, or (b) exhaustively stubbing the imported
