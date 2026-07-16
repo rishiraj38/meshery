@@ -158,7 +158,54 @@ describe('FormatConnectionMetadata', () => {
     expect(pingNats).toHaveBeenCalledWith({ connectionID: 'connection-1' });
   });
 
-  it('renders structured metadata for meshery connections', () => {
+  it('renders the well-known meshery server fields as labeled key-values', () => {
+    render(
+      <FormatConnectionMetadata
+        connection={{
+          kind: 'meshery',
+          createdAt: '2026-05-08T10:00:00Z',
+          updatedAt: '2026-05-09T10:00:00Z',
+          metadata: {
+            serverId: 'server-uuid-1',
+            serverVersion: 'v0.9.0',
+            serverBuildSha: 'abc1234',
+            serverLocation: 'https://meshery.local:9081',
+          },
+        }}
+      />,
+    );
+
+    expect(screen.getByText('Server ID')).toBeInTheDocument();
+    expect(screen.getByText('server-uuid-1')).toBeInTheDocument();
+    expect(screen.getByText('Server Version')).toBeInTheDocument();
+    expect(screen.getByText('v0.9.0')).toBeInTheDocument();
+    expect(screen.getByText('Server Build SHA')).toBeInTheDocument();
+    expect(screen.getByText('abc1234')).toBeInTheDocument();
+    expect(screen.getByText('Server Location')).toBeInTheDocument();
+    expect(screen.getByText('https://meshery.local:9081')).toBeInTheDocument();
+    expect(screen.getByText('Discovered At')).toBeInTheDocument();
+    // Only well-known fields are present, so the generic fallback is omitted.
+    expect(screen.queryByTestId('structured-data')).not.toBeInTheDocument();
+  });
+
+  it('tolerates snake_case metadata from older meshery connection records', () => {
+    render(
+      <FormatConnectionMetadata
+        connection={{
+          kind: 'meshery',
+          metadata: {
+            server_id: 'server-uuid-2',
+            server_version: 'v0.8.0',
+          },
+        }}
+      />,
+    );
+
+    expect(screen.getByText('server-uuid-2')).toBeInTheDocument();
+    expect(screen.getByText('v0.8.0')).toBeInTheDocument();
+  });
+
+  it('still renders unrecognized meshery metadata through the structured formatter', () => {
     render(
       <FormatConnectionMetadata
         connection={{

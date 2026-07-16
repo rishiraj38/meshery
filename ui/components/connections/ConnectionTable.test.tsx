@@ -222,13 +222,16 @@ const makeConnection = (overrides = {}) => ({
   kind: 'kubernetes',
   status: 'connected',
   type: 'cluster',
+  // v1beta3 camelCase wire shape (subType/createdAt/updatedAt), matching what
+  // GET /api/integrations/connections actually returns.
   subType: 'managed',
   metadata: {
     name: 'cluster-a',
     server: 'https://cluster-a.local',
   },
   environments: [],
-  created_at: '2026-05-08',
+  createdAt: '2026-05-08',
+  updatedAt: '2026-05-09',
   ...overrides,
 });
 
@@ -319,6 +322,45 @@ describe('ConnectionTable', () => {
         undefined,
       );
     });
+  });
+
+  it('defaults to Discovered At (createdAt) descending, mapped to the server sort column', async () => {
+    render(<ConnectionTable />);
+
+    await waitFor(() => {
+      expect(dataTableProps).toBeDefined();
+    });
+
+    // The server's order param addresses the DB column...
+    expect(getConnectionsQuery).toHaveBeenLastCalledWith(
+      expect.objectContaining({ order: 'created_at desc' }),
+      undefined,
+    );
+    // ...while the table's active-sort indicator uses the wire/column name.
+    expect(dataTableProps.options.sortOrder).toEqual({ name: 'createdAt', direction: 'desc' });
+  });
+
+  it('shows the Discovered At column by default and populates it from createdAt', async () => {
+    render(<ConnectionTable />);
+
+    await waitFor(() => {
+      expect(dataTableProps).toBeDefined();
+    });
+
+    // The responsive defaults are computed from colViews; 'xs' marks the
+    // column visible at every breakpoint (previously 'na' = always hidden).
+    const colViewsArg = updateVisibleColumns.mock.calls[0][1];
+    expect(colViewsArg).toContainEqual(['createdAt', 'xs']);
+
+    const discoveredAtColumn = dataTableProps.tableCols.find((col) => col.name === 'createdAt');
+    expect(discoveredAtColumn?.label).toBe('Discovered At');
+    // formatDate is mocked as identity in this file; the real formatting is
+    // covered by data-formatter's own tests.
+    const { container, unmount } = render(
+      <>{discoveredAtColumn.options.customBodyRender('2026-05-08')}</>,
+    );
+    expect(container.textContent).toContain('2026-05-08');
+    unmount();
   });
 
   it('surfaces query failures through notifications', async () => {

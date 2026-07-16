@@ -31,6 +31,7 @@ import {
   ENVIRONMENT_DOCS_URL,
   getErrorMessage,
   getStatusTransition,
+  toServerSortOrder,
 } from './ConnectionTable.constants';
 import type { ConnectionTransitionMap } from './ConnectionTable.constants';
 import { useConnectionActions } from './ConnectionTable.hooks';
@@ -91,7 +92,7 @@ const ConnectionTable = ({
     defaults: {
       page: 0,
       pageSize: 10,
-      sortOrder: 'created_at desc',
+      sortOrder: 'createdAt desc',
       search: '',
       filters: { status: '', kind: '' },
     },
@@ -192,7 +193,7 @@ const ConnectionTable = ({
       page: page,
       pageSize: pageSize,
       search: search,
-      order: sortOrder,
+      order: toServerSortOrder(sortOrder),
       // Repeated query params (?status=connected, ?kind=kubernetes) — no JSON.
       status: statusFilter || undefined,
       kind: selectedFilter || kindFilter || undefined,
@@ -292,8 +293,8 @@ const ConnectionTable = ({
       ['environments', 'm'],
       ['kind', 'm'],
       ['type', 's'],
-      ['sub_type', 'na'],
-      ['created_at', 'na'],
+      ['subType', 'na'],
+      ['createdAt', 'xs'],
       ['status', 'xs'],
       ['Actions', 'xs'],
       ['transitionMap', 'xs'],

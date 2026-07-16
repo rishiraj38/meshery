@@ -87,3 +87,21 @@ export const getStatusTransition = (
 
 export const CONNECTION_DOCS_URL = `https://docs.meshery.io/concepts/logical/connections#states-and-the-lifecycle-of-connections`;
 export const ENVIRONMENT_DOCS_URL = `https://docs.meshery.io/concepts/logical/environments`;
+
+// The table's column names follow the v1beta3 camelCase wire shape
+// (createdAt, updatedAt), but the server's `order` query param addresses DB
+// columns (created_at, updated_at - see SanitizeOrderInput in
+// server/models/connection_persister.go). Translate a UI sort order like
+// "createdAt desc" into its server form; unknown fields pass through
+// unchanged, which also keeps older bookmarked URLs with snake_case sort
+// params working.
+const UI_TO_SERVER_SORT_COLUMN: Record<string, string> = {
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
+};
+
+export const toServerSortOrder = (sortOrder: string): string => {
+  const [field, direction] = sortOrder.split(' ');
+  const serverField = UI_TO_SERVER_SORT_COLUMN[field] ?? field;
+  return direction ? `${serverField} ${direction}` : serverField;
+};
