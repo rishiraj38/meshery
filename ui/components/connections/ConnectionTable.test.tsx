@@ -452,6 +452,25 @@ describe('ConnectionTable', () => {
     });
   });
 
+  it('applies no transition when the bulk delete confirmation is cancelled', async () => {
+    const user = userEvent.setup();
+    modalShow.mockResolvedValue(false);
+
+    render(<ConnectionTable />);
+
+    const toolbar = dataTableProps.options.customToolbarSelect({
+      data: [{ index: 0 }, { index: 1 }],
+    });
+    render(toolbar);
+
+    await user.click(screen.getByRole('button', { name: /delete/i }));
+
+    await waitFor(() => {
+      expect(modalShow).toHaveBeenCalled();
+    });
+    expect(updateConnectionByIdMutator).not.toHaveBeenCalled();
+  });
+
   it('recomputes responsive column visibility when the window width changes', async () => {
     const { rerender } = render(<ConnectionTable />);
 
