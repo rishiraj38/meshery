@@ -9,10 +9,13 @@ const setAppStateMock = vi.fn();
 // Return value of useGetConnectionsQuery, swapped per test.
 let connectionsResult: { data?: { connections?: unknown[] } } = { data: undefined };
 
+// Redux boots with ['all'] selected; swapped per test to exercise the sync path.
+let reduxSelectedK8sContexts: string[] = ['all'];
+
 vi.mock('react-redux', () => ({
   useDispatch: () => dispatchMock,
   useSelector: (selector: (state: Record<string, unknown>) => unknown) =>
-    selector({ ui: { extensionType: '' } }),
+    selector({ ui: { extensionType: '', selectedK8sContexts: reduxSelectedK8sContexts } }),
 }));
 
 // The k8s context list is now driven by the connections REST API
@@ -38,15 +41,6 @@ vi.mock('@/store/slices/mesheryUi', () => ({
     type: 'core/setK8sContexts',
     payload,
   }),
-}));
-
-// Redux boots with ['all'] selected; swapped per test to exercise the sync path.
-let reduxSelectedK8sContexts: string[] = ['all'];
-
-vi.mock('@/store', () => ({
-  store: {
-    getState: () => ({ ui: { selectedK8sContexts: reduxSelectedK8sContexts } }),
-  },
 }));
 
 vi.mock('@sistent/sistent', () => ({
@@ -201,6 +195,40 @@ describe('KubernetesSubscription', () => {
     expect(setAppStateMock).toHaveBeenCalledWith(
       expect.objectContaining({ activeK8sContexts: ['ctx-1', 'ctx-2', 'all'] }),
     );
+    // Storage is resynced to the resolved selection so it does not keep a
+    // stale variant of the same selection.
+    expect(JSON.parse(window.sessionStorage.getItem('selectedK8sContexts') || 'null')).toEqual([
+      'all',
+    ]);
+  });
+
+  it('does not touch the selection or storage while connections are still loading', () => {
+    connectionsResult = { data: undefined };
+    window.sessionStorage.setItem('selectedK8sContexts', JSON.stringify(['ctx-2']));
+
+    render(<KubernetesSubscription setAppState={setAppStateMock} />);
+
+    expect(setAppStateMock).not.toHaveBeenCalled();
+    expect(dispatchMock).not.toHaveBeenCalled();
+    // The persisted selection survives untouched until data arrives.
+    expect(JSON.parse(window.sessionStorage.getItem('selectedK8sContexts') || 'null')).toEqual([
+      'ctx-2',
+    ]);
+  });
+
+  it('leaves redux and storage untouched when no contexts exist', () => {
+    connectionsResult = { data: { connections: [] } };
+    window.sessionStorage.setItem('selectedK8sContexts', JSON.stringify(['ctx-1']));
+
+    render(<KubernetesSubscription setAppState={setAppStateMock} />);
+
+    // k8sConfig still syncs (empty), but the selection is not rewritten.
+    expect(dispatchMock.mock.calls.map(([action]) => action)).not.toContainEqual(
+      expect.objectContaining({ type: 'core/setK8sContexts' }),
+    );
+    expect(JSON.parse(window.sessionStorage.getItem('selectedK8sContexts') || 'null')).toEqual([
+      'ctx-1',
+    ]);
   });
 
   it('drops stale ids but keeps the surviving persisted selection', () => {

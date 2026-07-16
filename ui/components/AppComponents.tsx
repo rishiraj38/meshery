@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { FavoriteIcon, Hidden, Typography, useTheme } from '@sistent/sistent';
 import Navigator from './layout/Navigator/Navigator';
 import CAN from '@/utils/can';
@@ -8,9 +8,13 @@ import { connectionsToK8sContexts } from '@/rtk-query/transforms';
 import { useGetConnectionsQuery } from '@/rtk-query/connection';
 import { CONNECTION_KINDS } from '@/utils/Enum';
 import { setK8sContexts, updateK8SConfig } from '@/store/slices/mesheryUi';
-import { loadSelectedK8sContexts } from '@/utils/multi-ctx';
-import { store } from '@/store';
+import { loadSelectedK8sContexts, persistSelectedK8sContexts } from '@/utils/multi-ctx';
 import { StyledDrawer, StyledFooterBody, StyledFooterText } from '../themes/App.styles';
+
+// Order-insensitive equality for context-id selections: ['a','b'] and
+// ['b','a'] are the same selection.
+const isSameSelection = (a: string[], b: string[]) =>
+  a.length === b.length && [...a].sort().every((id, index) => id === [...b].sort()[index]);
 
 type FooterProps = {
   providerCapabilities?: { restrictedAccess?: { isMesheryUiRestricted?: boolean } } | null;
@@ -84,8 +88,24 @@ export const KubernetesSubscription = ({ setAppState }: { setAppState: SetAppSta
     { skip: !canViewClusters },
   );
 
+  // Read the current selection through a render-synced ref so the effect can
+  // consult the latest value without listing it as a dependency (the effect
+  // dispatches setK8sContexts, so depending on the selection would loop).
+  const selectedK8sContexts = useSelector(
+    (state: { ui: { selectedK8sContexts: string[] } }) => state.ui.selectedK8sContexts,
+  );
+  const selectedK8sContextsRef = useRef(selectedK8sContexts);
+  selectedK8sContextsRef.current = selectedK8sContexts;
+
   useEffect(() => {
     if (!canViewClusters) {
+      return;
+    }
+
+    // Until the connections query resolves there is nothing to reconcile
+    // against - proceeding would treat "still loading" as "no contexts" and
+    // wipe the persisted selection with an empty one.
+    if (!connectionData) {
       return;
     }
 
@@ -120,13 +140,24 @@ export const KubernetesSubscription = ({ setAppState }: { setAppState: SetAppSta
 
     dispatch(updateK8SConfig({ k8sConfig: normalizedK8sContext?.contexts ?? [] }));
 
+    // With no contexts at all there is no selection to reconcile - leave
+    // redux and storage untouched so a cluster added later starts from the
+    // default all-selected view instead of an accidental explicit-empty one.
+    if (availableIds.length === 0) {
+      return;
+    }
+
     // Keep the redux selection (what dashboards, deploys, and queries consume)
     // in step with the restored selection; redux boots with ['all'] and would
-    // otherwise disagree with the header checkboxes after a reload.
+    // otherwise disagree with the header checkboxes after a reload. The thunk
+    // also rewrites sessionStorage, resyncing it after stale ids were dropped.
     const resolvedSelection = activeContexts.includes('all') ? ['all'] : activeContexts;
-    const currentSelection = store.getState().ui.selectedK8sContexts;
-    if (JSON.stringify(currentSelection) !== JSON.stringify(resolvedSelection)) {
+    if (!isSameSelection(selectedK8sContextsRef.current, resolvedSelection)) {
       dispatch(setK8sContexts({ selectedK8sContexts: resolvedSelection }));
+    } else {
+      // Same selection redux-side, but storage may still hold a stale variant
+      // of it (e.g. dropped ids resolved back to the implicit 'all').
+      persistSelectedK8sContexts(resolvedSelection);
     }
   }, [connectionData, canViewClusters, dispatch, setAppState]);
 

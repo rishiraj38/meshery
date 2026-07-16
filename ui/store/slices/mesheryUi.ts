@@ -51,10 +51,8 @@ const coreSlice = createSlice({
     },
     setK8sContexts: (state, action) => {
       state.selectedK8sContexts = action.payload.selectedK8sContexts;
-      // Session-persist the selection so it survives navigation and reloads
-      // (same inline pattern as setOrganization/setWorkspace below).
-      persistSelectedK8sContexts(action.payload.selectedK8sContexts);
-      // Note: Event bus publication would be handled in the thunk action
+      // Note: Side effects (session persistence, event bus publication) are
+      // handled in the setK8sContexts thunk below - reducers stay pure.
     },
     updateProgress: (state, action) => {
       state.showProgress = action.payload.showProgress;
@@ -117,6 +115,12 @@ export const {
 // Add thunks for async operations or side effects
 export const setK8sContexts = (payload) => (dispatch) => {
   dispatch(setK8sContextsAction(payload));
+
+  // Session-persist the selection so it survives navigation and reloads.
+  // Every selection change in the app flows through this thunk (header
+  // checkboxes, deploy modal, context search), making it the single
+  // persistence funnel while keeping the reducer pure.
+  persistSelectedK8sContexts(payload.selectedK8sContexts);
 
   mesheryEventBus.publish({
     type: 'K8S_CONTEXTS_UPDATED',
