@@ -46,10 +46,6 @@ vi.mock('@sistent/sistent', () => ({
     dataTableProps = props;
     return <div data-testid="responsive-data-table" />;
   },
-  PROMPT_VARIANTS: {
-    DANGER: 'danger',
-    WARNING: 'warning',
-  },
   MenuItem: ({ children }) => <div>{children}</div>,
   Box: ({ children }) => <div>{children}</div>,
   SyncAltIcon: () => <svg data-testid="sync-alt-icon" />,
@@ -196,12 +192,12 @@ vi.mock('../../assets/icons/disconnect', () => ({
   default: () => <svg />,
 }));
 
-vi.mock('../PromptComponent', () => ({
-  default: React.forwardRef(function PromptComponentMock(_, ref) {
+vi.mock('./ConnectionStateTransitionModal', () => ({
+  default: React.forwardRef(function ConnectionStateTransitionModalMock(_, ref) {
     React.useImperativeHandle(ref, () => ({
       show: modalShow,
     }));
-    return <div data-testid="prompt-component" />;
+    return <div data-testid="connection-transition-modal" />;
   }),
 }));
 
@@ -287,7 +283,8 @@ describe('ConnectionTable', () => {
     saveEnvironmentMutator.mockImplementation(() => ({
       unwrap: () => Promise.resolve({ id: 'env-1', name: 'dev' }),
     }));
-    modalShow.mockResolvedValue('DELETE');
+    // The transition modal resolves `true` when the user confirms.
+    modalShow.mockResolvedValue(true);
 
     router.query = {};
 
@@ -470,7 +467,16 @@ describe('ConnectionTable', () => {
     await user.click(screen.getByRole('button', { name: /delete/i }));
 
     await waitFor(() => {
-      expect(modalShow).toHaveBeenCalled();
+      expect(modalShow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          targetStatus: 'deleted',
+          kind: 'kubernetes',
+          connections: [
+            expect.objectContaining({ id: 'connection-1', name: 'cluster-a' }),
+            expect.objectContaining({ id: 'connection-2', name: 'cluster-b' }),
+          ],
+        }),
+      );
       expect(updateConnectionByIdMutator).toHaveBeenCalledTimes(2);
     });
 
@@ -482,6 +488,25 @@ describe('ConnectionTable', () => {
       connectionId: 'connection-2',
       body: { status: 'deleted' },
     });
+  });
+
+  it('applies no transition when the bulk delete confirmation is cancelled', async () => {
+    const user = userEvent.setup();
+    modalShow.mockResolvedValue(false);
+
+    render(<ConnectionTable />);
+
+    const toolbar = dataTableProps.options.customToolbarSelect({
+      data: [{ index: 0 }, { index: 1 }],
+    });
+    render(toolbar);
+
+    await user.click(screen.getByRole('button', { name: /delete/i }));
+
+    await waitFor(() => {
+      expect(modalShow).toHaveBeenCalled();
+    });
+    expect(updateConnectionByIdMutator).not.toHaveBeenCalled();
   });
 
   it('recomputes responsive column visibility when the window width changes', async () => {
