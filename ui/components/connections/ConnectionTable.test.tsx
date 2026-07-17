@@ -723,12 +723,26 @@ describe('ConnectionTable', () => {
   it('gives every data column an info icon and tooltip in its header', () => {
     render(<ConnectionTable />);
 
-    const dataColumns = dataTableProps.columns.filter(
-      (c) => c.name !== 'Actions' && typeof c.options?.customHeadRender === 'function',
-    );
+    // Internal metadata columns and control columns that do not require tooltips.
+    const internalColumns = [
+      'id',
+      'metadata.server_location',
+      'metadata.serverLocation',
+      'metadata.server',
+      'nextStatus',
+      'kindLogo',
+      'metadata.name',
+      'Actions',
+    ];
+
+    const dataColumns = dataTableProps.columns.filter((c) => !internalColumns.includes(c.name));
 
     dataColumns.forEach((col) => {
       const name = col.name;
+      expect(
+        typeof col.options?.customHeadRender,
+        `column "${name}" is missing customHeadRender`,
+      ).toBe('function');
 
       const head = col.options.customHeadRender({ index: 0, label: col.label, name }, () => {}, {});
 
