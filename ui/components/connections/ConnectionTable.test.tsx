@@ -738,6 +738,7 @@ describe('ConnectionTable', () => {
         `column "${name}" has no info tooltip`,
       ).toBe(true);
     });
+  });
   // Regression coverage for the review feedback on PR #20695: the
   // Connections/MeshSync tab switcher must be passed down through the
   // toolbar (rendered between the toolbar and the data table), not dropped.
