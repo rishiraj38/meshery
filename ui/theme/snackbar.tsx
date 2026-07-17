@@ -13,14 +13,14 @@ import { SnackbarContent } from 'notistack';
 import { forwardRef } from 'react';
 
 const StyledSnackbarContent = styled(SnackbarContent)(({ theme, variant }) => {
-  const notificationColors = {
+  const variantTextColors = {
     success: theme.palette.text.success,
     info: theme.palette.text.info,
     warning: theme.palette.text.warning,
     error: theme.palette.text.error,
   };
 
-  const baseColor = notificationColors[variant] || notificationColors.info;
+  const baseColor = variantTextColors[variant] || variantTextColors.info;
 
   const backgroundColor = theme.palette.mode === 'light' ? lighten(baseColor, 0.95) : '#323232';
 
