@@ -18,7 +18,7 @@
 .vscode/
 .cusorignore
 *.config
-
+**/__pycache__/
 
 Chart.min.js
 
@@ -102,3 +102,4 @@ docs/hugo_stats.json
 LLMs
 .copilot-tmp/*
 .claude/worktrees/*
+

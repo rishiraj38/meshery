@@ -4,7 +4,7 @@ description: Iterate on a PR until CI passes. Optionally merge or merge and publ
 argument-hint: "[--full] [--release]"
 metadata:
   author: leecalcote
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Iterate on PR Until CI Passes
@@ -16,6 +16,28 @@ Continuously iterate on the current branch until all CI checks pass and review f
 **Requires**: Python 3.9+.
 
 **Important**: Run scripts from the repository root directory (where `.git` is located).
+
+### Running the Bundled Scripts
+
+Every script below accepts either runner - they only use the standard library, so no
+dependency installation is needed either way:
+
+- **Preferred**: [`uv`](https://docs.astral.sh/uv/getting-started/installation/) - `uv run <script>`. Faster startup, isolated from system Python.
+- **Fallback**: `python3 <script>` - used automatically when `uv` is not on `PATH`.
+
+Before running any script command shown in this skill, check for `uv` first and prefer it;
+fall back to `python3` only if `uv` is unavailable:
+
+```bash
+if command -v uv >/dev/null 2>&1; then
+  uv run .claude/skills/iterate-pr/scripts/<script>.py [args]
+else
+  python3 .claude/skills/iterate-pr/scripts/<script>.py [args]
+fi
+```
+
+The rest of this document shows invocations in the shorter `python3 <script>` form for
+readability - substitute `uv run` per the rule above whenever `uv` is available.
 
 ## Invocation and Modes
 
