@@ -264,6 +264,68 @@ func TestSendEvent_DeDuplicatesRepeatFailure(t *testing.T) {
 	}
 }
 
+// TestSendEvent_InvalidTransitionPropagatesError covers the fatal
+// transition-error path: a user-initiated event with no edge from the current
+// state breaks out of the loop with an "Invalid status change requested" Error
+// event, which must reach the caller with a non-nil error instead of falling
+// through to the success path (which would return the event with a nil error
+// and silently drop it).
+func TestSendEvent_InvalidTransitionPropagatesError(t *testing.T) {
+	provider := &fakeProvider{status: connections.CONNECTED}
+	sm := newTestMachine(t, provider, &stubAction{execNext: NoOp})
+	ctx := newTestContext(t)
+
+	// InitialState only has a Discovery edge in the test machine, so a
+	// user-initiated Register is an invalid transition on the first iteration.
+	event, err := sm.SendEvent(ctx, Register, nil)
+	if err == nil {
+		t.Fatal("expected a non-nil error for an invalid transition, got nil — the transition error was silently swallowed")
+	}
+	if event == nil {
+		t.Fatal("expected the invalid-transition Error event, got nil")
+	}
+	if event.Severity != events.Error {
+		t.Fatalf("expected Error severity on the invalid-transition event, got %q", event.Severity)
+	}
+}
+
+// TestSendEvent_TransitionErrorOnDiscoveryDeDuplicated guards the anti-spam
+// gate for transition errors on the background Discovery path: a mid-loop
+// transition error (a successful action emitting an event with no edge from the
+// settled state) surfaces the first time the persisted status changes, and is
+// suppressed on a repeat run with no status change — same contract as repeated
+// action failures.
+func TestSendEvent_TransitionErrorOnDiscoveryDeDuplicated(t *testing.T) {
+	provider := &fakeProvider{status: connections.CONNECTED}
+
+	// The discovered action succeeds but emits Connect, which has no edge from
+	// DISCOVERED in the test machine, forcing a mid-loop transition error.
+	sm := newTestMachine(t, provider, &stubAction{execNext: Connect})
+	ctx := newTestContext(t)
+
+	// First discovery: status changes CONNECTED -> DISCOVERED, so the transition
+	// error surfaces.
+	sm.ResetState()
+	event, err := sm.SendEvent(ctx, Discovery, nil)
+	if err == nil || event == nil {
+		t.Fatalf("expected the first transition error to surface (event + error), got event=%v err=%v", event, err)
+	}
+	if provider.lastUpdateTo != connections.DISCOVERED {
+		t.Fatalf("expected connection status persisted as %q, got %q", connections.DISCOVERED, provider.lastUpdateTo)
+	}
+
+	// Repeat discovery settles in the same state with no status change: the
+	// same transition error must be suppressed to avoid per-request spam.
+	sm.ResetState()
+	event, err = sm.SendEvent(ctx, Discovery, nil)
+	if err != nil {
+		t.Fatalf("expected repeat transition error with no status change to be suppressed, got error %v", err)
+	}
+	if event != nil {
+		t.Fatalf("expected no event on a suppressed repeat transition error, got %#v", event)
+	}
+}
+
 // TestSendEvent_UserInitiatedFailureAlwaysPropagates guards the boundary of the
 // de-duplication gate: suppression is restricted to the background Discovery
 // path. A user-initiated event (here Connect) whose action fails must surface

@@ -144,30 +144,43 @@ func (sm *StateMachine) SendEvent(ctx context.Context, eventType EventType, payl
 	// and (b) restrict failure de-duplication to the background Discovery path.
 	originalEventType := eventType
 
-	// actionErr and actionErrEvent capture the FIRST genuine action failure: the
-	// non-nil error returned by a state's entry/execute action, together with the
-	// Error event that action built. A failing action may return a non-NoOp
-	// "recovery" event (e.g. NotFound) instead of NoOp, so the loop does not
-	// early-return; it transitions onward and the recovery state's
-	// exit/entry/execute actions then reassign "event" (frequently to nil). That
-	// previously masked the original failure and made SendEvent return an
-	// Informational "success" with a nil error, so every caller that gates on
-	// "if err != nil" persisted/published nothing for real connection failures.
-	// Capturing here — and returning it after the status update — makes the
-	// failure reach callers.
+	// failureErr and failureEvent capture the FIRST genuine failure inside the
+	// transition loop, together with the Error event built for it. Two sources:
+	//
+	//  1. A state's entry/execute action returning a non-nil error. A failing
+	//     action may return a non-NoOp "recovery" event (e.g. NotFound) instead
+	//     of NoOp, so the loop does not early-return; it transitions onward and
+	//     the recovery state's exit/entry/execute actions then reassign "event"
+	//     (frequently to nil). That previously masked the original failure and
+	//     made SendEvent return an Informational "success" with a nil error, so
+	//     every caller that gates on "if err != nil" persisted/published nothing
+	//     for real connection failures.
+	//  2. A fatal transition error — getNextState finding no edge for the event,
+	//     or the target state missing/having no action. These "break" out of the
+	//     loop; without capture they would likewise fall through to the success
+	//     path and return a nil error, silently dropping the Error event.
+	//
+	// First failure wins: a transition error that follows a captured action
+	// failure (e.g. a recovery event with no edge in the graph) must not replace
+	// the more informative original failure. Capturing here — and returning after
+	// the status update — makes the failure reach callers.
 	//
 	// NOTE: the loop-scoped "err" below is declared with ":=" inside the
 	// for-block and shadows any function-scope err, so it MUST NOT be relied upon
 	// for the terminal return. The captured values are the source of truth.
-	var actionErr error
-	var actionErrEvent *events.Event
+	var failureErr error
+	var failureEvent *events.Event
 
 	for eventType != NoOp {
 		nextState, err := sm.getNextState(eventType)
 		if err != nil {
 			sm.Log.Error(err)
 			event = defaultEvent.WithMetadata(map[string]interface{}{"error": err}).Build()
-			sm.Log.Debug(defaultEvent.WithMetadata(map[string]interface{}{"error": err}).Build())
+			sm.Log.Debug(event)
+			if failureErr == nil {
+				failureErr = err
+				failureEvent = event
+			}
 			break
 		}
 
@@ -176,9 +189,14 @@ func (sm *StateMachine) SendEvent(ctx context.Context, eventType EventType, payl
 		// next state to transition
 		state, ok := sm.States[nextState]
 		if !ok || state.Action == nil {
+			err = ErrInvalidTransition(sm.CurrentState, nextState)
 			sm.Log.Error(err)
-			event = defaultEvent.WithMetadata(map[string]interface{}{"error": ErrInvalidTransition(sm.CurrentState, nextState)}).Build()
+			event = defaultEvent.WithMetadata(map[string]interface{}{"error": err}).Build()
 			sm.Log.Debug(event)
+			if failureErr == nil {
+				failureErr = err
+				failureEvent = event
+			}
 			break
 		}
 
@@ -200,9 +218,9 @@ func (sm *StateMachine) SendEvent(ctx context.Context, eventType EventType, payl
 			if err != nil {
 				sm.Log.Error(err)
 				sm.Log.Debug(event)
-				if actionErr == nil {
-					actionErr = err
-					actionErrEvent = event
+				if failureErr == nil {
+					failureErr = err
+					failureEvent = event
 				}
 				if eventType == NoOp {
 					return event, err
@@ -214,9 +232,9 @@ func (sm *StateMachine) SendEvent(ctx context.Context, eventType EventType, payl
 				if err != nil {
 					sm.Log.Error(err)
 					sm.Log.Debug(event)
-					if actionErr == nil {
-						actionErr = err
-						actionErrEvent = event
+					if failureErr == nil {
+						failureErr = err
+						failureEvent = event
 					}
 					if eventType == NoOp {
 						return event, err
@@ -240,6 +258,9 @@ func (sm *StateMachine) SendEvent(ctx context.Context, eventType EventType, payl
 	// still report failures.
 	statusChanged := true
 
+	// originalEventType (not eventType) is compared against Exit here: by the
+	// time the loop finishes, eventType has been overwritten to NoOp, so the
+	// caller's intent is only visible in the captured original.
 	if sm.Provider != nil && originalEventType != Exit {
 		token, _ := ctx.Value(models.TokenCtxKey).(string)
 		connection, _, err := sm.Provider.GetConnectionByID(token, sm.ID)
@@ -282,15 +303,16 @@ func (sm *StateMachine) SendEvent(ctx context.Context, eventType EventType, payl
 		sm.Log.Debugf("%s: updated \"status\" for connection with id: %s to \"%s\"", sm.Name, connection.ID, sm.CurrentState)
 	}
 
-	// A genuine action failure occurred earlier in the transition loop. Return
-	// its ORIGINAL Error event together with the non-nil error so callers persist
-	// + broadcast it — this is the core fix for failures previously masked by a
-	// later recovery transition. The connection-status update above has already
-	// run, so the connection has been moved to its recovery state (e.g. NOTFOUND)
-	// regardless of what we return here. Suppress the emit when the persisted
-	// status did not change, so a repeatedly re-discovered down connection does
-	// not spam a notification on every request.
-	if actionErr != nil {
+	// A genuine failure (action error or fatal transition error) occurred
+	// earlier in the transition loop. Return its ORIGINAL Error event together
+	// with the non-nil error so callers persist + broadcast it — this is the
+	// core fix for failures previously masked by a later recovery transition.
+	// The connection-status update above has already run, so the connection has
+	// been moved to its recovery state (e.g. NOTFOUND) regardless of what we
+	// return here. Suppress the emit when the persisted status did not change,
+	// so a repeatedly re-discovered down connection does not spam a notification
+	// on every request.
+	if failureErr != nil {
 		// De-duplicate ONLY the background discovery path. K8sFSMMiddleware
 		// re-runs SendEvent(Discovery) on every request, so a cluster that stays
 		// down must not re-emit an Error event once its status is already the
@@ -303,13 +325,16 @@ func (sm *StateMachine) SendEvent(ctx context.Context, eventType EventType, payl
 		}
 		// Guarantee a non-nil event on the error return: callers such as the K8s
 		// middleware and addK8SConfig dereference the event (*event) whenever the
-		// error is non-nil. Real actions always build an Error event on failure,
-		// but fall back to a generic Error event so a misbehaving action can never
-		// turn a surfaced failure into a nil-pointer panic.
-		if actionErrEvent == nil {
-			actionErrEvent = defaultEvent.WithMetadata(map[string]interface{}{"error": actionErr}).Build()
+		// error is non-nil. Real actions always build an Error event on failure
+		// (and transition errors capture their event above), but fall back to a
+		// dedicated Error event so a misbehaving action can never turn a surfaced
+		// failure into a nil-pointer panic. Built here rather than reusing
+		// defaultEvent, whose "Invalid status change requested" description would
+		// mislead for an action failure.
+		if failureEvent == nil {
+			failureEvent = events.NewEvent().WithDescription(fmt.Sprintf("%s connection action failed.", sm.Name)).ActedUpon(sm.ID).FromOwner(userUUID).FromSystem(*sysID).WithCategory("connection").WithAction("update").WithSeverity(events.Error).WithMetadata(map[string]interface{}{"error": failureErr}).Build()
 		}
-		return actionErrEvent, actionErr
+		return failureEvent, failureErr
 	}
 
 	// The action func only emits event when an error occurs.
