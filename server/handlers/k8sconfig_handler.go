@@ -243,10 +243,14 @@ func (h *Handler) addK8SConfig(user *models.User, _ *models.Preference, w http.R
 
 			// A context flagged unreachable during discovery still registers as a
 			// DISCOVERED connection, but the connection attempt itself did not
-			// succeed. Flag it so the receipt event below is raised to Error
+			// succeed. Override the per-status description set above and raise a
+			// dedicated flag so the receipt event below is raised to Error
 			// severity and stays findable under the notification center's Error
 			// filter, instead of being reported as a successful registration
-			// (issue #20725).
+			// (issue #20725). A dedicated flag is used rather than
+			// metadata["error"] because unreachability is not an error returned by
+			// SaveK8sContext, so k8sEventMetadataHasError would not otherwise catch
+			// it.
 			if !ctx.Reachable {
 				hasUnreachableContext = true
 				metadata["description"] = fmt.Sprintf("Unable to establish connection with context \"%s\" at %s: the Kubernetes API server was unreachable.", ctx.Name, ctx.Server)
@@ -295,13 +299,23 @@ func (h *Handler) addK8SConfig(user *models.User, _ *models.Preference, w http.R
 	// Error-severity events are retrievable under the notification center's
 	// Error filter, and a receipt kept Informational left failed Kubernetes
 	// connections flashing in transiently and then unfindable (issue #20725).
+	// The three conditions cover disjoint failure modes: a failed SaveK8sContext
+	// (ErroredContexts), a context unreachable at discovery (hasUnreachableContext,
+	// which does not set metadata["error"]), and a context whose client could not
+	// be built (an "error" recorded in its per-context metadata during discovery).
 	if len(saveK8sContextResponse.ErroredContexts) > 0 || hasUnreachableContext || k8sEventMetadataHasError(eventMetadata) {
 		eventBuilder.WithSeverity(events.Error).
 			WithDescription("Failed to establish one or more Kubernetes connections.")
 	}
 
 	event := eventBuilder.WithMetadata(eventMetadata).Build()
-	_ = provider.PersistEvent(*event, token)
+	// This receipt is the durable, filterable record of the import, so log a
+	// persistence failure rather than dropping it silently — a missing
+	// notification would otherwise be untraceable. The live event is still
+	// broadcast below regardless.
+	if perr := provider.PersistEvent(*event, token); perr != nil {
+		h.log.Error(models.ErrPersistEvent(perr))
+	}
 	go h.config.EventBroadcaster.Publish(userID, event)
 
 	if err := json.NewEncoder(w).Encode(saveK8sContextResponse); err != nil {
