@@ -28,6 +28,15 @@ func TestK8sEventMetadataHasError(t *testing.T) {
 			want:          false,
 		},
 		{
+			name: "present-but-nil error value reports no error",
+			eventMetadata: map[string]interface{}{
+				"prod": map[string]interface{}{
+					"error": nil,
+				},
+			},
+			want: false,
+		},
+		{
 			name: "only successful contexts report no error",
 			eventMetadata: map[string]interface{}{
 				"prod": map[string]interface{}{

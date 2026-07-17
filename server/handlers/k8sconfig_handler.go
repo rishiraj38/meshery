@@ -323,7 +323,10 @@ func (h *Handler) addK8SConfig(user *models.User, _ *models.Preference, w http.R
 func k8sEventMetadataHasError(eventMetadata map[string]interface{}) bool {
 	for _, meta := range eventMetadata {
 		if metaMap, ok := meta.(map[string]interface{}); ok {
-			if _, hasErr := metaMap["error"]; hasErr {
+			// Require a non-nil value: a present-but-nil "error" entry (an
+			// explicit nil error or a JSON null) does not indicate a failure and
+			// must not raise the receipt to Error severity.
+			if errVal, hasErr := metaMap["error"]; hasErr && errVal != nil {
 				return true
 			}
 		}
