@@ -310,6 +310,12 @@ func TestSendEvent_TransitionErrorOnDiscoveryDeDuplicated(t *testing.T) {
 	if err == nil || event == nil {
 		t.Fatalf("expected the first transition error to surface (event + error), got event=%v err=%v", event, err)
 	}
+	// The description must name the event that actually failed (the Connect the
+	// action emitted mid-loop), not the Discovery the caller originally sent.
+	wantDesc := "Invalid status change requested to connect for connection type kubernetes."
+	if event.Description != wantDesc {
+		t.Fatalf("expected invalid-transition description %q, got %q", wantDesc, event.Description)
+	}
 	if provider.lastUpdateTo != connections.DISCOVERED {
 		t.Fatalf("expected connection status persisted as %q, got %q", connections.DISCOVERED, provider.lastUpdateTo)
 	}

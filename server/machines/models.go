@@ -133,10 +133,18 @@ func (sm *StateMachine) SendEvent(ctx context.Context, eventType EventType, payl
 	sysID, _ := ctx.Value(models.SystemIDKey).(*core.Uuid)
 	userUUID := user.ID
 	ctx = context.WithValue(ctx, models.ProviderCtxKey, sm.Provider)
-	defaultEvent := events.NewEvent().WithDescription(fmt.Sprintf("Invalid status change requested to %s for connection type %s.", eventType, sm.Name)).ActedUpon(sm.ID).FromOwner(userUUID).FromSystem(*sysID).WithSeverity(events.Error)
 	sm.mx.Lock()
 	defer sm.mx.Unlock()
 	var event *events.Event
+
+	// invalidTransitionEvent builds the Error event for a fatal transition
+	// error. It must be constructed at the failure site — not once up front —
+	// because eventType is reassigned inside the loop (an action may emit a
+	// follow-up event), and the description has to name the event that actually
+	// failed, not the one the caller originally sent.
+	invalidTransitionEvent := func(failedEventType EventType, err error) *events.Event {
+		return events.NewEvent().WithDescription(fmt.Sprintf("Invalid status change requested to %s for connection type %s.", failedEventType, sm.Name)).ActedUpon(sm.ID).FromOwner(userUUID).FromSystem(*sysID).WithSeverity(events.Error).WithMetadata(map[string]interface{}{"error": err}).Build()
+	}
 
 	// eventType is reassigned inside the transition loop (to the recovery event,
 	// then ultimately to NoOp), so capture the caller's original event up front.
@@ -165,9 +173,9 @@ func (sm *StateMachine) SendEvent(ctx context.Context, eventType EventType, payl
 	// the more informative original failure. Capturing here — and returning after
 	// the status update — makes the failure reach callers.
 	//
-	// NOTE: the loop-scoped "err" below is declared with ":=" inside the
-	// for-block and shadows any function-scope err, so it MUST NOT be relied upon
-	// for the terminal return. The captured values are the source of truth.
+	// NOTE: "err" below is declared with ":=" inside the for-block, so it is
+	// scoped to the loop and unavailable after it; the terminal return MUST rely
+	// on the captured values, never on loop state.
 	var failureErr error
 	var failureEvent *events.Event
 
@@ -175,7 +183,7 @@ func (sm *StateMachine) SendEvent(ctx context.Context, eventType EventType, payl
 		nextState, err := sm.getNextState(eventType)
 		if err != nil {
 			sm.Log.Error(err)
-			event = defaultEvent.WithMetadata(map[string]interface{}{"error": err}).Build()
+			event = invalidTransitionEvent(eventType, err)
 			sm.Log.Debug(event)
 			if failureErr == nil {
 				failureErr = err
@@ -191,7 +199,7 @@ func (sm *StateMachine) SendEvent(ctx context.Context, eventType EventType, payl
 		if !ok || state.Action == nil {
 			err = ErrInvalidTransition(sm.CurrentState, nextState)
 			sm.Log.Error(err)
-			event = defaultEvent.WithMetadata(map[string]interface{}{"error": err}).Build()
+			event = invalidTransitionEvent(eventType, err)
 			sm.Log.Debug(event)
 			if failureErr == nil {
 				failureErr = err
@@ -327,10 +335,8 @@ func (sm *StateMachine) SendEvent(ctx context.Context, eventType EventType, payl
 		// middleware and addK8SConfig dereference the event (*event) whenever the
 		// error is non-nil. Real actions always build an Error event on failure
 		// (and transition errors capture their event above), but fall back to a
-		// dedicated Error event so a misbehaving action can never turn a surfaced
-		// failure into a nil-pointer panic. Built here rather than reusing
-		// defaultEvent, whose "Invalid status change requested" description would
-		// mislead for an action failure.
+		// dedicated "connection action failed" Error event so a misbehaving
+		// action can never turn a surfaced failure into a nil-pointer panic.
 		if failureEvent == nil {
 			failureEvent = events.NewEvent().WithDescription(fmt.Sprintf("%s connection action failed.", sm.Name)).ActedUpon(sm.ID).FromOwner(userUUID).FromSystem(*sysID).WithCategory("connection").WithAction("update").WithSeverity(events.Error).WithMetadata(map[string]interface{}{"error": failureErr}).Build()
 		}
