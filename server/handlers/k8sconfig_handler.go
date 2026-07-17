@@ -19,6 +19,7 @@ import (
 	"github.com/meshery/meshery/server/helpers"
 	"github.com/meshery/meshery/server/models"
 	"github.com/meshery/schemas/models/core"
+	systemv1beta1 "github.com/meshery/schemas/models/v1beta1/system"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
 	"github.com/meshery/meshkit/models/events"
@@ -42,7 +43,13 @@ type ContextOptions struct {
 	Name string `json:"name,omitempty"`
 }
 
-// SaveK8sContextResponse - struct used as (json marshaled) response to requests for saving k8s contexts
+// SaveK8sContextResponse - struct used as (json marshaled) response to requests
+// for saving k8s contexts. Wire-equivalent to the schemas
+// AddKubernetesConfigResponse (v1beta1/system); it still carries
+// models.K8sContext elements because the schemas K8sContext uses non-pointer
+// timestamps that would emit zero-value createdAt/updatedAt for
+// freshly-discovered contexts. Swap to the schemas type once its timestamps
+// are nullable (tracked follow-up in meshery/schemas).
 type SaveK8sContextResponse struct {
 	RegisteredContexts []models.K8sContext `json:"registeredContexts"`
 	ConnectedContexts  []models.K8sContext `json:"connectedContexts"`
@@ -200,6 +207,19 @@ func (h *Handler) addK8SConfig(user *models.User, _ *models.Preference, w http.R
 			ctx.ConnectionID = connection.ID.String()
 			eventBuilder.ActedUpon(connection.ID)
 			status := connection.Status
+			// Guard against a provider returning a saved k8s connection with an
+			// empty status (observed when re-importing an already-existing
+			// cluster). A persisted context is at least DISCOVERED; normalize and
+			// persist the correction so the connection never surfaces without a
+			// status.
+			if status == "" {
+				status = connections.DISCOVERED
+				if corrected, _, uerr := provider.UpdateConnectionStatusByID(token, connection.ID, status); uerr != nil {
+					h.log.Warn(uerr)
+				} else if corrected != nil {
+					connection = *corrected
+				}
+			}
 			machineCtx := &kubernetes.MachineCtx{
 				K8sContext:         *ctx,
 				MesheryCtrlsHelper: h.MesheryCtrlsHelper,
@@ -307,6 +327,19 @@ func (h *Handler) GetContextsFromK8SConfig(w http.ResponseWriter, req *http.Requ
 
 	eventMetadata := map[string]interface{}{}
 
+	// Flatten (inline file-path certs) before deriving contexts. This MUST match
+	// addK8SConfig, which also flattens: the context ID is a hash of the cluster
+	// and auth maps, so a kubeconfig with file-path certs (e.g. minikube's
+	// client-certificate: /path) hashes differently before vs after flattening.
+	// If discovery hashed the raw config and registration hashed the flattened
+	// one, the IDs the wizard selects would never match the ones registration
+	// computes, and every context would be filtered out ("0 connections
+	// imported"). Falling back to the raw bytes on error keeps both paths in sync
+	// (registration falls back the same way).
+	if flattenedK8sConfig, ferr := helpers.FlattenMinifyKubeConfig(*k8sConfigBytes); ferr == nil {
+		k8sConfigBytes = &flattenedK8sConfig
+	}
+
 	// Discovery surfaces unreachable contexts too (flagged Reachable=false) so
 	// the wizard can let the user register them as discovered connections;
 	// reachability only gates connecting.
@@ -363,8 +396,10 @@ func (h *Handler) KubernetesPingHandler(w http.ResponseWriter, req *http.Request
 			writeMeshkitError(w, ErrKubeVersion(err), http.StatusInternalServerError)
 			return
 		}
-		if err = json.NewEncoder(w).Encode(map[string]string{
-			"server_version": version.String(),
+		// The schemas KubernetesPingResponse preserves this endpoint's published
+		// snake_case `server_version` wire field.
+		if err = json.NewEncoder(w).Encode(systemv1beta1.KubernetesPingResponse{
+			ServerVersion: version.String(),
 		}); err != nil {
 			// Response body has already started streaming via json.Encoder —
 			// a partial JSON envelope is on the wire and a fresh error
