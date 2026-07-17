@@ -157,6 +157,10 @@ func (h *Handler) addK8SConfig(user *models.User, _ *models.Preference, w http.R
 	// when new api with param "contexts" will be addopted,
 	// only take into account contexts from that param
 	importedCount := 0
+	// Tracks whether any selected context was unreachable. Such contexts still
+	// register (as DISCOVERED) but the connection attempt did not succeed, so the
+	// receipt event below must be raised to Error severity (issue #20725).
+	hasUnreachableContext := false
 	for _, ctx := range contexts {
 		// Honor an explicit selection: skip contexts the caller did not pick.
 		// Matched against the discovered context ID, before any rename below.
@@ -237,6 +241,17 @@ func (h *Handler) addK8SConfig(user *models.User, _ *models.Preference, w http.R
 				metadata["description"] = fmt.Sprintf("Connection registered with kubernetes context \"%s\" at %s.", ctx.Name, ctx.Server)
 			}
 
+			// A context flagged unreachable during discovery still registers as a
+			// DISCOVERED connection, but the connection attempt itself did not
+			// succeed. Flag it so the receipt event below is raised to Error
+			// severity and stays findable under the notification center's Error
+			// filter, instead of being reported as a successful registration
+			// (issue #20725).
+			if !ctx.Reachable {
+				hasUnreachableContext = true
+				metadata["description"] = fmt.Sprintf("Unable to establish connection with context \"%s\" at %s: the Kubernetes API server was unreachable.", ctx.Name, ctx.Server)
+			}
+
 			inst, err := mhelpers.InitializeMachineWithContext(
 				machineCtx,
 				req.Context(),
@@ -274,6 +289,17 @@ func (h *Handler) addK8SConfig(user *models.User, _ *models.Preference, w http.R
 		h.config.K8scontextChannel.PublishContext()
 	}
 
+	// The receipt event below is the durable record of this import that the
+	// notification center persists and later filters on. When one or more
+	// contexts failed to connect it MUST be raised to Error severity: only
+	// Error-severity events are retrievable under the notification center's
+	// Error filter, and a receipt kept Informational left failed Kubernetes
+	// connections flashing in transiently and then unfindable (issue #20725).
+	if len(saveK8sContextResponse.ErroredContexts) > 0 || hasUnreachableContext || k8sEventMetadataHasError(eventMetadata) {
+		eventBuilder.WithSeverity(events.Error).
+			WithDescription("Failed to establish one or more Kubernetes connections.")
+	}
+
 	event := eventBuilder.WithMetadata(eventMetadata).Build()
 	_ = provider.PersistEvent(*event, token)
 	go h.config.EventBroadcaster.Publish(userID, event)
@@ -285,6 +311,24 @@ func (h *Handler) addK8SConfig(user *models.User, _ *models.Preference, w http.R
 		h.log.Error(models.ErrMarshal(err, "kubeconfig"))
 		return
 	}
+}
+
+// k8sEventMetadataHasError reports whether any per-context entry in a Kubernetes
+// connection receipt's metadata recorded a failure. Each context's outcome is
+// keyed by its name and carries an "error" entry only when that context failed
+// (an unreachable API server, an unbuildable client, or a failed save), so the
+// presence of any such entry means the receipt describes at least one failed
+// connection and the receipt event must be raised to Error severity so it stays
+// findable under the notification center's Error filter (issue #20725).
+func k8sEventMetadataHasError(eventMetadata map[string]interface{}) bool {
+	for _, meta := range eventMetadata {
+		if metaMap, ok := meta.(map[string]interface{}); ok {
+			if _, hasErr := metaMap["error"]; hasErr {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (h *Handler) deleteK8SConfig(_ *models.User, _ *models.Preference, w http.ResponseWriter, _ *http.Request, _ models.Provider) {
