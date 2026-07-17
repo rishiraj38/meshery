@@ -301,8 +301,16 @@ func (h *Handler) SubscribeMesheryControllersStatusHandler(w http.ResponseWriter
 // GET /api/system/controllers/operator/status?connectionId=<id>
 func (h *Handler) OperatorStatusHandler(w http.ResponseWriter, req *http.Request, _ *models.Preference, _ *models.User, _ models.Provider) {
 	connectionID := req.URL.Query().Get("connectionId")
+	// Reject a malformed connectionId rather than falling back to uuid.Nil: a
+	// zero UUID is never a real connection and would echo an invalid id back to
+	// the client.
+	connectionUUID, err := uuid.FromString(connectionID)
+	if err != nil {
+		writeMeshkitError(w, models.ErrInvalidUUID(err), http.StatusBadRequest)
+		return
+	}
 	item := system.ControllerStatus{
-		ConnectionId: uuid.FromStringOrNil(connectionID),
+		ConnectionId: connectionUUID,
 		Controller:   internalControllerName(models.MesheryOperator),
 		Status:       controllersStatusUnknown,
 	}
@@ -320,15 +328,21 @@ func (h *Handler) OperatorStatusHandler(w http.ResponseWriter, req *http.Request
 // GET /api/system/controllers/meshsync/status?connectionId=<id>
 func (h *Handler) MeshsyncStatusHandler(w http.ResponseWriter, req *http.Request, _ *models.Preference, _ *models.User, _ models.Provider) {
 	connectionID := req.URL.Query().Get("connectionId")
+	// Reject a malformed connectionId rather than falling back to uuid.Nil.
+	connectionUUID, err := uuid.FromString(connectionID)
+	if err != nil {
+		writeMeshkitError(w, models.ErrInvalidUUID(err), http.StatusBadRequest)
+		return
+	}
 	info := system.ControllerInfo{
-		ConnectionId: uuid.FromStringOrNil(connectionID),
+		ConnectionId: connectionUUID,
 		Name:         "MeshSync",
 		Status:       string(controllersStatusUnknown),
 	}
 	if machinectx, ok := h.machineCtxForConnection(connectionID); ok {
 		ctrlHandlers := machinectx.MesheryCtrlsHelper.GetControllerHandlersForEachContext()
 		info = h.meshsyncInfo(ctrlHandlers[models.Meshsync], ctrlHandlers[models.MesheryBroker], h.mesheryHoldsLiveBrokerConnection(machinectx))
-		info.ConnectionId = uuid.FromStringOrNil(connectionID)
+		info.ConnectionId = connectionUUID
 	}
 	writeJSONMessage(w, info, http.StatusOK)
 }
@@ -338,15 +352,21 @@ func (h *Handler) MeshsyncStatusHandler(w http.ResponseWriter, req *http.Request
 // GET /api/system/controllers/broker/status?connectionId=<id>
 func (h *Handler) BrokerStatusHandler(w http.ResponseWriter, req *http.Request, _ *models.Preference, _ *models.User, _ models.Provider) {
 	connectionID := req.URL.Query().Get("connectionId")
+	// Reject a malformed connectionId rather than falling back to uuid.Nil.
+	connectionUUID, err := uuid.FromString(connectionID)
+	if err != nil {
+		writeMeshkitError(w, models.ErrInvalidUUID(err), http.StatusBadRequest)
+		return
+	}
 	info := system.ControllerInfo{
-		ConnectionId: uuid.FromStringOrNil(connectionID),
+		ConnectionId: connectionUUID,
 		Name:         "MesheryBroker",
 		Status:       string(controllersStatusUnknown),
 	}
 	if machinectx, ok := h.machineCtxForConnection(connectionID); ok {
 		ctrlHandlers := machinectx.MesheryCtrlsHelper.GetControllerHandlersForEachContext()
 		info = h.brokerInfo(ctrlHandlers[models.MesheryBroker], h.mesheryHoldsLiveBrokerConnection(machinectx))
-		info.ConnectionId = uuid.FromStringOrNil(connectionID)
+		info.ConnectionId = connectionUUID
 	}
 	writeJSONMessage(w, info, http.StatusOK)
 }
