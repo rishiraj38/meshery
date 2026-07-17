@@ -164,12 +164,17 @@ const MesheryApp = ({ Component, pageProps, relayEnvironment, emotionCache }) =>
     const firstName = loggedInUser?.firstName || loggedInUser?.first_name || '';
     const lastName = loggedInUser?.lastName || loggedInUser?.last_name || '';
     const userName = `${firstName} ${lastName}`.trim() || loggedInUser?.name || loggedInUser?.email;
+
+    // Show the provider/registration org (e.g. "Meshery Cloud", "Exoscale")
+    // identity regardless of which org they've switched to.
+    const orgName = providerCapabilities?.providerName;
+
     return {
       userName,
-      orgName: selectedOrganization?.name,
+      orgName,
       roleNames: loggedInUser?.roleNames || [],
     };
-  }, [loggedInUser, selectedOrganization]);
+  }, [loggedInUser, providerCapabilities]);
 
   // Holds the live controller-status SSE subscription ({ dispose }) so
   // initSubscriptions can tear down the previous stream and the bootstrap
