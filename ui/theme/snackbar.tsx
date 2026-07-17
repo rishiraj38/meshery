@@ -12,7 +12,9 @@ import {
 import { SnackbarContent } from 'notistack';
 import { forwardRef } from 'react';
 
-const StyledSnackbarContent = styled(SnackbarContent)(({ theme, variant }) => {
+const StyledSnackbarContent = styled(SnackbarContent, {
+  shouldForwardProp: (prop) => prop !== 'variant',
+})(({ theme, variant }) => {
   const variantTextColors = {
     success: theme.palette.text.success,
     info: theme.palette.text.info,
