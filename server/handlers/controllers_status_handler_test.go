@@ -108,7 +108,7 @@ func TestOperatorStatusHandler_UnknownForUnresolvedConnection(t *testing.T) {
 		t.Fatalf("status = %d, want 200", rec.Code)
 	}
 	body := rec.Body.String()
-	if !strings.Contains(body, `"controller":"OPERATOR"`) || !strings.Contains(body, `"status":"`+controllersStatusUnknown+`"`) {
+	if !strings.Contains(body, `"controller":"OPERATOR"`) || !strings.Contains(body, `"status":"`+string(controllersStatusUnknown)+`"`) {
 		t.Fatalf("expected unknown operator status payload, got: %q", body)
 	}
 	if !strings.Contains(body, `"connectionId":`) {
