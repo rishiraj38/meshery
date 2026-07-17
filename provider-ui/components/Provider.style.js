@@ -23,15 +23,7 @@ export const CustomDiv = styled("div")(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  gap: theme.spacing(3),
-  /* Deep Charcoal base */
-  backgroundColor: "#111619",
-  /* Multi-variant radial blend */
-  backgroundImage: "radial-gradient(circle at 15% 25%, rgba(0, 179, 159, 0.45) 0%, transparent 45%)," +   /* Meshery Keppel */
-    "radial-gradient(circle at 75% 85%, rgba(0, 211, 169, 0.3) 0%, transparent 50%)," +   /* Bright Keppel Accent */
-    "radial-gradient(circle at 20% 80%, rgba(71, 126, 150, 0.4) 0%, transparent 50%)",  /* Slate Blue Accent */
-  backgroundSize: "cover",
-  backgroundPosition: "center",
+  gap: theme.spacing(3)
 }));
 
 export const CustomTypography = styled(Typography)(({ theme }) => ({
