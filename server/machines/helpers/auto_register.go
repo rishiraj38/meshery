@@ -173,11 +173,13 @@ func (arh *AutoRegistrationHelper) getConnectionDefinitions(connType string) []c
 // toConnectionDefinitions returns the entities that are usable as connection definitions.
 // Entities that are not ComponentDefinitions, and definitions without a Model, are skipped:
 // getConnectionPayload dereferences Model, so a definition without one cannot yield a connection.
+// The asserted pointer is checked for nil because a typed nil pointer in an entity.Entity passes
+// the type assertion with ok == true.
 func toConnectionDefinitions(connectionEntities []entity.Entity) []component.ComponentDefinition {
 	connectionDefs := make([]component.ComponentDefinition, 0, len(connectionEntities))
 	for _, connectionEntity := range connectionEntities {
 		def, ok := connectionEntity.(*component.ComponentDefinition)
-		if !ok || def.Model == nil {
+		if !ok || def == nil || def.Model == nil {
 			continue
 		}
 		connectionDefs = append(connectionDefs, *def)

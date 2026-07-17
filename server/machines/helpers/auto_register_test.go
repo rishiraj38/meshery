@@ -63,6 +63,16 @@ func TestToConnectionDefinitions(t *testing.T) {
 			},
 			WantLen: 1,
 		},
+		{
+			Name: "given a nil definition when converting then it is skipped",
+			Entities: []entity.Entity{
+				connectionDef("grafana"),
+				// A typed nil pointer in an entity.Entity passes the type assertion with
+				// ok == true, so the asserted pointer itself has to be checked for nil.
+				(*component.ComponentDefinition)(nil),
+			},
+			WantLen: 1,
+		},
 	}
 
 	for _, tt := range tests {
