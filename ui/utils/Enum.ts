@@ -47,9 +47,9 @@ export const REGISTRY_ITEM_STATES_TO_TRANSITION_MAP = {
 
 // Mirrors the ConnectionStatusValue enum in meshery/schemas
 // (schemas/constructs/v1beta1/connection/api.yml), which is the source of
-// truth for these wire values. TODO: type-check this object's values against
-// the schemas-exported `v1beta1.ConnectionStatusValue` TS type once
-// @meshery/schemas publishes it (it isn't in the published package yet).
+// truth for these wire values. TODO: once @meshery/schemas publishes the
+// connection status type, import it here and type-check this object's values
+// against the exported TS type (exact symbol name TBD on publication).
 export const CONNECTION_STATES = {
   DISCOVERED: 'discovered',
   REGISTERED: 'registered',
@@ -76,8 +76,8 @@ export const CONTROLLERS = {
 // DISABLED and UNKNOWN (correctly spelled) below are UI-only sentinel states
 // with no exact wire counterpart (see ui/utils/hooks/useKubernetesHook.tsx)
 // and do not belong in the schema. TODO: once @meshery/schemas publishes the
-// new enum, type-check the wire-backed subset here against the
-// schemas-exported `v1beta1.ControllerStatusValue` TS type.
+// new enum, import it here and type-check the wire-backed subset against the
+// exported TS type (exact symbol name TBD on publication).
 export const CONTROLLER_STATES = {
   DEPLOYED: 'DEPLOYED',
   NOTDEPLOYED: 'NOTDEPLOYED',
