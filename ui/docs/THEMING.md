@@ -323,7 +323,8 @@ belong upstream.
 
 ## RJSF theme
 
-`ui/theme/rjsf.ts` currently uses Material UI's `createTheme` to configure
+`ui/theme/rjsf.ts` currently builds plain MUI themes with `createTheme`
+(imported via its `@sistent/sistent` re-export) to configure
 the [react-jsonschema-form](https://github.com/rjsf-team/react-jsonschema-form)
 adapter. A later phase (see §4.4 of [`../restructure-plan.md`](../restructure-plan.md))
 migrates it to a Sistent-backed theme via `extendSistentTheme`.

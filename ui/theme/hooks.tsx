@@ -42,6 +42,9 @@ const ThemeTogglerCore_ = ({ Component }) => {
   return <Component mode={mode} toggleTheme={toggleTheme} />;
 };
 
+// The single ProviderStoreWrapper here is what gives ThemeTogglerCore_'s RTK
+// Query hooks their store context; ThemeTogglerCore is mounted from extension
+// surfaces that render outside the app's Redux provider tree.
 export const ThemeTogglerCore = (props) => {
   return (
     <ProviderStoreWrapper>

@@ -50,7 +50,10 @@ const contentStyle = {
 };
 
 export const ThemeResponsiveSnackbar = forwardRef((props, forwardedRef) => {
-  const { variant, message, action, key, theme } = props;
+  // notistack v3 custom content props: the snackbar identifier arrives as
+  // `id` (React strips `key`, so it must never be read from props). `action`
+  // callbacks receive that id so closeSnackbar(id) dismisses only this toast.
+  const { id, variant, message, action } = props;
 
   // Function to determine the icon based on variant
   const getIcon = () => {
@@ -71,12 +74,12 @@ export const ThemeResponsiveSnackbar = forwardRef((props, forwardedRef) => {
   };
 
   return (
-    <StyledSnackbarContent ref={forwardedRef} variant={variant} theme={theme}>
+    <StyledSnackbarContent ref={forwardedRef} variant={variant}>
       <div data-testid={`SnackbarContent-${variant}`} style={contentStyle}>
         {getIcon()}
         <BasicMarkdown content={message} />
         <Box marginLeft={'auto'} paddingLeft={'0.5rem'}>
-          {action && action(key)}
+          {action && action(id)}
         </Box>
       </div>
     </StyledSnackbarContent>
