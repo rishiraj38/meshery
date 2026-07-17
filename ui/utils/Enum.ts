@@ -71,12 +71,13 @@ export const CONTROLLERS = {
 // in meshery/schemas (schemas/constructs/v1beta1/system/api.yml,
 // meshery/schemas#1064), itself mirroring the MesheryControllerStatus
 // GraphQL enum (server/internal/graphql/schema/schema.graphql) - these are
-// real wire values, including the published UNKOWN spelling. DISABLED and
-// UNKNOWN (correct spelling) below are UI-only sentinel states with no wire
-// equivalent (see ui/utils/hooks/useKubernetesHook.tsx) and do not belong in
-// the schema. TODO: once @meshery/schemas publishes the new enum, type-check
-// the wire-backed subset here against the schemas-exported
-// `v1beta1.ControllerStatusValue` TS type.
+// real wire values, including "UNKOWN", a misspelling that exists in the
+// published wire enum and must be preserved for backward compatibility.
+// DISABLED and UNKNOWN (correctly spelled) below are UI-only sentinel states
+// with no exact wire counterpart (see ui/utils/hooks/useKubernetesHook.tsx)
+// and do not belong in the schema. TODO: once @meshery/schemas publishes the
+// new enum, type-check the wire-backed subset here against the
+// schemas-exported `v1beta1.ControllerStatusValue` TS type.
 export const CONTROLLER_STATES = {
   DEPLOYED: 'DEPLOYED',
   NOTDEPLOYED: 'NOTDEPLOYED',
