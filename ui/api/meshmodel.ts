@@ -38,9 +38,7 @@ export async function getComponentFromModelApi(model, pageSize = 'all', trim = t
 }
 
 export async function getDuplicateModels(model, version) {
-  return await promisifiedDataFetch(
-    `${REGISTRY_MODELS_ENDPOINT}/${model}?version=${version}      `,
-  );
+  return await promisifiedDataFetch(`${REGISTRY_MODELS_ENDPOINT}/${model}?version=${version}`);
 }
 
 export async function getDuplicateComponents(componentKind, apiVersion, modelName) {

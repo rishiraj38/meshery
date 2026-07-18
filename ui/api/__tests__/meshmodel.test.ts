@@ -84,10 +84,10 @@ describe('api/meshmodel', () => {
   });
 
   describe('getDuplicateModels', () => {
-    it('queries the model endpoint with a version query string', async () => {
+    it('queries the model endpoint with a version query string and no trailing whitespace', async () => {
       await getDuplicateModels('istio', '1.0.0');
       const arg = promisifiedDataFetch.mock.calls[0][0] as string;
-      expect(arg.startsWith('/api/registry/models/istio?version=1.0.0')).toBe(true);
+      expect(arg).toBe('/api/registry/models/istio?version=1.0.0');
     });
   });
 
