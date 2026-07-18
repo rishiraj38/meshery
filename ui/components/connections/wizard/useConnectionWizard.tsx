@@ -220,7 +220,12 @@ export const useConnectionWizard = (params: UseConnectionWizardParams) => {
     ],
   );
 
-  const advance = useCallback(() => setActiveIndex((index) => index + 1), []);
+  const advancingRef = useRef(false);
+  const advance = useCallback(() => {
+    if (advancingRef.current) return;
+    advancingRef.current = true;
+    setActiveIndex((index) => index + 1);
+  }, []);
 
   const ctx: WizardContext = { mode, data, patch, patchPostConfig, services, formRefs, advance };
 
@@ -228,6 +233,10 @@ export const useConnectionWizard = (params: UseConnectionWizardParams) => {
   const safeIndex = steps.length === 0 ? 0 : Math.min(activeIndex, steps.length - 1);
   const activeStep = steps[safeIndex] ?? null;
   const isLast = safeIndex >= steps.length - 1;
+
+  useEffect(() => {
+    advancingRef.current = false;
+  }, [safeIndex]);
 
   const canProceed = activeStep?.canProceed ? activeStep.canProceed(ctx) : true;
   const canGoBack = safeIndex > 0;
