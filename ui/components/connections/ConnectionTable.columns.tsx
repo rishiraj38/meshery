@@ -225,6 +225,9 @@ export const useConnectionColumns = ({
                         options={environmentOptions}
                         value={cleanedEnvs}
                         placeholder={`Select or create an environment`}
+                        noOptionsMessage={() =>
+                          'No matching environments. Type to create a new one.'
+                        }
                         isSelectAll={true}
                         menuPlacement={'bottom'}
                         disabled={

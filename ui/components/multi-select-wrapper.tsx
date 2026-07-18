@@ -199,9 +199,7 @@ const MultiSelectWrapper = (props) => {
         ...props.components,
       }}
       filterOption={customFilterOption}
-      noOptionsMessage={
-        props.noOptionsMessage ?? (() => 'No matching environments. Type to create a new one.')
-      }
+      noOptionsMessage={props.noOptionsMessage}
       menuPlacement={props.menuPlacement ?? 'auto'}
       styles={customStyles}
       theme={(selectTheme) => ({
