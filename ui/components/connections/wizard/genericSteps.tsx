@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { v4 as uuidv4 } from 'uuid';
 import {
   Alert,
@@ -15,6 +16,9 @@ import CAN from '@/utils/can';
 import { Keys } from '@meshery/schemas/permissions';
 import {
   buildCredentialSecret,
+  CONNECTIONS_PATH,
+  connectionCreatedNotify,
+  DEFAULT_CONNECTION_DOCS_URL,
   filterCredentialsForKind,
   resolveConnectionName,
   type ConnectionWizardKindConfig,
@@ -26,7 +30,6 @@ import {
   CredentialAssociationStep,
   GenericConnectionDetailsStep,
 } from '../ConnectionWizardStepContent';
-import { connectionCreatedNotify } from '../ConnectionWizard.helpers';
 import type { WizardContext, WizardStep } from './types';
 
 export const kindPermission = (config?: ConnectionWizardKindConfig | null) => {
@@ -81,6 +84,7 @@ export const selectStep: WizardStep = {
   label: 'Choose Connection',
   Component: SelectStepBody,
   canProceed: (ctx) => Boolean(ctx.data.kindConfig && kindPermission(ctx.data.kindConfig)),
+  helpText: `Choose the kind of infrastructure Meshery should manage as a first-class connection. [Learn more about connections](${DEFAULT_CONNECTION_DOCS_URL}).`,
 };
 
 // ---------------------------------------------------------------------------
@@ -105,6 +109,11 @@ export const genericDetailsStep: WizardStep = {
   Component: DetailsStepBody,
   canProceed: (ctx) => Boolean(ctx.data.kindConfig?.connectionSchema),
   onNext: (ctx) => Boolean(ctx.formRefs.connection.current?.validateForm()),
+  helpText: (ctx) => {
+    const label = ctx.data.kindConfig?.label || 'connection';
+    const docsUrl = ctx.data.kindConfig?.docsUrl || DEFAULT_CONNECTION_DOCS_URL;
+    return `Provide connection details for this ${label}. Fields come from the connection definition registered in Meshery. [Learn more](${docsUrl}).`;
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -170,6 +179,7 @@ export const genericCredentialStep: WizardStep = {
     }
     return Boolean(ctx.formRefs.credential.current?.validateForm());
   },
+  helpText: `Credentials store secrets that authenticate this connection. Reuse an existing credential or create a new one. [Learn more about connections](${DEFAULT_CONNECTION_DOCS_URL}).`,
 };
 
 // ---------------------------------------------------------------------------
@@ -247,6 +257,11 @@ export const genericRegisterStep: WizardStep = {
   icon: AssignmentTurnedInIcon,
   Component: RegisterStepBody,
   nextLabel: () => 'Create Connection',
+  helpText: (ctx) => {
+    const label = ctx.data.kindConfig?.label || 'connection';
+    const docsUrl = ctx.data.kindConfig?.docsUrl || DEFAULT_CONNECTION_DOCS_URL;
+    return `Review the ${label} details, then create the connection. Meshery will register and connect it. [Learn more](${docsUrl}).`;
+  },
   onNext: async (ctx) => {
     const { kindConfig } = ctx.data;
     if (!kindConfig) {
@@ -303,6 +318,13 @@ const SuccessIcon = styled(CheckCircleIcon)(({ theme }) => ({
   fill: theme.palette.background.brand?.default,
 }));
 
+const ConnectionsLink = styled(Link)(({ theme }) => ({
+  color: theme.palette.background.brand?.default || theme.palette.primary.main,
+  fontWeight: 600,
+  textDecoration: 'underline',
+  textUnderlineOffset: 2,
+}));
+
 const ReceiptStepBody = ({ ctx }: { ctx: WizardContext }) => {
   const { kindConfig } = ctx.data;
   const connectionName = resolveConnectionName(
@@ -321,8 +343,8 @@ const ReceiptStepBody = ({ ctx }: { ctx: WizardContext }) => {
         {kindConfig?.label} connection created
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 420 }}>
-        <strong>{connectionName}</strong> is now a first-class Meshery connection. You can manage it
-        from the Connections table.
+        <strong>{connectionName}</strong> is now a first-class Meshery connection. Manage these
+        anytime from <ConnectionsLink href={CONNECTIONS_PATH}>connections</ConnectionsLink>.
       </Typography>
     </Box>
   );
@@ -333,4 +355,5 @@ export const genericReceiptStep: WizardStep = {
   label: 'Done',
   Component: ReceiptStepBody,
   nextLabel: () => 'Finish',
+  helpText: `Your connection is registered. Manage it anytime from the Connections page. [Learn more about connections](${DEFAULT_CONNECTION_DOCS_URL}).`,
 };

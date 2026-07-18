@@ -531,8 +531,8 @@ type KubernetesImportStepProps = {
 export const KubernetesImportStep = ({ kubeconfigFile, onPickFile }: KubernetesImportStepProps) => (
   <StepLayout>
     <StepHeader
-      title="Import a kubeconfig"
-      subtitle="Meshery discovers the contexts inside the file and registers each one as a Kubernetes connection."
+      title="Upload a kubeconfig"
+      subtitle="Upload a kubeconfig so Meshery can register its contexts as Kubernetes connections."
     />
     <UploadDropzone
       type="button"
@@ -542,7 +542,17 @@ export const KubernetesImportStep = ({ kubeconfigFile, onPickFile }: KubernetesI
         <UploadIcon />
       </UploadIconCircle>
       {kubeconfigFile ? (
-        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+        <Typography
+          variant="body1"
+          title={kubeconfigFile.name}
+          sx={{
+            fontWeight: 600,
+            maxWidth: '100%',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           {kubeconfigFile.name}
         </Typography>
       ) : (
@@ -551,7 +561,9 @@ export const KubernetesImportStep = ({ kubeconfigFile, onPickFile }: KubernetesI
         </Typography>
       )}
       <Typography variant="caption" color="text.secondary">
-        {kubeconfigFile ? 'Click to replace the selected file' : 'Accepts a standard kubeconfig'}
+        {kubeconfigFile
+          ? 'Click to replace the selected file'
+          : 'Accepts kubeconfigs with embedded certificates'}
       </Typography>
     </UploadDropzone>
     <HiddenFileInput

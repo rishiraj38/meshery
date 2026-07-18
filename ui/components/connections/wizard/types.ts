@@ -126,6 +126,11 @@ export type WizardStep = {
   nextLabel?: (ctx: WizardContext) => string;
   /** Skip the step entirely when this returns true. */
   hidden?: (ctx: WizardContext) => boolean;
+  /**
+   * Footer info-popover copy for this step. Prefer markdown with docs.meshery.io
+   * links so HelperTextPopover can render them. Static string or ctx-aware fn.
+   */
+  helpText?: string | ((ctx: WizardContext) => string);
 };
 
 /**
