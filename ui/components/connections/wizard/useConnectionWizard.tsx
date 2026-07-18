@@ -220,7 +220,9 @@ export const useConnectionWizard = (params: UseConnectionWizardParams) => {
     ],
   );
 
-  const ctx: WizardContext = { mode, data, patch, patchPostConfig, services, formRefs };
+  const advance = useCallback(() => setActiveIndex((index) => index + 1), []);
+
+  const ctx: WizardContext = { mode, data, patch, patchPostConfig, services, formRefs, advance };
 
   const steps = buildSteps(data.kindConfig, mode).filter((step) => !step.hidden?.(ctx));
   const safeIndex = steps.length === 0 ? 0 : Math.min(activeIndex, steps.length - 1);

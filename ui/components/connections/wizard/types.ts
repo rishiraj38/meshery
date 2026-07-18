@@ -108,6 +108,8 @@ export type WizardContext = {
   patchPostConfig: (partial: GenericRecord) => void;
   services: WizardServices;
   formRefs: WizardFormRefs;
+  /* Advance to the next step immediately, bypassing the primary ("Next")*/
+  advance: () => void;
 };
 
 export type WizardStep = {
