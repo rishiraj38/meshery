@@ -224,7 +224,7 @@ export const useConnectionColumns = ({
                         }
                         options={environmentOptions}
                         value={cleanedEnvs}
-                        placeholder={`Assigned Environments`}
+                        placeholder={`Select or create an environment`}
                         isSelectAll={true}
                         menuPlacement={'bottom'}
                         disabled={
