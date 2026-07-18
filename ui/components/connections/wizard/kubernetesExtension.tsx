@@ -7,6 +7,7 @@ import {
   CheckCircleIcon,
   Chip,
   CircularProgress,
+  CustomTooltip,
   MenuItem,
   TextField,
   Typography,
@@ -26,7 +27,9 @@ import {
 import { formatWizardError } from './errors';
 import {
   DEFAULT_MESHSYNC_DEPLOYMENT_MODE,
+  getMeshsyncModeTooltip,
   MESHSYNC_DEPLOYMENT_MODE_OPTIONS,
+  MESHSYNC_MODES_DOCS_URL,
 } from './kubernetesDeploymentMode';
 import { kubernetesSettingsStep } from './kubernetesSettings';
 import FormatConnectionMetadata from '../metadata';
@@ -241,8 +244,7 @@ const ReviewContextsStepBody = ({ ctx }: { ctx: WizardContext }) => {
                   {context.server || 'unknown server'}
                 </Typography>
               </Box>
-              {/* Per-context MeshSync deployment mode; persisted to the
-                  connection's metadata when the context is imported. */}
+              {/* MeshSync mode per context; hover shows details + docs link. */}
               <TextField
                 select
                 variant="standard"
@@ -257,12 +259,18 @@ const ReviewContextsStepBody = ({ ctx }: { ctx: WizardContext }) => {
               >
                 {MESHSYNC_DEPLOYMENT_MODE_OPTIONS.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
-                    {option.label}
+                    <CustomTooltip
+                      interactive
+                      title={getMeshsyncModeTooltip(option)}
+                      placement="left"
+                    >
+                      <Box component="span" sx={{ display: 'block', width: '100%' }}>
+                        {option.label}
+                      </Box>
+                    </CustomTooltip>
                   </MenuItem>
                 ))}
               </TextField>
-              {/* Reachable contexts land in the Discovered state; unreachable
-                  ones could not be contacted, mirroring the Not Found state. */}
               <ConnectionStateChip
                 status={
                   context.reachable ? CONNECTION_STATES.DISCOVERED : CONNECTION_STATES.NOTFOUND
@@ -321,7 +329,7 @@ const kubernetesReviewStep: WizardStep = {
   icon: AssignmentTurnedInIcon,
   Component: ReviewContextsStepBody,
   nextLabel: () => 'Import',
-  helpText: `Select which contexts to import and whether reachable clusters should connect immediately. [Learn more about Kubernetes connection lifecycle](${KUBERNETES_CONNECTION_DOCS_URL}).`,
+  helpText: `Select which contexts to import, choose a MeshSync mode (embedded or operator), and decide whether reachable clusters should connect immediately. Hover a MeshSync option for details. [MeshSync modes](${MESHSYNC_MODES_DOCS_URL}). [Kubernetes connection lifecycle](${KUBERNETES_CONNECTION_DOCS_URL}).`,
   canProceed: (ctx) => getDiscovered(ctx).some((context) => getChoices(ctx)[context.id]?.selected),
   onNext: async (ctx) => {
     const discovered = getDiscovered(ctx);

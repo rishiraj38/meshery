@@ -84,7 +84,7 @@ export const selectStep: WizardStep = {
   label: 'Choose Connection',
   Component: SelectStepBody,
   canProceed: (ctx) => Boolean(ctx.data.kindConfig && kindPermission(ctx.data.kindConfig)),
-  helpText: `Choose the kind of infrastructure Meshery should manage as a first-class connection. [Learn more about connections](${DEFAULT_CONNECTION_DOCS_URL}).`,
+  helpText: `Choose the type of connection you want to create. Each connection type lets Meshery manage a different kind of infrastructure. [Learn more about connections](${DEFAULT_CONNECTION_DOCS_URL}).`,
 };
 
 // ---------------------------------------------------------------------------
@@ -112,7 +112,7 @@ export const genericDetailsStep: WizardStep = {
   helpText: (ctx) => {
     const label = ctx.data.kindConfig?.label || 'connection';
     const docsUrl = ctx.data.kindConfig?.docsUrl || DEFAULT_CONNECTION_DOCS_URL;
-    return `Provide connection details for this ${label}. Fields come from the connection definition registered in Meshery. [Learn more](${docsUrl}).`;
+    return `Fill in the details for your ${label} connection. These fields are specific to this connection type. [Learn more](${docsUrl}).`;
   },
 };
 
@@ -260,7 +260,7 @@ export const genericRegisterStep: WizardStep = {
   helpText: (ctx) => {
     const label = ctx.data.kindConfig?.label || 'connection';
     const docsUrl = ctx.data.kindConfig?.docsUrl || DEFAULT_CONNECTION_DOCS_URL;
-    return `Review the ${label} details, then create the connection. Meshery will register and connect it. [Learn more](${docsUrl}).`;
+    return `Review your ${label} details. When you click Create Connection, Meshery will add it and attempt to reach it. [Learn more](${docsUrl}).`;
   },
   onNext: async (ctx) => {
     const { kindConfig } = ctx.data;
@@ -355,5 +355,5 @@ export const genericReceiptStep: WizardStep = {
   label: 'Done',
   Component: ReceiptStepBody,
   nextLabel: () => 'Finish',
-  helpText: `Your connection is registered. Manage it anytime from the Connections page. [Learn more about connections](${DEFAULT_CONNECTION_DOCS_URL}).`,
+  helpText: `Your connection is ready. Manage it anytime from [connections](${DEFAULT_CONNECTION_DOCS_URL})—change its status, assign it to environments, or remove it. [Learn more](${DEFAULT_CONNECTION_DOCS_URL}).`,
 };

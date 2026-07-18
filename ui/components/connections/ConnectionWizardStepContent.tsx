@@ -257,7 +257,7 @@ export const ConnectionKindSelectionStep = ({
     <StepLayout>
       <StepHeader
         title="Choose a connection type"
-        subtitle="Select the kind of first-class connection you want Meshery to create or register."
+        subtitle="Select the type of infrastructure you want Meshery to manage as a connection."
       />
       {isLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -373,7 +373,7 @@ export const GenericConnectionDetailsStep = ({
     <StepLayout>
       <StepHeader
         title={`Configure ${label ?? 'connection'}`}
-        subtitle="These fields are rendered from the connection definition's registration schema."
+        subtitle="Fill in the fields below to set up this connection."
       />
       {isInitializing || !schema ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -532,7 +532,7 @@ export const KubernetesImportStep = ({ kubeconfigFile, onPickFile }: KubernetesI
   <StepLayout>
     <StepHeader
       title="Upload a kubeconfig"
-      subtitle="Upload a kubeconfig so Meshery can register its contexts as Kubernetes connections."
+      subtitle="Upload a kubeconfig file. Meshery will read the Kubernetes contexts inside and let you choose which ones to import."
     />
     <UploadDropzone
       type="button"
