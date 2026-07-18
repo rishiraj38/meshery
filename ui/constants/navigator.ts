@@ -12,6 +12,7 @@ export const SERVICE_MESH = 'service_mesh';
 
 export const FILTER = 'filter';
 export const APPLICATION = 'application';
+export const PATTERN = 'pattern';
 export const DESIGN = 'design';
 
 export const CATALOG = 'catalog';
