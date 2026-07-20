@@ -1,4 +1,4 @@
-package kubernetes
+package models
 
 import (
 	stderrors "errors"
@@ -6,17 +6,16 @@ import (
 	"testing"
 
 	"github.com/gofrs/uuid"
-	"github.com/meshery/meshery/server/models"
 	"github.com/meshery/meshery/server/models/connections"
 	"github.com/meshery/schemas/models/core"
 )
 
-// reconcileFakeProvider is a partial models.Provider: it embeds the interface so
-// the type satisfies models.Provider, and implements only the two methods
-// reconcilePersistedServerID calls. Any other method would panic on the nil
+// reconcileFakeProvider is a partial Provider: it embeds the interface so the
+// type satisfies Provider, and implements only the two methods
+// ReconcileK8sContextServerID calls. Any other method would panic on the nil
 // embedded interface, keeping the test honest about what the function touches.
 type reconcileFakeProvider struct {
-	models.Provider
+	Provider
 
 	conn      *connections.Connection
 	getErr    error
@@ -47,7 +46,7 @@ func (f *reconcileFakeProvider) UpdateConnectionById(_ string, conn *connections
 	return &connections.Connection{ID: conn.ID, Kind: conn.Kind, Status: conn.Status, Metadata: conn.MetaData}, nil
 }
 
-func newServerID(t *testing.T) (*core.Uuid, string) {
+func newReconcileServerID(t *testing.T) (*core.Uuid, string) {
 	t.Helper()
 	id, err := uuid.NewV4()
 	if err != nil {
@@ -57,8 +56,8 @@ func newServerID(t *testing.T) (*core.Uuid, string) {
 	return &u, u.String()
 }
 
-func k8sCtxWith(connID string, serverID *core.Uuid) models.K8sContext {
-	return models.K8sContext{
+func reconcileK8sCtx(connID string, serverID *core.Uuid) K8sContext {
+	return K8sContext{
 		Name:               "ctx",
 		ConnectionID:       connID,
 		KubernetesServerID: serverID,
@@ -67,11 +66,11 @@ func k8sCtxWith(connID string, serverID *core.Uuid) models.K8sContext {
 
 // A connection first registered while its cluster was unreachable persists an
 // empty kubernetesServerId. Once the cluster is reachable and discovery resolves
-// the real ID, reconcile must back-fill it so the dashboard's cluster_id filter
-// starts matching the streamed MeshSync rows.
-func TestReconcilePersistedServerID_BackfillsEmpty(t *testing.T) {
+// the real ID, the reconcile must back-fill it so the dashboard's cluster_id
+// filter starts matching the streamed MeshSync rows.
+func TestReconcileK8sContextServerID_BackfillsEmpty(t *testing.T) {
 	connID := uuid.Must(uuid.NewV4()).String()
-	serverID, serverIDStr := newServerID(t)
+	serverID, serverIDStr := newReconcileServerID(t)
 
 	f := &reconcileFakeProvider{
 		conn: &connections.Connection{
@@ -82,7 +81,7 @@ func TestReconcilePersistedServerID_BackfillsEmpty(t *testing.T) {
 		},
 	}
 
-	if err := reconcilePersistedServerID(f, "token", k8sCtxWith(connID, serverID)); err != nil {
+	if err := ReconcileK8sContextServerID(f, "token", reconcileK8sCtx(connID, serverID)); err != nil {
 		t.Fatalf("reconcile returned error: %v", err)
 	}
 	if f.updateCalls != 1 {
@@ -102,10 +101,10 @@ func TestReconcilePersistedServerID_BackfillsEmpty(t *testing.T) {
 }
 
 // The remote provider persists a nil UUID (00000000-...) rather than an empty
-// string for an unassigned server ID; reconcile must treat it as stale too.
-func TestReconcilePersistedServerID_CorrectsNilUUID(t *testing.T) {
+// string for an unassigned server ID; the reconcile must treat it as stale too.
+func TestReconcileK8sContextServerID_CorrectsNilUUID(t *testing.T) {
 	connID := uuid.Must(uuid.NewV4()).String()
-	serverID, serverIDStr := newServerID(t)
+	serverID, serverIDStr := newReconcileServerID(t)
 
 	f := &reconcileFakeProvider{
 		conn: &connections.Connection{
@@ -116,7 +115,7 @@ func TestReconcilePersistedServerID_CorrectsNilUUID(t *testing.T) {
 		},
 	}
 
-	if err := reconcilePersistedServerID(f, "token", k8sCtxWith(connID, serverID)); err != nil {
+	if err := ReconcileK8sContextServerID(f, "token", reconcileK8sCtx(connID, serverID)); err != nil {
 		t.Fatalf("reconcile returned error: %v", err)
 	}
 	if f.updateCalls != 1 {
@@ -129,9 +128,9 @@ func TestReconcilePersistedServerID_CorrectsNilUUID(t *testing.T) {
 
 // A connection whose persisted server ID already matches must incur no write, so
 // the per-request discovery re-drive costs nothing on the steady state.
-func TestReconcilePersistedServerID_NoopWhenAlreadyCorrect(t *testing.T) {
+func TestReconcileK8sContextServerID_NoopWhenAlreadyCorrect(t *testing.T) {
 	connID := uuid.Must(uuid.NewV4()).String()
-	serverID, serverIDStr := newServerID(t)
+	serverID, serverIDStr := newReconcileServerID(t)
 
 	f := &reconcileFakeProvider{
 		conn: &connections.Connection{
@@ -142,7 +141,7 @@ func TestReconcilePersistedServerID_NoopWhenAlreadyCorrect(t *testing.T) {
 		},
 	}
 
-	if err := reconcilePersistedServerID(f, "token", k8sCtxWith(connID, serverID)); err != nil {
+	if err := ReconcileK8sContextServerID(f, "token", reconcileK8sCtx(connID, serverID)); err != nil {
 		t.Fatalf("reconcile returned error: %v", err)
 	}
 	if f.updateCalls != 0 {
@@ -150,9 +149,9 @@ func TestReconcilePersistedServerID_NoopWhenAlreadyCorrect(t *testing.T) {
 	}
 }
 
-func TestReconcilePersistedServerID_HandlesNilMetadata(t *testing.T) {
+func TestReconcileK8sContextServerID_HandlesNilMetadata(t *testing.T) {
 	connID := uuid.Must(uuid.NewV4()).String()
-	serverID, serverIDStr := newServerID(t)
+	serverID, serverIDStr := newReconcileServerID(t)
 
 	f := &reconcileFakeProvider{
 		conn: &connections.Connection{
@@ -163,7 +162,7 @@ func TestReconcilePersistedServerID_HandlesNilMetadata(t *testing.T) {
 		},
 	}
 
-	if err := reconcilePersistedServerID(f, "token", k8sCtxWith(connID, serverID)); err != nil {
+	if err := ReconcileK8sContextServerID(f, "token", reconcileK8sCtx(connID, serverID)); err != nil {
 		t.Fatalf("reconcile returned error: %v", err)
 	}
 	if f.updateCalls != 1 {
@@ -176,23 +175,23 @@ func TestReconcilePersistedServerID_HandlesNilMetadata(t *testing.T) {
 
 // Guard the early returns: a missing/nil server id or an invalid connection id
 // must not touch the provider at all (nothing authoritative to sync).
-func TestReconcilePersistedServerID_NoopOnMissingInputs(t *testing.T) {
-	serverID, _ := newServerID(t)
+func TestReconcileK8sContextServerID_NoopOnMissingInputs(t *testing.T) {
+	serverID, _ := newReconcileServerID(t)
 	nilID := core.Uuid(uuid.Nil)
 
 	cases := []struct {
 		name string
-		ctx  models.K8sContext
+		ctx  K8sContext
 	}{
-		{"nil server id", k8sCtxWith(uuid.Must(uuid.NewV4()).String(), nil)},
-		{"nil-uuid server id", k8sCtxWith(uuid.Must(uuid.NewV4()).String(), &nilID)},
-		{"empty connection id", k8sCtxWith("", serverID)},
-		{"invalid connection id", k8sCtxWith("not-a-uuid", serverID)},
+		{"nil server id", reconcileK8sCtx(uuid.Must(uuid.NewV4()).String(), nil)},
+		{"nil-uuid server id", reconcileK8sCtx(uuid.Must(uuid.NewV4()).String(), &nilID)},
+		{"empty connection id", reconcileK8sCtx("", serverID)},
+		{"invalid connection id", reconcileK8sCtx("not-a-uuid", serverID)},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			f := &reconcileFakeProvider{}
-			if err := reconcilePersistedServerID(f, "token", tc.ctx); err != nil {
+			if err := ReconcileK8sContextServerID(f, "token", tc.ctx); err != nil {
 				t.Fatalf("reconcile returned error: %v", err)
 			}
 			if f.getCalls != 0 || f.updateCalls != 0 {
@@ -202,12 +201,12 @@ func TestReconcilePersistedServerID_NoopOnMissingInputs(t *testing.T) {
 	}
 }
 
-func TestReconcilePersistedServerID_PropagatesGetError(t *testing.T) {
+func TestReconcileK8sContextServerID_PropagatesGetError(t *testing.T) {
 	connID := uuid.Must(uuid.NewV4()).String()
-	serverID, _ := newServerID(t)
+	serverID, _ := newReconcileServerID(t)
 
 	f := &reconcileFakeProvider{getErr: stderrors.New("boom")}
-	if err := reconcilePersistedServerID(f, "token", k8sCtxWith(connID, serverID)); err == nil {
+	if err := ReconcileK8sContextServerID(f, "token", reconcileK8sCtx(connID, serverID)); err == nil {
 		t.Fatal("expected an error when GetConnectionByID fails, got nil")
 	}
 	if f.updateCalls != 0 {
@@ -215,9 +214,9 @@ func TestReconcilePersistedServerID_PropagatesGetError(t *testing.T) {
 	}
 }
 
-func TestReconcilePersistedServerID_PropagatesUpdateError(t *testing.T) {
+func TestReconcileK8sContextServerID_PropagatesUpdateError(t *testing.T) {
 	connID := uuid.Must(uuid.NewV4()).String()
-	serverID, _ := newServerID(t)
+	serverID, _ := newReconcileServerID(t)
 
 	f := &reconcileFakeProvider{
 		conn: &connections.Connection{
@@ -228,7 +227,7 @@ func TestReconcilePersistedServerID_PropagatesUpdateError(t *testing.T) {
 		},
 		updateErr: stderrors.New("boom"),
 	}
-	if err := reconcilePersistedServerID(f, "token", k8sCtxWith(connID, serverID)); err == nil {
+	if err := ReconcileK8sContextServerID(f, "token", reconcileK8sCtx(connID, serverID)); err == nil {
 		t.Fatal("expected an error when UpdateConnectionById fails, got nil")
 	}
 	if f.updateCalls != 1 {
