@@ -1,4 +1,4 @@
-import { KUBERNETES } from '@/constants/common';
+import type { v1beta1 } from '@meshery/schemas';
 
 export const FILE_OPS = {
   FILE_UPLOAD: 'upload',
@@ -47,6 +47,9 @@ export const REGISTRY_ITEM_STATES_TO_TRANSITION_MAP = {
   [REGISTRY_ITEM_STATES.IGNORED]: 'Ignore',
 };
 
+// Type-checked against the ConnectionStatusValue enum in meshery/schemas
+// (schemas/constructs/v1beta1/connection/api.yml), which is the source of
+// truth for these wire values - a typo or drift here is now a type error.
 export const CONNECTION_STATES = {
   DISCOVERED: 'discovered',
   REGISTERED: 'registered',
@@ -56,7 +59,7 @@ export const CONNECTION_STATES = {
   DISCONNECTED: 'disconnected',
   DELETED: 'deleted',
   NOTFOUND: 'not found',
-};
+} satisfies Record<string, v1beta1.ConnectionStatusValue>;
 
 export const CONTROLLERS = {
   BROKER: 'BROKER',
@@ -64,7 +67,17 @@ export const CONTROLLERS = {
   MESHSYNC: 'MESHSYNC',
 };
 
-// Fetch from GraphQL/REST API remove this
+// DEPLOYED..CONNECTED mirror the ControllerStatusValue enum in meshery/schemas
+// (schemas/constructs/v1beta1/system/api.yml), itself mirroring the
+// MesheryControllerStatus GraphQL enum
+// (server/internal/graphql/schema/schema.graphql) - these are real wire
+// values, including "UNKOWN", a misspelling that exists in the published
+// wire enum and must be preserved for backward compatibility. DISABLED and
+// UNKNOWN (correctly spelled) below are UI-only sentinel states with no wire
+// counterpart (see ui/utils/hooks/useKubernetesHook.tsx); the `satisfies`
+// clause below encodes that split as a type-checked invariant instead of
+// just prose - a value that's neither a real wire status nor one of these
+// two sentinels is now a type error.
 export const CONTROLLER_STATES = {
   DEPLOYED: 'DEPLOYED',
   NOTDEPLOYED: 'NOTDEPLOYED',
@@ -76,7 +89,7 @@ export const CONTROLLER_STATES = {
   CONNECTED: 'CONNECTED',
   DISABLED: 'DISABLED',
   UNKNOWN: 'UNKNOWN',
-};
+} satisfies Record<string, v1beta1.ControllerStatusValue | 'DISABLED' | 'UNKNOWN'>;
 
 export const MesheryPatternsCatalog = 'meshery-patterns-catalog';
 
