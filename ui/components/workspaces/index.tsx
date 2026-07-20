@@ -193,12 +193,12 @@ const Workspaces = ({ onSelectWorkspace }) => {
   const [deleteWorkspace] = useDeleteWorkspaceMutation();
 
   const workspaces = workspacesData?.workspaces ? workspacesData.workspaces : [];
-  const handleCreateWorkspace = ({ organization, name, description }) => {
+  const handleCreateWorkspace = ({ organizationId, name, description }) => {
     createWorkspace({
       workspacePayload: {
         name: name,
         description: description,
-        organization_id: organization,
+        organization_id: organizationId,
       },
     })
       .unwrap()
@@ -215,13 +215,13 @@ const Workspaces = ({ onSelectWorkspace }) => {
     }
   }, [workspaceModalContext.createNewWorkspaceModalOpen]);
 
-  const handleEditWorkspace = ({ organization, name, description }) => {
+  const handleEditWorkspace = ({ organizationId, name, description }) => {
     updateWorkspace({
       workspaceId: editWorkspaceId,
       workspacePayload: {
         name: name,
         description: description,
-        organization_id: organization,
+        organization_id: organizationId,
       },
     })
       .unwrap()
@@ -240,36 +240,21 @@ const Workspaces = ({ onSelectWorkspace }) => {
   };
 
   const fetchSchema = (workspaceActionType) => {
+    // Organization is derived from the user's active session and hidden by the
+    // canonical form UI schema (organizationId -> "ui:widget": "hidden" in
+    // meshery/schemas workspace/forms/createOrEdit.ui.json). Its value is
+    // seeded into the form via initialData, so no per-render schema patching is
+    // required here.
     const baseSchema =
       workspaceActionType === WORKSPACE_ACTION_TYPES.EDIT
         ? editWorkspaceSchema
         : createAndEditWorkspaceSchema;
-    const updatedSchema = {
-      schema: baseSchema,
-      uiSchema: createAndEditWorkspaceUiSchema,
-    };
-    updatedSchema.schema?.properties?.organization &&
-      ((updatedSchema.schema = {
-        ...updatedSchema.schema,
-        properties: {
-          ...updatedSchema.schema.properties,
-          organization: {
-            ...updatedSchema.schema.properties.organization,
-            enum: [organization?.id],
-            enumNames: [organization?.name],
-          },
-        },
-      }),
-      (updatedSchema.uiSchema = {
-        ...updatedSchema.uiSchema,
-        organization: {
-          ...updatedSchema.uiSchema.organization,
-          ['ui:widget']: 'hidden',
-        },
-      }));
     setWorkspaceModal({
       open: true,
-      schema: updatedSchema,
+      schema: {
+        schema: baseSchema,
+        uiSchema: createAndEditWorkspaceUiSchema,
+      },
     });
   };
 
@@ -297,7 +282,7 @@ const Workspaces = ({ onSelectWorkspace }) => {
       setInitialData({
         name: workspaceObject.name,
         description: workspaceObject.description,
-        organization: workspaceObject.organizationId,
+        organizationId: workspaceObject.organizationId,
       });
       setEditWorkspaceId(workspaceObject.id);
     } else {
@@ -305,7 +290,7 @@ const Workspaces = ({ onSelectWorkspace }) => {
       setInitialData({
         name: undefined,
         description: '',
-        organization: organization?.id,
+        organizationId: organization?.id,
       });
       setEditWorkspaceId('');
     }
