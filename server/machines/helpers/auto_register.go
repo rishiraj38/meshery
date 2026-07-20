@@ -176,8 +176,6 @@ func (arh *AutoRegistrationHelper) getConnectionDefinitions(connType string) []c
 // The asserted pointer is checked for nil because a typed nil pointer in an entity.Entity passes
 // the type assertion with ok == true.
 func toConnectionDefinitions(connectionEntities []entity.Entity) []component.ComponentDefinition {
-	connectionDefs := make([]component.ComponentDefinition, 0, len(connectionEntities))
-	for _, connectionEntity := range connectionEntities {
 		def, ok := connectionEntity.(*component.ComponentDefinition)
 		if !ok || def == nil || def.Model == nil {
 			continue
