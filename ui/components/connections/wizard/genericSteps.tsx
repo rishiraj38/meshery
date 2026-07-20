@@ -71,6 +71,7 @@ const SelectStepBody = ({ ctx }: { ctx: WizardContext }) => (
         registrationError: null,
         postConfig: {},
       });
+      ctx.advance();
     }}
     canUseKind={kindPermission}
   />
