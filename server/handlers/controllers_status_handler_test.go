@@ -9,8 +9,74 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/meshery/meshery/server/machines"
+	"github.com/meshery/meshery/server/machines/kubernetes"
 	"github.com/meshery/meshery/server/models"
+	"github.com/meshery/schemas/models/core"
 )
+
+// trackerWith builds an instance tracker holding a single connection->machine
+// mapping, for exercising machineCtxForConnection without standing up real FSMs.
+func trackerWith(id core.Uuid, inst *machines.StateMachine) *machines.ConnectionToStateMachineInstanceTracker {
+	return &machines.ConnectionToStateMachineInstanceTracker{
+		ConnectToInstanceMap: map[core.Uuid]*machines.StateMachine{id: inst},
+	}
+}
+
+// A tracked machine whose Context is nil - a non-kubernetes connection, or a
+// kubernetes one whose cluster was unreachable when the machine was created - is
+// an expected "not ready" state. machineCtxForConnection must report it as
+// not-ready (nil,false) and, crucially, must NOT type-assert the nil Context,
+// which previously logged meshkit-11180 on every controller-status poll.
+func TestMachineCtxForConnection_NilContextIsNotReady(t *testing.T) {
+	connID := uuid.Must(uuid.NewV4())
+	h := &Handler{
+		config:                                  &models.HandlerConfig{},
+		log:                                     newTestLogger(t),
+		ConnectionToStateMachineInstanceTracker: trackerWith(connID, &machines.StateMachine{ID: connID, Context: nil}),
+	}
+
+	ctx, ok := h.machineCtxForConnection(connID.String())
+	if ok {
+		t.Fatalf("expected not-ready (ok=false) for a nil-Context machine, got ok=true")
+	}
+	if ctx != nil {
+		t.Fatalf("expected nil machine context for a nil-Context machine, got %#v", ctx)
+	}
+}
+
+// A machine with no tracked instance is likewise not-ready.
+func TestMachineCtxForConnection_UntrackedIsNotReady(t *testing.T) {
+	h := &Handler{
+		config:                                  &models.HandlerConfig{},
+		log:                                     newTestLogger(t),
+		ConnectionToStateMachineInstanceTracker: trackerWith(uuid.Must(uuid.NewV4()), &machines.StateMachine{Context: nil}),
+	}
+
+	if ctx, ok := h.machineCtxForConnection(uuid.Must(uuid.NewV4()).String()); ok || ctx != nil {
+		t.Fatalf("expected not-ready for an untracked connection, got ok=%v ctx=%#v", ok, ctx)
+	}
+}
+
+// A fully-initialized kubernetes machine (a *kubernetes.MachineCtx carrying a
+// controllers helper) resolves as ready.
+func TestMachineCtxForConnection_ReadyWhenContextValid(t *testing.T) {
+	connID := uuid.Must(uuid.NewV4())
+	mctx := &kubernetes.MachineCtx{MesheryCtrlsHelper: &models.MesheryControllersHelper{}}
+	h := &Handler{
+		config:                                  &models.HandlerConfig{},
+		log:                                     newTestLogger(t),
+		ConnectionToStateMachineInstanceTracker: trackerWith(connID, &machines.StateMachine{ID: connID, Context: mctx}),
+	}
+
+	ctx, ok := h.machineCtxForConnection(connID.String())
+	if !ok || ctx == nil {
+		t.Fatalf("expected ready machine context, got ok=%v ctx=%#v", ok, ctx)
+	}
+	if ctx != mctx {
+		t.Fatalf("expected the tracked machine context to be returned")
+	}
+}
 
 func newControllersStatusTestHandler(t *testing.T) *Handler {
 	t.Helper()

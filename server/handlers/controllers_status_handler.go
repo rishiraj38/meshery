@@ -110,6 +110,16 @@ func (h *Handler) machineCtxForConnection(connectionID string) (*kubernetes.Mach
 	if !ok || inst == nil {
 		return nil, false
 	}
+	// A nil Context is an expected "not ready" state, not an error: a
+	// non-kubernetes connection carries no MachineCtx, and a kubernetes one whose
+	// cluster was unreachable when its machine was created never got its context
+	// assigned. Type-casting that nil on every controller-status poll (the ~5s SSE
+	// loop) would otherwise spam the log with meshkit-11180 ("nil interface cannot
+	// be type casted"). Treat it as not-ready and let the caller degrade; only a
+	// genuinely wrong Context type below is a real error worth logging.
+	if inst.Context == nil {
+		return nil, false
+	}
 	machinectx, err := utils.Cast[*kubernetes.MachineCtx](inst.Context)
 	if err != nil || machinectx == nil || machinectx.MesheryCtrlsHelper == nil {
 		if err != nil {

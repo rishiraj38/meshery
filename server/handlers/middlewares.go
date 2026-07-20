@@ -354,6 +354,13 @@ func KubernetesMiddleware(ctx context.Context, h *Handler, provider models.Provi
 			h.log.Error(err)
 		}
 
+		// InitializeMachineWithContext returns a nil instance when the machine
+		// could not be built (e.g. the cluster's API server was unreachable, so the
+		// client set / context failed to initialize). Skip driving it rather than
+		// nil-dereferencing on ResetState/SendEvent; a later request re-attempts.
+		if inst == nil {
+			continue
+		}
 		inst.ResetState()
 		go func(inst *machines.StateMachine) {
 			event, err := inst.SendEvent(ctx, machines.Discovery, nil)
@@ -413,6 +420,13 @@ func K8sFSMMiddleware(ctx context.Context, h *Handler, provider models.Provider,
 			h.log.Error(err)
 		}
 
+		// InitializeMachineWithContext returns a nil instance when the machine
+		// could not be built (e.g. the cluster's API server was unreachable, so the
+		// client set / context failed to initialize). Skip driving it rather than
+		// nil-dereferencing on ResetState/SendEvent; a later request re-attempts.
+		if inst == nil {
+			continue
+		}
 		inst.ResetState()
 		go func(inst *machines.StateMachine) {
 			event, err := inst.SendEvent(ctx, machines.Discovery, nil)
