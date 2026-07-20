@@ -100,7 +100,7 @@ export const CONNECTION_KINDS_DEF = ['MESHERY', 'KUBERNETES', 'PROMETHEUS', 'GRA
 
 export const CONNECTION_KINDS = {
   MESHERY: 'meshery',
-  KUBERNETES,
+  KUBERNETES: 'kubernetes',
   PROMETHEUS: 'prometheus',
   GRAFANA: 'grafana',
   GITHUB: 'github',

@@ -344,7 +344,8 @@ const ReceiptStepBody = ({ ctx }: { ctx: WizardContext }) => {
         {kindConfig?.label} connection created
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 420 }}>
-        <strong>{connectionName}</strong> is now a registered for use. Manage your new connection anytime on <ConnectionsLink href={CONNECTIONS_PATH}>Connections</ConnectionsLink>.
+        <strong>{connectionName}</strong> is now a registered for use. Manage your new connection
+        anytime on <ConnectionsLink href={CONNECTIONS_PATH}>Connections</ConnectionsLink>.
       </Typography>
     </Box>
   );
