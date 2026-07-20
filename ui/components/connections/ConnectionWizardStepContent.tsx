@@ -257,7 +257,7 @@ export const ConnectionKindSelectionStep = ({
     <StepLayout>
       <StepHeader
         title="Choose a connection type"
-        subtitle="Select the type of infrastructure you want Meshery to manage as a connection."
+        subtitle="Select the type of managed or unmanaged connection that you would like to register."
       />
       {isLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
