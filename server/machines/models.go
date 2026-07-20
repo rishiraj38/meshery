@@ -179,6 +179,20 @@ func (sm *StateMachine) SendEvent(ctx context.Context, eventType EventType, payl
 	var failureErr error
 	var failureEvent *events.Event
 
+	// haltedNoOp records that an action failed while reporting NoOp: it errored
+	// but emitted no recovery event, so the machine stays in place — no state
+	// transition, nothing to persist. Unlike a recovery-event failure (which
+	// converges on a persisted state, e.g. NOTFOUND, that the de-dup below keys
+	// off), this path never reaches a persisted status. It used to return inline
+	// here, bypassing that de-dup, so a permanently broken connection — e.g. one
+	// whose machine context never initialized, failing GetMachineCtx on every
+	// Discovery — re-persisted and re-broadcast a fresh Error event to the user on
+	// every single background re-drive (issue #20818). Route it through the same
+	// de-dup instead: skip the status write (there is no new state, and writing
+	// the un-advanced CurrentState would corrupt the persisted status) and treat
+	// it as no-change so the repeated background failure is suppressed.
+	haltedNoOp := false
+
 	for eventType != NoOp {
 		nextState, err := sm.getNextState(eventType)
 		if err != nil {
@@ -231,7 +245,8 @@ func (sm *StateMachine) SendEvent(ctx context.Context, eventType EventType, payl
 					failureEvent = event
 				}
 				if eventType == NoOp {
-					return event, err
+					haltedNoOp = true
+					break
 				}
 			} else {
 				eventType, event, err = state.Action.Execute(ctx, sm.Context, payload)
@@ -245,7 +260,8 @@ func (sm *StateMachine) SendEvent(ctx context.Context, eventType EventType, payl
 						failureEvent = event
 					}
 					if eventType == NoOp {
-						return event, err
+						haltedNoOp = true
+						break
 					}
 
 				}
@@ -263,13 +279,17 @@ func (sm *StateMachine) SendEvent(ctx context.Context, eventType EventType, payl
 	// request (notification spam). Emitting the failure only on an actual status
 	// transition de-duplicates that noise while still surfacing the first
 	// failure. Defaults to true so paths without a provider (or the Exit event)
-	// still report failures.
-	statusChanged := true
+	// still report failures — except a NoOp halt, which made no transition (there
+	// is nothing to persist, and writing the un-advanced CurrentState would
+	// corrupt the persisted status), so it starts unchanged so the de-duplication
+	// below suppresses the repeated background failure (issue #20818).
+	statusChanged := !haltedNoOp
 
 	// originalEventType (not eventType) is compared against Exit here: by the
 	// time the loop finishes, eventType has been overwritten to NoOp, so the
-	// caller's intent is only visible in the captured original.
-	if sm.Provider != nil && originalEventType != Exit {
+	// caller's intent is only visible in the captured original. A NoOp halt skips
+	// this block too: it performed no transition, so there is nothing to persist.
+	if sm.Provider != nil && originalEventType != Exit && !haltedNoOp {
 		token, _ := ctx.Value(models.TokenCtxKey).(string)
 		connection, _, err := sm.Provider.GetConnectionByID(token, sm.ID)
 
@@ -315,11 +335,12 @@ func (sm *StateMachine) SendEvent(ctx context.Context, eventType EventType, payl
 	// earlier in the transition loop. Return its ORIGINAL Error event together
 	// with the non-nil error so callers persist + broadcast it — this is the
 	// core fix for failures previously masked by a later recovery transition.
-	// The connection-status update above has already run, so the connection has
-	// been moved to its recovery state (e.g. NOTFOUND) regardless of what we
-	// return here. Suppress the emit when the persisted status did not change,
-	// so a repeatedly re-discovered down connection does not spam a notification
-	// on every request.
+	// For a recovery-event failure the connection-status update above has already
+	// moved the connection to its recovery state (e.g. NOTFOUND); for a NoOp halt
+	// no transition happened and statusChanged was forced false. Either way,
+	// suppress the emit when the persisted status did not change, so a repeatedly
+	// re-discovered down connection (or a permanently broken one halting on NoOp)
+	// does not spam a notification on every request.
 	if failureErr != nil {
 		// De-duplicate ONLY the background discovery path. K8sFSMMiddleware
 		// re-runs SendEvent(Discovery) on every request, so a cluster that stays

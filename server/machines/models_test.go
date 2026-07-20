@@ -391,3 +391,105 @@ func TestSendEvent_UserInitiatedFailureAlwaysPropagates(t *testing.T) {
 		t.Fatalf("expected the original Error event, got %#v", event)
 	}
 }
+
+// TestSendEvent_NoOpHaltOnDiscoveryIsDeduplicated covers issue #20818: an action
+// that fails while reporting NoOp (an error but no recovery event) — exactly what
+// DiscoverAction.Execute does when GetMachineCtx fails for a broken/zombie
+// connection — must NOT re-persist or re-broadcast an Error event on every
+// background Discovery re-drive. The failure halts the machine in place (no
+// transition, no status write), so on the background path it is suppressed every
+// time rather than returning inline and spamming the notification center.
+func TestSendEvent_NoOpHaltOnDiscoveryIsDeduplicated(t *testing.T) {
+	provider := &fakeProvider{status: connections.CONNECTED}
+
+	failErr := errors.New("nil interface cannot be type casted")
+	// A NoOp failure hands back an Error event but no recovery event (execNext=NoOp).
+	failEvent := events.NewEvent().
+		WithSeverity(events.Error).
+		WithDescription("Failed to interact with the connection.").
+		Build()
+	sm := newTestMachine(t, provider, &stubAction{execNext: NoOp, execEvent: failEvent, execErr: failErr})
+	ctx := newTestContext(t)
+
+	// The middleware re-runs ResetState()+SendEvent(Discovery) on every request;
+	// none of them should surface an event/error for a permanently broken machine.
+	for i := 0; i < 3; i++ {
+		sm.ResetState()
+		event, err := sm.SendEvent(ctx, Discovery, nil)
+		if err != nil {
+			t.Fatalf("run %d: expected a NoOp-halt Discovery failure to be suppressed, got error %v", i, err)
+		}
+		if event != nil {
+			t.Fatalf("run %d: expected no event on a suppressed NoOp-halt Discovery failure, got %#v", i, event)
+		}
+	}
+
+	// The machine must not have advanced past the reset InitialState, and the
+	// persisted status must be left untouched — writing the un-advanced
+	// CurrentState (InitialState) would corrupt CONNECTED into "initialized".
+	if provider.updateCalls != 0 {
+		t.Fatalf("expected no status write for a NoOp-halt failure, got %d UpdateConnectionById call(s)", provider.updateCalls)
+	}
+	if provider.status != connections.CONNECTED {
+		t.Fatalf("expected persisted status to remain CONNECTED, got %q", provider.status)
+	}
+	if sm.CurrentState != InitialState {
+		t.Fatalf("expected the machine to halt without transitioning (stay at %q), got %q", InitialState, sm.CurrentState)
+	}
+}
+
+// TestSendEvent_NoOpHaltOnUserEventPropagates guards the boundary of the #20818
+// fix: suppression is restricted to the background Discovery path. A
+// user-initiated event whose action fails with NoOp must still surface its Error
+// event + error (so a manual action never silently "succeeds"), and must not
+// write a status.
+func TestSendEvent_NoOpHaltOnUserEventPropagates(t *testing.T) {
+	log, err := logger.New("test", logger.Options{})
+	if err != nil {
+		t.Fatalf("failed to build test logger: %v", err)
+	}
+	connectionID, err := uuid.NewV4()
+	if err != nil {
+		t.Fatalf("failed to generate connection UUID: %v", err)
+	}
+
+	provider := &fakeProvider{status: connections.DISCOVERED}
+	failErr := errors.New("registration failed")
+	failEvent := events.NewEvent().WithSeverity(events.Error).WithDescription("register failed").Build()
+
+	// InitialState --Register--> REGISTERED, whose action fails with NoOp.
+	sm := &StateMachine{
+		ID:            core.Uuid(connectionID),
+		Name:          "kubernetes",
+		InitialState:  InitialState,
+		CurrentState:  InitialState,
+		PreviousState: DefaultState,
+		Log:           log,
+		Provider:      provider,
+		States: States{
+			InitialState: State{
+				Events: Events{Register: REGISTERED},
+				Action: nil,
+			},
+			REGISTERED: State{
+				Events: Events{Connect: CONNECTED, Ignore: IGNORED},
+				Action: &stubAction{execNext: NoOp, execEvent: failEvent, execErr: failErr},
+			},
+		},
+	}
+	ctx := newTestContext(t)
+
+	event, err := sm.SendEvent(ctx, Register, nil)
+	if err == nil {
+		t.Fatal("expected a user-initiated NoOp-halt failure to propagate, got nil error")
+	}
+	if !errors.Is(err, failErr) {
+		t.Fatalf("expected the original action error to propagate, got %v", err)
+	}
+	if event == nil || event.Severity != events.Error {
+		t.Fatalf("expected the original Error event to propagate, got %#v", event)
+	}
+	if provider.updateCalls != 0 {
+		t.Fatalf("expected no status write on a NoOp-halt failure, got %d UpdateConnectionById call(s)", provider.updateCalls)
+	}
+}
