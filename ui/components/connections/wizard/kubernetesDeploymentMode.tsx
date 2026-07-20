@@ -43,7 +43,7 @@ export const MESHSYNC_DEPLOYMENT_MODE_OPTIONS = [
     value: MESHSYNC_DEPLOYMENT_TYPE.OPERATOR,
     label: 'Operator',
     description:
-      'Installs Meshery Operator in the cluster so MeshSync runs in-cluster and streams changes in real time.',
+      'Installs Meshery Operator in the cluster, along with the MeshSync controller, which subscribes to and streams updates on "interesting" resources in real-time. You can configure and refine which resources MeshSync subscribes to.',
     docsUrl: MESHSYNC_OPERATOR_MODE_DOCS_URL,
   },
   {

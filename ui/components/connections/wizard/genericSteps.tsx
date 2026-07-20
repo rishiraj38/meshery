@@ -84,7 +84,7 @@ export const selectStep: WizardStep = {
   label: 'Choose Connection',
   Component: SelectStepBody,
   canProceed: (ctx) => Boolean(ctx.data.kindConfig && kindPermission(ctx.data.kindConfig)),
-  helpText: `Choose the type of connection you want to create. Each connection type lets Meshery manage a different kind of infrastructure. [Learn more about connections](${DEFAULT_CONNECTION_DOCS_URL}).`,
+  helpText: `Choose the type of connection you want to create. Each connection type lets Meshery manage a different kind of infrastructure and interface with another managed service. [Learn more about connections](${DEFAULT_CONNECTION_DOCS_URL}).`,
 };
 
 // ---------------------------------------------------------------------------
@@ -260,7 +260,7 @@ export const genericRegisterStep: WizardStep = {
   helpText: (ctx) => {
     const label = ctx.data.kindConfig?.label || 'connection';
     const docsUrl = ctx.data.kindConfig?.docsUrl || DEFAULT_CONNECTION_DOCS_URL;
-    return `Review your ${label} details. When you click Create Connection, Meshery will add it and attempt to reach it. [Learn more](${docsUrl}).`;
+    return `Review your ${label} details. When you click "Create Connection", Meshery will register the new connection, then verify reachability of the system/service, verify credentials, and run discovery (if applicable). [Learn more](${docsUrl}).`;
   },
   onNext: async (ctx) => {
     const { kindConfig } = ctx.data;
@@ -343,8 +343,7 @@ const ReceiptStepBody = ({ ctx }: { ctx: WizardContext }) => {
         {kindConfig?.label} connection created
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 420 }}>
-        <strong>{connectionName}</strong> is now a first-class Meshery connection. Manage these
-        anytime from <ConnectionsLink href={CONNECTIONS_PATH}>connections</ConnectionsLink>.
+        <strong>{connectionName}</strong> is now a registered for use. Manage your new connection anytime on <ConnectionsLink href={CONNECTIONS_PATH}>Connections</ConnectionsLink>.
       </Typography>
     </Box>
   );
