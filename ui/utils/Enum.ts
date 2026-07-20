@@ -100,7 +100,7 @@ export const CONNECTION_KINDS_DEF = ['MESHERY', 'KUBERNETES', 'PROMETHEUS', 'GRA
 
 export const CONNECTION_KINDS = {
   MESHERY: 'meshery',
-  KUBERNETES: 'kubernetes',
+  KUBERNETES,
   PROMETHEUS: 'prometheus',
   GRAFANA: 'grafana',
   GITHUB: 'github',
@@ -131,9 +131,6 @@ export const CONNECTION_STATE_TO_TRANSITION_MAP = {
   [CONNECTION_STATES.DISCONNECTED]: 'Disconnect',
   [CONNECTION_STATES.NOTFOUND]: 'Not Found',
 };
-
-export const FILTER = 'filter';
-export const PATTERN = 'pattern';
 
 // Meshery Extension Point
 // Add your UI plugin into this extension point.
