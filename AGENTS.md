@@ -108,6 +108,8 @@ across `meshery/meshery` and `meshery-cloud`.
 
 ## Build & Development Commands
 
+Use `gh-axi` for GitHub and `chrome-devtools-axi` for browser automation.
+
 ### Server (Go)
 
 ```bash
