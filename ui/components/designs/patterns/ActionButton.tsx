@@ -10,7 +10,12 @@ import {
   Popper,
 } from '@sistent/sistent';
 
-export default function ActionButton({ defaultActionClick, options }) {
+export default function ActionButton({
+  defaultActionClick,
+  options,
+  permissionKey,
+  permissionAction,
+}) {
   const [open, setOpen] = React.useState(false);
   const anchorRef = React.useRef(null);
 
@@ -46,6 +51,8 @@ export default function ActionButton({ defaultActionClick, options }) {
           }}
           onClick={defaultActionClick}
           variant="outlined"
+          permissionKey={permissionKey}
+          permissionAction={permissionAction}
         >
           Action
         </Button>

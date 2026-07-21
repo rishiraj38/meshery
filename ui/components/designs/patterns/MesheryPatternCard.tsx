@@ -212,6 +212,7 @@ function MesheryPatternCard_({
               )}
               <ActionButton
                 defaultActionClick={(e) => genericClickHandler(e, handleVerify)}
+                permissionKey={Keys.CatalogManagementValidateDesign}
                 options={[
                   {
                     label: 'Validate',
