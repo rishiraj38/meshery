@@ -15,7 +15,7 @@ import {
   TableRow,
   EditIcon,
 } from '@sistent/sistent';
-import FlipCard from '../FlipCard';
+import FlipCard from '../general/FlipCard';
 import PerformanceResults from './PerformanceResults';
 import { MESHERY_CLOUD_PROD } from '../../constants/endpoints';
 import { iconMedium } from '../../css/icons.styles';

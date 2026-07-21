@@ -15,8 +15,8 @@ import {
 } from '@sistent/sistent';
 import { Delete as DeleteIcon, Save } from '@/assets/icons';
 import Moment from 'react-moment';
-import FlipCard from '../FlipCard';
-import { UnControlled as CodeMirror } from '../CodeMirror';
+import FlipCard from '../general/FlipCard';
+import { UnControlled as CodeMirror } from '../general/CodeMirror';
 import {
   BottomContainer,
   CardBackGrid,
@@ -28,7 +28,7 @@ import {
   CardHeaderRight,
   StyledCodeMirrorWrapper,
 } from '../designs/patterns/Cards.styles';
-import YAMLDialog from '../YamlDialog';
+import YAMLDialog from '../general/YamlDialog';
 import CloneIcon from '../../public/static/img/CloneIcon';
 import { Public as PublicIcon, GetApp as GetAppIcon, Public, Lock } from '@/assets/icons';
 import TooltipButton from '../../utils/TooltipButton';

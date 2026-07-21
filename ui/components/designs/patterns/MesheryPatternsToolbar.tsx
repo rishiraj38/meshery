@@ -1,8 +1,7 @@
 import React from 'react';
 import { CustomColumnVisibilityControl, SearchBar, UniversalFilter } from '@sistent/sistent';
 import { Publish as PublishIcon } from '@/assets/icons';
-import ViewSwitch from '../../ViewSwitch';
-
+import ViewSwitch from '../../general/ViewSwitch';
 import { Keys } from '@meshery/schemas/permissions';
 import TooltipButton from '@/utils/TooltipButton';
 import { ToolWrapper } from '@/assets/styles/general/tool.styles';

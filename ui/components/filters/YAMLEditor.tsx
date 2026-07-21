@@ -11,7 +11,7 @@ import {
   FullScreenIcon,
   FullScreenExitIcon,
 } from '@sistent/sistent';
-import { UnControlled as CodeMirror } from '../CodeMirror';
+import { UnControlled as CodeMirror } from '../general/CodeMirror';
 import { FILE_OPS } from '../../utils/Enum';
 import { iconMedium } from '../../css/icons.styles';
 

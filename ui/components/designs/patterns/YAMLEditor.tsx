@@ -11,7 +11,7 @@ import {
   FullScreenExitIcon,
 } from '@sistent/sistent';
 import { Close as CloseIcon, Delete as DeleteIcon, Save as SaveIcon } from '@/assets/icons';
-import { UnControlled as CodeMirror } from '../../CodeMirror';
+import { UnControlled as CodeMirror } from '../../general/CodeMirror';
 import { FILE_OPS } from '../../../utils/Enum';
 
 import { Keys } from '@meshery/schemas/permissions';

@@ -44,7 +44,7 @@ vi.mock('@sistent/sistent', () => {
   };
 });
 
-vi.mock('../CodeMirror', () => ({
+vi.mock('../general/CodeMirror', () => ({
   UnControlled: ({ value, onChange }: any) => (
     <textarea
       data-testid="codemirror"

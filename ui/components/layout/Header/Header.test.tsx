@@ -75,7 +75,7 @@ vi.mock('../../../utils/Enum', () => ({
   CONNECTION_STATES: { DELETED: 'deleted' },
 }));
 
-vi.mock('../../PromptComponent', () => ({
+vi.mock('../../general/PromptComponent', () => ({
   default: React.forwardRef((_props: any, ref: any) => {
     if (ref) {
       ref.current = { show: vi.fn(() => Promise.resolve('CANCEL')) };
@@ -93,7 +93,7 @@ vi.mock('../../ExtensionSandbox', () => ({
   createPathForRemoteComponent: (uri: string) => `/remote/${uri}`,
 }));
 
-vi.mock('../../RemoteComponent', () => ({
+vi.mock('../../general/RemoteComponent', () => ({
   default: () => <div data-testid="remote-component" />,
 }));
 
