@@ -44,7 +44,7 @@ vi.mock('./CodeMirror', () => ({
   ),
 }));
 
-vi.mock('./designs/patterns/style', () => ({
+vi.mock('./YamlDialog.styles', () => ({
   YamlDialogTitleText: ({ children, variant }: any) => (
     <h6 data-testid="title-text" data-variant={variant}>
       {children}
@@ -57,7 +57,7 @@ vi.mock('./designs/patterns/style', () => ({
   ),
 }));
 
-vi.mock('./designs/patterns/Cards.styles', () => ({
+vi.mock('../designs/patterns/Cards.styles', () => ({
   StyledCodeMirrorWrapper: ({ children, fullScreen }: any) => (
     <div data-testid="codemirror-wrapper" data-fullscreen={String(!!fullScreen)}>
       {children}

@@ -21,8 +21,8 @@ import {
   DoneAll as DoneAllIcon,
 } from '@/assets/icons';
 import Moment from 'react-moment';
-import FlipCard from '../../FlipCard';
-import { UnControlled as CodeMirror } from '../../CodeMirror';
+import FlipCard from '../../general/FlipCard';
+import { UnControlled as CodeMirror } from '../../general/CodeMirror';
 import UndeployIcon from '../../../public/static/img/UndeployIcon';
 import {
   BottomContainer,
@@ -35,7 +35,7 @@ import {
   GridCloneBtnText,
   StyledCodeMirrorWrapper,
 } from './Cards.styles';
-import YAMLDialog from '../../YamlDialog';
+import YAMLDialog from '../../general/YamlDialog';
 import { Public as PublicIcon, Edit, Lock, Public } from '@/assets/icons';
 import TooltipButton from '@/utils/TooltipButton';
 import CloneIcon from '../../../public/static/img/CloneIcon';

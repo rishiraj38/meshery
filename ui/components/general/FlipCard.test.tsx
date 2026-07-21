@@ -3,7 +3,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import FlipCard from './FlipCard';
 
-vi.mock('./designs/patterns/style', () => ({
+vi.mock('./FlipCard.styles', () => ({
   FlipCardWrapper: ({ children, onClick }: any) => (
     <div data-testid="flip-card-wrapper" onClick={onClick}>
       {children}
