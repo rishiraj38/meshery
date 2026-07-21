@@ -79,6 +79,7 @@ vi.mock('@sistent/sistent', () => ({
   InfoOutlinedIcon: () => <svg data-testid="info-icon" />,
   Typography: ({ children }: { children?: React.ReactNode }) => <p>{children}</p>,
   useTheme: () => ({ palette: { mode: 'light', icon: { default: '#000' } } }),
+  useHasPermission: () => canSpy(),
 }));
 
 import ConnectionStatsChart from './ConnectionCharts';

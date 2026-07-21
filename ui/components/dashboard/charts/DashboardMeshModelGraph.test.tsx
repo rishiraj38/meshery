@@ -64,6 +64,7 @@ vi.mock('@sistent/sistent', () => ({
   InfoOutlinedIcon: () => <svg data-testid="info-icon" />,
   Typography: ({ children }: { children?: React.ReactNode }) => <p>{children}</p>,
   useTheme: () => ({ palette: { icon: { default: '#000' } } }),
+  useHasPermission: () => true,
 }));
 
 import MeshModelGraph from './DashboardMeshModelGraph';

@@ -16,6 +16,7 @@ import {
   PeopleIcon,
   ViewIcon,
   WorkspaceIcon,
+  useHasPermission,
   useMediaQuery,
 } from '@sistent/sistent';
 import { styled, useTheme } from '@/theme';
@@ -30,7 +31,6 @@ import WorkspaceContent from './SpacesSwitcher/WorkspaceContent';
 import { useGetProviderCapabilitiesQuery, useGetSelectedOrganization } from '@/rtk-query/user';
 import { isLocalProvider } from '@/utils/provider';
 import SharedContent from './SpacesSwitcher/SharedContent';
-import CAN from '@/utils/can';
 import { Keys } from '@meshery/schemas/permissions';
 import { WorkspaceModalContext } from '@/utils/context/WorkspaceModalContextProvider';
 import type { Theme } from '@/theme';
@@ -47,7 +47,7 @@ export type HeaderInfo = {
   icon: React.ReactNode;
 };
 
-const getNavItem = (theme: Theme): NavConfigItem[] => {
+const getNavItem = (theme: Theme, canViewViews: boolean): NavConfigItem[] => {
   return [
     {
       id: 'Recents (Global)',
@@ -72,7 +72,7 @@ const getNavItem = (theme: Theme): NavConfigItem[] => {
       id: 'My-Views',
       label: 'My Views',
       icon: <ViewIcon {...iconSmall} fill={theme.palette.icon.default} />,
-      enabled: CAN(Keys.KanvasViewViews.id, Keys.KanvasViewViews.function),
+      enabled: canViewViews,
       content: <MyViewsContent />,
     },
     {
@@ -138,7 +138,8 @@ export const Navigation: FC<NavigationProps> = ({ setHeaderInfo }) => {
   const workspaceSwitcherContext = useContext(WorkspaceModalContext);
   const { selectedWorkspace } = workspaceSwitcherContext;
   const [selectedId, setSelectedId] = useState<string>(selectedWorkspace?.id || 'Recents (Global)');
-  const navConfig = getNavItem(theme).filter((item) => item.enabled !== false);
+  const canViewViews = useHasPermission(Keys.KanvasViewViews);
+  const navConfig = getNavItem(theme, canViewViews).filter((item) => item.enabled !== false);
   const { selectedOrganization } = useGetSelectedOrganization();
   const { data: workspacesData, isLoading } = useGetWorkspacesQuery(
     {

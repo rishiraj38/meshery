@@ -2,6 +2,8 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+let canMockReturn = true;
+
 const routerState = {
   query: {} as Record<string, any>,
   pathname: '/settings',
@@ -62,6 +64,7 @@ vi.mock('@sistent/sistent', () => ({
         : React.createElement(Component, rest, children);
     return StyledComponent;
   },
+  useHasPermission: () => canMockReturn,
 }));
 
 vi.mock('../dashboard/charts/DashboardMeshModelGraph', () => ({
@@ -91,7 +94,6 @@ vi.mock('../../api/meshmodel', () => ({
   getMeshModelRegistrants: vi.fn().mockResolvedValue({ totalCount: 0 }),
 }));
 
-let canMockReturn = true;
 vi.mock('@/utils/can', () => ({
   default: () => canMockReturn,
 }));

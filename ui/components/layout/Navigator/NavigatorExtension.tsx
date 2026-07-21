@@ -19,7 +19,7 @@ import { ValidateDesign } from '../../designs/lifecycle/ValidateDesign';
 import { DryRunDesign } from '../../designs/lifecycle/DryRun';
 import { DeployStepper, UnDeployStepper } from '../../designs/lifecycle/DeployStepper';
 import { designValidationMachine } from 'machines/validator/designValidator';
-import CAN from '@/utils/can';
+import { useHasPermission } from '@sistent/sistent';
 import { mesheryEventBus } from '@/utils/eventBus';
 import { ThemeTogglerCore } from '@/theme/hooks';
 import RJSFForm from '../../meshery-mesh-interface/PatternService/RJSF';
@@ -151,7 +151,7 @@ function NavigatorExtension({ url }: NavigatorExtensionProps) {
       ThemeTogglerCore,
       RJSForm: RJSFForm,
       hooks: {
-        CAN,
+        useHasPermission,
         useFilterK8sContexts,
         useDynamicComponent,
       },

@@ -216,12 +216,12 @@ function Connections() {
       {hasViewConnections ? (
         <>
           {tab === 0 && (
-              <ConnectionTable
-                selectedConnectionId={connectionId}
-                updateUrlWithConnectionId={updateUrlWithConnectionId}
-                tabs={tabs}
-              />
-            )}
+            <ConnectionTable
+              selectedConnectionId={connectionId}
+              updateUrlWithConnectionId={updateUrlWithConnectionId}
+              tabs={tabs}
+            />
+          )}
           {tab === 1 && (
             <MeshSyncTable
               selectedResourceId={connectionId}
