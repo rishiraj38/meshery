@@ -66,6 +66,7 @@ vi.mock('@sistent/sistent', () => ({
   ),
   Popover: ({ open, children }: any) =>
     open ? <div data-testid="header-popover">{children}</div> : null,
+  useHasPermission: () => true,
 }));
 
 vi.mock('./Header.styles', () => ({
