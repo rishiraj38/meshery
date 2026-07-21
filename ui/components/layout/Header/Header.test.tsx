@@ -178,6 +178,7 @@ vi.mock('@sistent/sistent', () => ({
     shadows: [],
   }),
   useMediaQuery: () => useMediaQueryMock(),
+  useHasPermission: () => true,
   SearchIcon: () => <svg data-testid="search-icon" />,
   SettingsIcon: () => <svg data-testid="settings-icon" />,
   FilterAllIcon: () => <svg data-testid="filter-all-icon" />,

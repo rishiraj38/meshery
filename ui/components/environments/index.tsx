@@ -440,7 +440,7 @@ const Environments = () => {
       ) ? (
         <>
           <ToolWrapper>
-            <CreateButtonWrapper>
+            <CreateButtonWrapper style={{ marginRight: '2rem' }}>
               <Button
                 type="submit"
                 variant="contained"
@@ -450,14 +450,8 @@ const Environments = () => {
                 sx={{
                   padding: '8px',
                   borderRadius: '5px',
-                  marginRight: '2rem',
                 }}
-                disabled={
-                  !CAN(
-                    Keys.WorkspaceManagementCreateEnvironment.id,
-                    Keys.WorkspaceManagementCreateEnvironment.function,
-                  )
-                }
+                permissionKey={Keys.WorkspaceManagementCreateEnvironment}
                 data-cy="btnResetDatabase"
               >
                 <AddIconCircleBorder sx={{ width: '20px', height: '20px' }} />
@@ -489,14 +483,7 @@ const Environments = () => {
               </Typography>
               <Button
                 onClick={handleBulkDeleteEnvironmentConfirm}
-                disabled={
-                  selectedEnvironments.length > 0
-                    ? !CAN(
-                        Keys.WorkspaceManagementDeleteEnvironment.id,
-                        Keys.WorkspaceManagementDeleteEnvironment.function,
-                      )
-                    : true
-                }
+                permissionKey={Keys.WorkspaceManagementDeleteEnvironment}
               >
                 <DeleteIcon fill="red" style={{ margin: '0 2px' }} />
               </Button>

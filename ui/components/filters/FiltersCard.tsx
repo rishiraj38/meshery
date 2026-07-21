@@ -36,7 +36,7 @@ import { VISIBILITY } from '../../utils/Enum';
 import { useGetUserByIdQuery } from '../../rtk-query/user';
 import { MESHERY_CLOUD_PROD } from '../../constants/endpoints';
 import { Keys } from '@meshery/schemas/permissions';
-import CAN from '@/utils/can';
+
 import { VisibilityChipMenu } from '@sistent/sistent';
 import { VIEW_VISIBILITY } from '../shared/Modal/Information/InfoModal';
 import { iconMedium } from 'css/icons.styles';
@@ -163,12 +163,7 @@ function FiltersCard_({
                     borderRadius: '8px',
                   }}
                   onClick={(ev) => genericClickHandler(ev, handlePublishModal)}
-                  disabled={
-                    !CAN(
-                      Keys.CatalogManagementPublishWasmFilter.id,
-                      Keys.CatalogManagementPublishWasmFilter.function,
-                    )
-                  }
+                  permissionKey={Keys.CatalogManagementPublishWasmFilter}
                 >
                   <PublicIcon style={iconMedium} />
                   <> Publish </>
@@ -182,12 +177,7 @@ function FiltersCard_({
                     borderRadius: '8px',
                   }}
                   onClick={(ev) => genericClickHandler(ev, handleUnpublishModal)}
-                  disabled={
-                    !CAN(
-                      Keys.CatalogManagementUnpublishWasmFilter.id,
-                      Keys.CatalogManagementUnpublishWasmFilter.function,
-                    )
-                  }
+                  permissionKey={Keys.CatalogManagementUnpublishWasmFilter}
                 >
                   <PublicIcon style={iconMedium} />
                   <GridBtnText> Unpublish </GridBtnText>
@@ -202,12 +192,7 @@ function FiltersCard_({
                   padding: '6px 9px',
                   borderRadius: '8px',
                 }}
-                disabled={
-                  !CAN(
-                    Keys.CatalogManagementDownloadAWasmFilter.id,
-                    Keys.CatalogManagementDownloadAWasmFilter.function,
-                  )
-                }
+                permissionKey={Keys.CatalogManagementDownloadAWasmFilter}
               >
                 <GetAppIcon fill={theme.palette.background.constant.white} style={iconMedium} />
                 <GridBtnText>Download</GridBtnText>
@@ -223,12 +208,7 @@ function FiltersCard_({
                     borderRadius: '8px',
                   }}
                   onClick={(ev) => genericClickHandler(ev, handleClone)}
-                  disabled={
-                    !CAN(
-                      Keys.CatalogManagementCloneWasmFilter.id,
-                      Keys.CatalogManagementCloneWasmFilter.function,
-                    )
-                  }
+                  permissionKey={Keys.CatalogManagementCloneWasmFilter}
                 >
                   <CloneIcon fill={theme.palette.background.constant.white} style={iconMedium} />
                   <GridCloneBtnText>Clone</GridCloneBtnText>
@@ -243,12 +223,7 @@ function FiltersCard_({
                   padding: '6px 9px',
                   borderRadius: '8px',
                 }}
-                disabled={
-                  !CAN(
-                    Keys.CatalogManagementDetailsOfWasmFilter.id,
-                    Keys.CatalogManagementDetailsOfWasmFilter.function,
-                  )
-                }
+                permissionKey={Keys.CatalogManagementDetailsOfWasmFilter}
               >
                 <InfoOutlinedIcon
                   fill={theme.palette.background.constant.white}
@@ -330,12 +305,7 @@ function FiltersCard_({
                 {/* Save button */}
                 <Tooltip title="Save" arrow interactive placement="bottom">
                   <IconButton
-                    disabled={
-                      !CAN(
-                        Keys.CatalogManagementEditWasmFilter.id,
-                        Keys.CatalogManagementEditWasmFilter.function,
-                      )
-                    }
+                    permissionKey={Keys.CatalogManagementEditWasmFilter}
                     onClick={(ev) => genericClickHandler(ev, updateHandler)}
                   >
                     <Save fill={theme.palette.icon.default} />
@@ -345,12 +315,7 @@ function FiltersCard_({
                 {/* Delete Button */}
                 <Tooltip title="Delete" arrow interactive placement="bottom">
                   <IconButton
-                    disabled={
-                      !CAN(
-                        Keys.CatalogManagementDeleteWasmFilter.id,
-                        Keys.CatalogManagementDeleteWasmFilter.function,
-                      )
-                    }
+                    permissionKey={Keys.CatalogManagementDeleteWasmFilter}
                     onClick={(ev) => genericClickHandler(ev, deleteHandler)}
                   >
                     <DeleteIcon fill={theme.palette.icon.default} />

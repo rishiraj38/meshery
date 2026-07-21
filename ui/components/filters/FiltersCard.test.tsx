@@ -37,11 +37,15 @@ vi.mock('@sistent/sistent', () => {
   return {
     Divider: () => <hr />,
     Grid2: ({ children }: any) => <div>{children}</div>,
-    IconButton: ({ children, onClick, disabled }: any) => (
-      <button onClick={onClick} disabled={disabled}>
-        {children}
-      </button>
-    ),
+    IconButton: ({ children, onClick, disabled, permissionKey, ...props }: any) => {
+      const isDisabled =
+        disabled || (permissionKey && !can(permissionKey.id, permissionKey.function));
+      return (
+        <button onClick={onClick} disabled={isDisabled} {...props}>
+          {children}
+        </button>
+      );
+    },
     Typography: ({ children }: any) => <span>{children}</span>,
     Tooltip: ({ children, title }: any) => <div data-tip={title}>{children}</div>,
     Link: ({ children }: any) => <a>{children}</a>,
@@ -108,11 +112,15 @@ vi.mock('../../public/static/img/CloneIcon', () => ({
 }));
 
 vi.mock('../../utils/TooltipButton', () => ({
-  default: ({ children, onClick, title, disabled }: any) => (
-    <button onClick={onClick} disabled={disabled} title={title} data-testid={`btn-${title}`}>
-      {children}
-    </button>
-  ),
+  default: ({ children, onClick, title, disabled, permissionKey }: any) => {
+    const isDisabled =
+      disabled || (permissionKey && !can(permissionKey.id, permissionKey.function));
+    return (
+      <button onClick={onClick} disabled={isDisabled} title={title} data-testid={`btn-${title}`}>
+        {children}
+      </button>
+    );
+  },
 }));
 
 import FiltersCard from './FiltersCard';

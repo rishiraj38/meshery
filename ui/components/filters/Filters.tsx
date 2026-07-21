@@ -449,12 +449,7 @@ function MesheryFilters() {
                           color="primary"
                           size="large"
                           onClick={handleUploadImport}
-                          disabled={
-                            !CAN(
-                              Keys.CatalogManagementImportFilter.id,
-                              Keys.CatalogManagementImportFilter.function,
-                            )
-                          }
+                          permissionKey={Keys.CatalogManagementImportFilter}
                         >
                           <PublishIcon style={iconMedium} data-cy="import-button" />
                           <BtnText> Import Filters </BtnText>
