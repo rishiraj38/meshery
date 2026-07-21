@@ -36,12 +36,12 @@ import {
 } from '../../rtk-query/workspace';
 import { useNotification, useNotificationHandlers } from '../../utils/hooks/useNotification';
 import { RJSFModalWrapper } from '../shared/Modal/Modal';
-import _PromptComponent from '../PromptComponent';
+import _PromptComponent from '../general/PromptComponent';
 import { EVENT_TYPES } from '../../lib/event-types';
 import { Keys } from '@meshery/schemas/permissions';
 import CAN from '@/utils/can';
 import { ToolWrapper } from '@/assets/styles/general/tool.styles';
-import ViewSwitch from '@/components/ViewSwitch';
+import ViewSwitch from '@/components/general/ViewSwitch';
 import { CreateButtonWrapper } from './styles';
 import WorkspaceGridView from './WorkspaceGridView';
 import RightArrowIcon from '@/assets/icons/RightArrowIcon';

@@ -18,7 +18,7 @@ import EnvironmentIcon from '../../assets/icons/Environment';
 import { EVENT_TYPES } from '../../lib/event-types';
 import { useNotification } from '../../utils/hooks/useNotification';
 import { RJSFModalWrapper } from '../shared/Modal/Modal';
-import _PromptComponent from '../PromptComponent';
+import _PromptComponent from '../general/PromptComponent';
 import { EmptyState } from '../lifecycle/general';
 import {
   Modal as SisitentModal,

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { FavoriteIcon, Hidden, Typography, useTheme } from '@sistent/sistent';
-import Navigator from './layout/Navigator/Navigator';
+import Navigator from '../Navigator/Navigator';
 import CAN from '@/utils/can';
 import { Keys } from '@meshery/schemas/permissions';
 import { useDispatch, useSelector } from 'react-redux';

@@ -56,7 +56,7 @@ vi.mock('@sistent/sistent', () => ({
   }),
 }));
 
-vi.mock('./layout/Navigator/Navigator', () => ({
+vi.mock('../Navigator/Navigator', () => ({
   default: () => null,
 }));
 

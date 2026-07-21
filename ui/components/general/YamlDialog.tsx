@@ -11,8 +11,8 @@ import {
   Tooltip,
 } from '@sistent/sistent';
 import { UnControlled as CodeMirror } from './CodeMirror';
-import { YamlDialogTitleText, StyledDialog } from './designs/patterns/style';
-import { StyledCodeMirrorWrapper } from './designs/patterns/Cards.styles';
+import { YamlDialogTitleText, StyledDialog } from './YamlDialog.styles';
+import { StyledCodeMirrorWrapper } from '../designs/patterns/Cards.styles';
 
 const YAMLDialog = ({
   fullScreen,

@@ -12,7 +12,7 @@ import ConnectionStateTransitionModal from '../../connections/ConnectionStateTra
 import type { ConnectionStateTransitionModalRef } from '../../connections/ConnectionStateTransitionModal';
 import { iconMedium, iconSmall } from '../../../css/icons.styles';
 import { createPathForRemoteComponent } from '../../ExtensionSandbox';
-import RemoteComponent from '../../RemoteComponent';
+import RemoteComponent from '../../general/RemoteComponent';
 import { useNotification } from '../../../utils/hooks/useNotification';
 import useKubernetesHook, { useControllerStatus } from '@/utils/hooks/useKubernetesHook';
 import { formatToTitleCase } from '../../../utils/utils';

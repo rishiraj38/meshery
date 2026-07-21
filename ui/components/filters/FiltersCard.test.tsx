@@ -72,7 +72,7 @@ vi.mock('react-moment', () => ({
   default: ({ children }: any) => <span data-testid="moment">{String(children)}</span>,
 }));
 
-vi.mock('../FlipCard', () => ({
+vi.mock('../general/FlipCard', () => ({
   default: ({ children }: any) => (
     <div data-testid="flip-card">
       {/* React's children for the FlipCard are an array of two parts (front, back); render both */}
@@ -83,7 +83,7 @@ vi.mock('../FlipCard', () => ({
   ),
 }));
 
-vi.mock('../CodeMirror', () => ({
+vi.mock('../general/CodeMirror', () => ({
   UnControlled: ({ value }: any) => <pre data-testid="codemirror">{value}</pre>,
 }));
 
@@ -99,7 +99,7 @@ vi.mock('../designs/patterns/Cards.styles', () => ({
   StyledCodeMirrorWrapper: ({ children }: any) => <div>{children}</div>,
 }));
 
-vi.mock('../YamlDialog', () => ({
+vi.mock('../general/YamlDialog', () => ({
   default: ({ name }: any) => <div data-testid="yaml-dialog">{name}</div>,
 }));
 
