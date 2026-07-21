@@ -118,6 +118,7 @@ func (h *Handler) machineCtxForConnection(connectionID string) (*kubernetes.Mach
 	// be type casted"). Treat it as not-ready and let the caller degrade; only a
 	// genuinely wrong Context type below is a real error worth logging.
 	if inst.Context == nil {
+		h.log.Debug(fmt.Sprintf("machine instance for connection %s has no context yet, treating as not-ready", connectionID))
 		return nil, false
 	}
 	machinectx, err := utils.Cast[*kubernetes.MachineCtx](inst.Context)

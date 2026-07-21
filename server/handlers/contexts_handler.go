@@ -120,16 +120,22 @@ func (h *Handler) DeleteContext(w http.ResponseWriter, req *http.Request, _ *mod
 		"kubernetes",
 		kubernetes.AssignInitialCtx,
 	)
-	go func(inst *machines.StateMachine) {
-		event, err = inst.SendEvent(req.Context(), machines.Delete, nil)
-		if err != nil {
-			h.log.Error(err)
-			h.log.Debug(event)
-			return
-		}
+	// InitializeMachineWithContext returns a nil instance when the machine
+	// could not be built (e.g. the cluster's API server was unreachable, so
+	// the client set/context failed to initialize); skip driving it rather
+	// than nil-dereferencing in the goroutine below.
+	if inst != nil {
+		go func(inst *machines.StateMachine) {
+			event, err := inst.SendEvent(req.Context(), machines.Delete, nil)
+			if err != nil {
+				h.log.Error(err)
+				h.log.Debug(event)
+				return
+			}
 
-		smInstanceTracker.Remove(connectionUUID)
-	}(inst)
+			smInstanceTracker.Remove(connectionUUID)
+		}(inst)
+	}
 
 	if err != nil {
 		h.log.Error(err)

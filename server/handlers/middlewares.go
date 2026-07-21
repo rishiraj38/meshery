@@ -356,9 +356,13 @@ func KubernetesMiddleware(ctx context.Context, h *Handler, provider models.Provi
 
 		// InitializeMachineWithContext returns a nil instance when the machine
 		// could not be built (e.g. the cluster's API server was unreachable, so the
-		// client set / context failed to initialize). Skip driving it rather than
-		// nil-dereferencing on ResetState/SendEvent; a later request re-attempts.
-		if inst == nil {
+		// client set / context failed to initialize). A tracked instance whose
+		// Context was never assigned is the same broken state surfacing on a
+		// cache hit (InitializeMachineWithContext caches the instance before
+		// checking the Start error - meshery#20820). Skip driving it rather
+		// than nil-dereferencing on ResetState/SendEvent; the connection stays
+		// stuck until the process restarts or the tracker entry is removed.
+		if inst == nil || inst.Context == nil {
 			continue
 		}
 		inst.ResetState()
@@ -422,9 +426,14 @@ func K8sFSMMiddleware(ctx context.Context, h *Handler, provider models.Provider,
 
 		// InitializeMachineWithContext returns a nil instance when the machine
 		// could not be built (e.g. the cluster's API server was unreachable, so the
-		// client set / context failed to initialize). Skip driving it rather than
-		// nil-dereferencing on ResetState/SendEvent; a later request re-attempts.
-		if inst == nil {
+		// client set / context failed to initialize). A tracked instance whose
+		// Context was never assigned is the same broken state surfacing on a
+		// cache hit (InitializeMachineWithContext caches the instance before
+		// checking the Start error - meshery#20820). Skip driving it rather
+		// than nil-dereferencing on ResetState/SendEvent/Cast below; the
+		// connection stays stuck until the process restarts or the tracker
+		// entry is removed.
+		if inst == nil || inst.Context == nil {
 			continue
 		}
 		inst.ResetState()

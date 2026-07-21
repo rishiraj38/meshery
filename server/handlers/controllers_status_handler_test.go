@@ -23,58 +23,65 @@ func trackerWith(id core.Uuid, inst *machines.StateMachine) *machines.Connection
 	}
 }
 
-// A tracked machine whose Context is nil - a non-kubernetes connection, or a
-// kubernetes one whose cluster was unreachable when the machine was created - is
-// an expected "not ready" state. machineCtxForConnection must report it as
-// not-ready (nil,false) and, crucially, must NOT type-assert the nil Context,
-// which previously logged meshkit-11180 on every controller-status poll.
-func TestMachineCtxForConnection_NilContextIsNotReady(t *testing.T) {
-	connID := uuid.Must(uuid.NewV4())
-	h := &Handler{
-		config:                                  &models.HandlerConfig{},
-		log:                                     newTestLogger(t),
-		ConnectionToStateMachineInstanceTracker: trackerWith(connID, &machines.StateMachine{ID: connID, Context: nil}),
-	}
-
-	ctx, ok := h.machineCtxForConnection(connID.String())
-	if ok {
-		t.Fatalf("expected not-ready (ok=false) for a nil-Context machine, got ok=true")
-	}
-	if ctx != nil {
-		t.Fatalf("expected nil machine context for a nil-Context machine, got %#v", ctx)
-	}
-}
-
-// A machine with no tracked instance is likewise not-ready.
-func TestMachineCtxForConnection_UntrackedIsNotReady(t *testing.T) {
-	h := &Handler{
-		config:                                  &models.HandlerConfig{},
-		log:                                     newTestLogger(t),
-		ConnectionToStateMachineInstanceTracker: trackerWith(uuid.Must(uuid.NewV4()), &machines.StateMachine{Context: nil}),
-	}
-
-	if ctx, ok := h.machineCtxForConnection(uuid.Must(uuid.NewV4()).String()); ok || ctx != nil {
-		t.Fatalf("expected not-ready for an untracked connection, got ok=%v ctx=%#v", ok, ctx)
-	}
-}
-
-// A fully-initialized kubernetes machine (a *kubernetes.MachineCtx carrying a
-// controllers helper) resolves as ready.
-func TestMachineCtxForConnection_ReadyWhenContextValid(t *testing.T) {
+// machineCtxForConnection must treat a nil Context on a tracked machine - a
+// non-kubernetes connection, or a kubernetes one whose cluster was
+// unreachable when the machine was created - as an expected "not ready"
+// state (nil,false) and, crucially, must NOT type-assert the nil Context,
+// which previously logged meshkit-11180 on every controller-status poll. An
+// untracked connection is likewise not-ready, while a fully-initialized
+// kubernetes machine (a *kubernetes.MachineCtx carrying a controllers
+// helper) resolves as ready.
+func TestMachineCtxForConnection(t *testing.T) {
 	connID := uuid.Must(uuid.NewV4())
 	mctx := &kubernetes.MachineCtx{MesheryCtrlsHelper: &models.MesheryControllersHelper{}}
-	h := &Handler{
-		config:                                  &models.HandlerConfig{},
-		log:                                     newTestLogger(t),
-		ConnectionToStateMachineInstanceTracker: trackerWith(connID, &machines.StateMachine{ID: connID, Context: mctx}),
+
+	tests := []struct {
+		name     string
+		tracker  *machines.ConnectionToStateMachineInstanceTracker
+		lookupID uuid.UUID
+		wantOK   bool
+		wantCtx  *kubernetes.MachineCtx
+	}{
+		{
+			name:     "nil Context is not-ready",
+			tracker:  trackerWith(connID, &machines.StateMachine{ID: connID, Context: nil}),
+			lookupID: connID,
+			wantOK:   false,
+		},
+		{
+			name:     "untracked connection is not-ready",
+			tracker:  trackerWith(uuid.Must(uuid.NewV4()), &machines.StateMachine{Context: nil}),
+			lookupID: uuid.Must(uuid.NewV4()),
+			wantOK:   false,
+		},
+		{
+			name:     "valid Context is ready",
+			tracker:  trackerWith(connID, &machines.StateMachine{ID: connID, Context: mctx}),
+			lookupID: connID,
+			wantOK:   true,
+			wantCtx:  mctx,
+		},
 	}
 
-	ctx, ok := h.machineCtxForConnection(connID.String())
-	if !ok || ctx == nil {
-		t.Fatalf("expected ready machine context, got ok=%v ctx=%#v", ok, ctx)
-	}
-	if ctx != mctx {
-		t.Fatalf("expected the tracked machine context to be returned")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := &Handler{
+				config:                                  &models.HandlerConfig{},
+				log:                                     newTestLogger(t),
+				ConnectionToStateMachineInstanceTracker: tt.tracker,
+			}
+
+			ctx, ok := h.machineCtxForConnection(tt.lookupID.String())
+			if ok != tt.wantOK {
+				t.Fatalf("ok = %v, want %v", ok, tt.wantOK)
+			}
+			if tt.wantCtx == nil && ctx != nil {
+				t.Fatalf("expected nil machine context, got %#v", ctx)
+			}
+			if tt.wantCtx != nil && ctx != tt.wantCtx {
+				t.Fatalf("expected the tracked machine context to be returned, got %#v", ctx)
+			}
+		})
 	}
 }
 
