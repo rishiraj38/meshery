@@ -117,12 +117,12 @@ func (h *Handler) machineCtxForConnection(connectionID string) (*kubernetes.Mach
 	// loop) would otherwise spam the log with meshkit-11180 ("nil interface cannot
 	// be type casted"). Treat it as not-ready and let the caller degrade; only a
 	// genuinely wrong Context type below is a real error worth logging.
-	if inst.Context == nil {
+	if utils.IsInterfaceNil(inst.Context) {
 		h.log.Debug(fmt.Sprintf("machine instance for connection %s has no context yet, treating as not-ready", connectionID))
 		return nil, false
 	}
 	machinectx, err := utils.Cast[*kubernetes.MachineCtx](inst.Context)
-	if err != nil || machinectx == nil || machinectx.MesheryCtrlsHelper == nil {
+	if err != nil || machinectx.MesheryCtrlsHelper == nil {
 		if err != nil {
 			h.log.Error(err)
 		}
