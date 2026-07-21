@@ -144,6 +144,15 @@ cd mesheryctl && go test -run Integration ./...  # Integration tests
 make docs-mesheryctl                        # Generate CLI docs
 ```
 
+`make docs-mesheryctl` (i.e. `cd mesheryctl/doc && go run doc.go`) bakes the machine's
+`$HOME` into every generated page's "Options inherited from parent commands" block (the
+`--config` default path). Running it locally rewrites all ~100 pages under
+`docs/content/en/reference/references/mesheryctl/` with your local home directory even
+though only one command changed. CI/committed docs use `/home/runner/...` (the GitHub
+Actions runner home). After regenerating, `git diff --stat` the docs dir, `git checkout --`
+every file whose only change is that path, and manually fix the path back to
+`/home/runner/...` in the pages you actually intended to change.
+
 ### Docker
 
 ```bash
@@ -335,3 +344,10 @@ Scripts in `.agents/hooks/`:
 - [Community Handbook](https://meshery.io/community#handbook)
 - [Security Policy](./SECURITY.md)
 - [Governance](./GOVERNANCE.md)
+
+## Maintaining this file
+
+Keep this file for knowledge useful to almost every future agent session in this project.
+Do not repeat what the codebase already shows; point to the authoritative file or command instead.
+Prefer rewriting or pruning existing entries over appending new ones.
+When updating this file, preserve this bar for all agents and keep entries concise.

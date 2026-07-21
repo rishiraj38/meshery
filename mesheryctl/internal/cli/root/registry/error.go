@@ -18,6 +18,9 @@ var (
 	ErrParsingRelationshipCode   = "mesheryctl-1130"
 	ErrModelGenerationFailedCode = "mesheryctl-1159"
 	ErrPublishCode               = "mesheryctl-1233"
+	ErrPurgeInvalidRetainCode    = "mesheryctl-1249"
+	ErrPurgeReadModelsDirCode    = "mesheryctl-1250"
+	ErrPurgeRemoveCode           = "mesheryctl-1251"
 )
 
 func ErrUpdateRegistry(err error, path string) error {
@@ -58,4 +61,16 @@ func ErrPublish(err error, system string) error {
 
 func ErrModelGenerationFailed(modelName string, err error) error {
 	return errors.New(ErrModelGenerationFailedCode, errors.Alert, []string{fmt.Sprintf("failed to generate model: %s", modelName)}, []string{err.Error()}, []string{"Invalid model source URL", "Unsupported registrant type", "Network issues fetching model data"}, []string{"Verify the model's source URL is accessible", "Check the registrant type is supported", "Review network connectivity"})
+}
+
+func ErrPurgeInvalidRetain(retain int) error {
+	return errors.New(ErrPurgeInvalidRetainCode, errors.Alert, []string{fmt.Sprintf("invalid --retain value: %d", retain)}, []string{"--retain must be a positive integer, but a value less than 1 was provided"}, []string{"A value less than 1 was passed to the --retain flag"}, []string{"Pass --retain with a value of 1 or greater"})
+}
+
+func ErrPurgeReadModelsDir(err error, path string) error {
+	return errors.New(ErrPurgeReadModelsDirCode, errors.Alert, []string{fmt.Sprintf("error reading models directory: %s", path)}, []string{err.Error()}, []string{"The ./models directory is not readable", "Insufficient filesystem permissions"}, []string{"Ensure ./models exists and is readable", "Run mesheryctl registry purge from the root of a meshery/meshery fork"})
+}
+
+func ErrPurgeRemove(err error, path string) error {
+	return errors.New(ErrPurgeRemoveCode, errors.Alert, []string{fmt.Sprintf("error removing model version directory: %s", path)}, []string{err.Error()}, []string{"Insufficient filesystem permissions", "The directory is in use by another process"}, []string{"Ensure sufficient permissions to delete the directory", "Retry the purge after closing any process using the directory"})
 }
