@@ -97,6 +97,7 @@ const WorkspaceContentWrapper: FC<WorkspaceContentWrapperProps> = ({
 }) => {
   const workspaceSwitcherContext = useContext(WorkspaceModalContext);
   const theme = useTheme();
+  const canViewViews = useHasPermission(Keys.CatalogManagementViewViews);
 
   useEffect(() => {
     if (id === 'All Workspaces') {
@@ -107,7 +108,7 @@ const WorkspaceContentWrapper: FC<WorkspaceContentWrapperProps> = ({
     }
   }, [id, workspacesData]);
 
-  const navConfig = getNavItem(theme);
+  const navConfig = getNavItem(theme, canViewViews);
   const mainItem = navConfig.find((item) => item.id === id);
 
   if (mainItem && mainItem.content) {

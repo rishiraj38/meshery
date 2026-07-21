@@ -335,7 +335,7 @@ const MesherySettings = () => {
                 <MeshAdapterConfigComponent />
               </TabContainer>
             )}
-            {tabVal === REGISTRY && (
+            {tabVal === REGISTRY && canViewRegistry && (
               <TabContainer>
                 <MeshModelComponent settingsRouter={settingsRouter} />
               </TabContainer>

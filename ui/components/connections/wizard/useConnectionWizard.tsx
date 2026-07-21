@@ -10,6 +10,7 @@ import {
 } from '@/rtk-query/connection';
 import type { ConnectionWizardKindConfig } from '../ConnectionWizard.helpers';
 import { buildSteps } from './registry';
+import { useKindPermission } from './genericSteps';
 import type {
   GenericRecord,
   WizardContext,
@@ -113,6 +114,8 @@ export const useConnectionWizard = (params: UseConnectionWizardParams) => {
     }));
   }, [mode, initialKindConfig, initialRegistrationResult]);
 
+  const kindPermission = useKindPermission();
+
   // Create-mode deep link: once kind definitions load, pre-select `presetKind`
   // and optionally land on the step after "Choose Connection" (Import Kubeconfig
   // for Kubernetes). Applied once per open so user navigation is not overwritten.
@@ -139,12 +142,12 @@ export const useConnectionWizard = (params: UseConnectionWizardParams) => {
 
     appliedPresetRef.current = presetKind;
     setData((current) => ({ ...current, kindConfig }));
-    if (skipKindSelection) {
+    if (skipKindSelection && kindPermission(kindConfig)) {
       // `select` is always step 0 in create mode; index 1 is the kind details
       // step (Import Kubeconfig for the kubernetes extension).
       setActiveIndex(1);
     }
-  }, [isOpen, mode, presetKind, skipKindSelection, availableKinds]);
+  }, [isOpen, mode, presetKind, skipKindSelection, availableKinds, kindPermission]);
 
   // Keep `reset` stable while still resetting from the latest params: read them
   // from a ref updated in the render body (not an effect, so children never see
@@ -238,7 +241,8 @@ export const useConnectionWizard = (params: UseConnectionWizardParams) => {
     advancingRef.current = false;
   }, [safeIndex]);
 
-  const canProceed = activeStep?.canProceed ? activeStep.canProceed(ctx) : true;
+  const isKindAllowed = !data.kindConfig || kindPermission(data.kindConfig);
+  const canProceed = isKindAllowed && (activeStep?.canProceed ? activeStep.canProceed(ctx) : true);
   const canGoBack = safeIndex > 0;
   const nextLabel = activeStep?.nextLabel ? activeStep.nextLabel(ctx) : isLast ? 'Finish' : 'Next';
 

@@ -70,6 +70,8 @@ function MesheryPatterns({
   arePatternsReadOnly = false,
 }) {
   const canViewDesigns = useHasPermission(Keys.CatalogManagementViewDesigns);
+  const canViewCatalog = useHasPermission(Keys.CatalogManagementViewCatalog);
+  const canViewPage = canViewDesigns || (pageTitle === 'Catalog' && canViewCatalog);
   const canViewDesignDetails = useHasPermission(Keys.CatalogManagementDetailsOfDesign);
   const canPublishDesign = useHasPermission(Keys.CatalogManagementPublishDesign);
   const canImportDesign = useHasPermission(Keys.CatalogManagementImportDesign);
@@ -472,7 +474,7 @@ function MesheryPatterns({
   return (
     <>
       <NoSsr>
-        {canViewDesigns ? (
+        {canViewPage ? (
           <>
             {selectedRowData && Object.keys(selectedRowData).length > 0 && (
               <YAMLEditor

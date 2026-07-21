@@ -494,10 +494,7 @@ const InfoModal_: FC<InfoModalProps> = React.memo((props) => {
               variant="outlined"
               onClick={handlePublishController}
               disabled={
-                !isPublished
-                  ? false
-                  : !(canPublishDesign && currentUser?.id === selectedResource?.userId) ||
-                    isPublished
+                isPublished || !(canPublishDesign && currentUser?.id === selectedResource?.userId)
               }
             >
               {isPublished ? 'Published' : 'Publish to Catalog'}
