@@ -99,12 +99,17 @@ mesheryctl registry purge --retain 2 -y
 		}
 		modelsDir := filepath.Join(cwd, "models")
 
+		// Scoped deliberately to modelsDir itself: "no ./models here" is a
+		// benign no-op, but a not-exist error surfacing from anywhere deeper in
+		// the scan (a model subdirectory removed mid-scan, say) is a real
+		// failure and must not be reported as a missing ./models.
+		if _, err := os.Stat(modelsDir); errors.Is(err, os.ErrNotExist) {
+			utils.Log.Warn(fmt.Errorf("./models directory not found at %s; nothing to purge. Run this command from the root of a meshery/meshery fork", modelsDir))
+			return nil
+		}
+
 		plan, err := buildPurgePlan(modelsDir, purgeRetain, buildExcludeSet(purgeExclude))
 		if err != nil {
-			if errors.Is(err, os.ErrNotExist) {
-				utils.Log.Warn(fmt.Errorf("./models directory not found at %s; nothing to purge. Run this command from the root of a meshery/meshery fork", modelsDir))
-				return nil
-			}
 			return ErrPurgeReadModelsDir(err, modelsDir)
 		}
 		utils.Log.Info(fmt.Sprintf("Found ./models directory at %s", modelsDir))
@@ -123,7 +128,7 @@ mesheryctl registry purge --retain 2 -y
 
 		userResponse := utils.SilentFlag
 		if !userResponse {
-			userResponse = utils.AskForConfirmation(fmt.Sprintf("This will permanently delete %d model version director(y/ies) under %s. Are you sure you want to continue", plan.totalToRemove(), modelsDir))
+			userResponse = utils.AskForConfirmation(fmt.Sprintf("This will permanently delete %s under %s. Are you sure you want to continue", pluralize(plan.totalToRemove(), "model version directory", "model version directories"), modelsDir))
 		}
 		if !userResponse {
 			utils.Log.Info("Purge aborted.")
@@ -131,11 +136,10 @@ mesheryctl registry purge --retain 2 -y
 		}
 
 		removed, failed := applyPurgePlan(modelsDir, plan)
-		utils.Log.Info(fmt.Sprintf("Purge complete: removed %d model version director(y/ies), %d failure(s).", removed, len(failed)))
-		if len(failed) > 0 {
-			return fmt.Errorf("purge completed with %d failure(s) removing model version directories under %s", len(failed), modelsDir)
-		}
-		return nil
+		utils.Log.Info(fmt.Sprintf("Purge complete: removed %s, %s.", pluralize(removed, "model version directory", "model version directories"), pluralize(len(failed), "failure", "failures")))
+		// Surface the per-path structured errors (and their error codes) rather
+		// than collapsing them into a generic count.
+		return errors.Join(failed...)
 	},
 }
 
@@ -144,6 +148,15 @@ func init() {
 	purgeCmd.Flags().StringVar(&purgeExclude, "exclude", "", "comma-delimited list of additional model names to exclude from purging")
 	purgeCmd.Flags().BoolVar(&purgeDryRun, "dry-run", false, "print what would be removed without deleting anything")
 	purgeCmd.Flags().BoolVarP(&utils.SilentFlag, "yes", "y", false, "(optional) assume yes for user interactive prompts.")
+}
+
+// pluralize renders a count with the noun form that matches it, so
+// user-facing messages read naturally for both one and many.
+func pluralize(n int, singular, plural string) string {
+	if n == 1 {
+		return fmt.Sprintf("%d %s", n, singular)
+	}
+	return fmt.Sprintf("%d %s", n, plural)
 }
 
 // buildExcludeSet merges the always-excluded models with the comma-delimited
@@ -261,7 +274,7 @@ func planModelVersions(modelPath string, retain int) (retainNames, removeNames [
 // printPurgePlan reports what was found and what will happen, before any
 // confirmation prompt or deletion.
 func printPurgePlan(plan *purgePlan) {
-	utils.Log.Info(fmt.Sprintf("Scanned %d model director(y/ies) under %s", len(plan.scannedModels), plan.modelsDir))
+	utils.Log.Info(fmt.Sprintf("Scanned %s under %s", pluralize(len(plan.scannedModels), "model directory", "model directories"), plan.modelsDir))
 
 	if len(plan.excludedModels) > 0 {
 		excluded := append([]string(nil), plan.excludedModels...)
@@ -293,7 +306,9 @@ func printPurgePlan(plan *purgePlan) {
 
 // applyPurgePlan deletes the version directories marked for removal. It
 // re-verifies each target path resolves within modelsDir before deleting it,
-// as defense in depth against ever deleting above ./models.
+// as defense in depth against ever deleting above ./models. Each failure is
+// both logged (utils.Log.Error is what renders the MeshKit code, cause and
+// remediation) and returned, so the caller can propagate it.
 func applyPurgePlan(modelsDir string, plan *purgePlan) (removed int, failed []error) {
 	names := make([]string, 0, len(plan.models))
 	for name := range plan.models {
@@ -305,9 +320,9 @@ func applyPurgePlan(modelsDir string, plan *purgePlan) (removed int, failed []er
 		for _, version := range plan.models[name].remove {
 			path := filepath.Join(modelsDir, name, version)
 			if !isWithinDir(modelsDir, path) {
-				err := fmt.Errorf("refusing to remove path outside ./models: %s", path)
-				utils.Log.Error(err)
-				failed = append(failed, err)
+				unsafe := ErrPurgeUnsafePath(path, modelsDir)
+				utils.Log.Error(unsafe)
+				failed = append(failed, unsafe)
 				continue
 			}
 			if err := os.RemoveAll(path); err != nil {

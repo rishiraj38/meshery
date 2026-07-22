@@ -21,6 +21,7 @@ import (
 	"testing"
 
 	"github.com/meshery/meshery/mesheryctl/pkg/utils"
+	meshkiterrors "github.com/meshery/meshkit/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -264,6 +265,33 @@ func TestPurgeCmdRunE_RemovesOldVersions(t *testing.T) {
 	}
 }
 
+func TestPurgeCmdRunE_PropagatesRemovalFailures(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("root bypasses directory permissions, so the removal cannot be made to fail")
+	}
+	resetPurgeFlags(t)
+	root := t.TempDir()
+	root, err := filepath.EvalSymlinks(root)
+	require.NoError(t, err)
+	modelsDir := filepath.Join(root, "models")
+	buildModelDir(t, modelsDir, "cilium", []string{"v1.0.0", "v1.1.0"}, nil)
+	chdir(t, root)
+
+	// Removing a version directory requires write permission on the model
+	// directory that holds it.
+	modelPath := filepath.Join(modelsDir, "cilium")
+	require.NoError(t, os.Chmod(modelPath, 0o555))
+	t.Cleanup(func() { _ = os.Chmod(modelPath, 0o755) })
+
+	purgeRetain = 1
+	utils.SilentFlag = true
+
+	err = purgeCmd.RunE(purgeCmd, nil)
+	require.Error(t, err)
+	assert.Equal(t, ErrPurgeRemoveCode, meshkiterrors.GetCode(err), "the structured error code must reach the caller")
+	assert.ErrorContains(t, err, filepath.Join(modelPath, "v1.0.0"), "the failing path must reach the caller")
+}
+
 func TestPurgeCmdRunE_InvalidRetain(t *testing.T) {
 	resetPurgeFlags(t)
 	root := t.TempDir()
@@ -271,7 +299,52 @@ func TestPurgeCmdRunE_InvalidRetain(t *testing.T) {
 
 	purgeRetain = 0
 	err := purgeCmd.RunE(purgeCmd, nil)
-	assert.Error(t, err)
+	require.Error(t, err)
+	utils.AssertMeshkitErrorsEqual(t, err, ErrPurgeInvalidRetain(0))
+}
+
+// The remove list is derived from directory names that parsed as semver, so a
+// traversal component cannot occur in normal operation. This exercises the
+// last-line-of-defense guard in applyPurgePlan directly, since that guard is
+// the only thing standing between a corrupted plan and a deletion above
+// ./models.
+func TestApplyPurgePlanRefusesPathOutsideModelsDir(t *testing.T) {
+	utils.SetupMeshkitLoggerTesting(t, false)
+	root := t.TempDir()
+	root, err := filepath.EvalSymlinks(root)
+	require.NoError(t, err)
+	modelsDir := filepath.Join(root, "models")
+	buildModelDir(t, modelsDir, "cilium", []string{"v1.0.0", "v1.1.0"}, nil)
+
+	sentinel := filepath.Join(root, "sentinel")
+	require.NoError(t, os.MkdirAll(sentinel, 0o755))
+
+	plan := &purgePlan{
+		modelsDir: modelsDir,
+		models: map[string]modelVersionDirs{
+			"cilium": {
+				retain: []string{"v1.1.0"},
+				// Escapes to root/sentinel once filepath.Join cleans it.
+				remove: []string{filepath.Join("..", "..", "sentinel")},
+			},
+		},
+	}
+
+	removed, failed := applyPurgePlan(modelsDir, plan)
+	assert.Equal(t, 0, removed)
+	require.Len(t, failed, 1)
+	utils.AssertMeshkitErrorsEqual(t, failed[0], ErrPurgeUnsafePath(filepath.Join(root, "sentinel"), modelsDir))
+
+	_, err = os.Stat(sentinel)
+	assert.NoError(t, err, "a path outside ./models must never be removed")
+	_, err = os.Stat(filepath.Join(modelsDir, "cilium", "v1.0.0"))
+	assert.NoError(t, err, "the guard must not have removed anything else either")
+}
+
+func TestPluralize(t *testing.T) {
+	assert.Equal(t, "0 directories", pluralize(0, "directory", "directories"))
+	assert.Equal(t, "1 directory", pluralize(1, "directory", "directories"))
+	assert.Equal(t, "2 directories", pluralize(2, "directory", "directories"))
 }
 
 func TestPurgeCmdRunE_MissingModelsDirDoesNotCrash(t *testing.T) {
@@ -289,11 +362,12 @@ func TestPurgeCmdFlags(t *testing.T) {
 		flagName     string
 		defaultValue string
 		expectedType string
+		shorthand    string
 	}{
 		{flagName: "retain", defaultValue: "1", expectedType: "int"},
 		{flagName: "exclude", defaultValue: "", expectedType: "string"},
 		{flagName: "dry-run", defaultValue: "false", expectedType: "bool"},
-		{flagName: "yes", defaultValue: "false", expectedType: "bool"},
+		{flagName: "yes", defaultValue: "false", expectedType: "bool", shorthand: "y"},
 	}
 
 	for _, tt := range tests {
@@ -302,6 +376,7 @@ func TestPurgeCmdFlags(t *testing.T) {
 			require.NotNil(t, flag, "flag %s should exist", tt.flagName)
 			assert.Equal(t, tt.defaultValue, flag.DefValue)
 			assert.Equal(t, tt.expectedType, flag.Value.Type())
+			assert.Equal(t, tt.shorthand, flag.Shorthand, "shorthand for --%s", tt.flagName)
 		})
 	}
 }

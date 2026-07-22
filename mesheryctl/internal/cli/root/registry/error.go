@@ -21,6 +21,7 @@ var (
 	ErrPurgeInvalidRetainCode    = "mesheryctl-1249"
 	ErrPurgeReadModelsDirCode    = "mesheryctl-1250"
 	ErrPurgeRemoveCode           = "mesheryctl-1251"
+	ErrPurgeUnsafePathCode       = "mesheryctl-1252"
 )
 
 func ErrUpdateRegistry(err error, path string) error {
@@ -69,6 +70,10 @@ func ErrPurgeInvalidRetain(retain int) error {
 
 func ErrPurgeReadModelsDir(err error, path string) error {
 	return errors.New(ErrPurgeReadModelsDirCode, errors.Alert, []string{fmt.Sprintf("error reading models directory: %s", path)}, []string{err.Error()}, []string{"The ./models directory is not readable", "Insufficient filesystem permissions"}, []string{"Ensure ./models exists and is readable", "Run mesheryctl registry purge from the root of a meshery/meshery fork"})
+}
+
+func ErrPurgeUnsafePath(path, modelsDir string) error {
+	return errors.New(ErrPurgeUnsafePathCode, errors.Alert, []string{fmt.Sprintf("refusing to remove path outside of the models directory: %s", path)}, []string{fmt.Sprintf("%s does not resolve within %s, so it was left untouched", path, modelsDir)}, []string{"A model version directory name escapes the models directory", "The models directory layout was modified while the purge was running"}, []string{"Inspect the models directory for unexpected entries", "Re-run mesheryctl registry purge from the root of a meshery/meshery fork"})
 }
 
 func ErrPurgeRemove(err error, path string) error {
