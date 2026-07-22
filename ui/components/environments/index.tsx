@@ -57,12 +57,20 @@ const ACTION_TYPES = {
   EDIT: 'edit',
 };
 
-const normalizeError = (error) => {
-  if (error?.data?.message) return error.data.message;
-  if (error?.data?.error) return error.data.error;
-  if (typeof error?.data === 'string') return error.data;
-  if (typeof error?.data === 'object') return JSON.stringify(error.data);
-  return error?.message || String(error);
+const normalizeError = (error: unknown): string => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const err = error as any;
+  if (err?.data?.message) return err.data.message;
+  if (err?.data?.error) return err.data.error;
+  if (typeof err?.data === 'string') return err.data;
+  if (typeof err?.data === 'object') {
+    try {
+      return JSON.stringify(err.data);
+    } catch (e) {
+      return String(err.data);
+    }
+  }
+  return err?.message || String(error);
 };
 
 const Environments = () => {
@@ -321,8 +329,10 @@ const Environments = () => {
       environmentId: id,
     })
       .unwrap()
-      .then(handleSuccess(`Environment deleted`))
-      .catch((error) => handleError(`Environment Delete Error: ${normalizeError(error)}`));
+      .then(() => handleSuccess(`Environment deleted`))
+      .catch((error) => {
+        handleError({ error_msg: 'Environment Delete Error' })(normalizeError(error));
+      });
   };
 
   const deleteEnvironmentModalContent = (environment) => (
