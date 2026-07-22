@@ -57,6 +57,14 @@ const ACTION_TYPES = {
   EDIT: 'edit',
 };
 
+const normalizeError = (error) => {
+  if (error?.data?.message) return error.data.message;
+  if (error?.data?.error) return error.data.error;
+  if (typeof error?.data === 'string') return error.data;
+  if (typeof error?.data === 'object') return JSON.stringify(error.data);
+  return error?.message || String(error);
+};
+
 const Environments = () => {
   const theme = useTheme();
   const { organization } = useSelector((state) => state.ui);
@@ -269,9 +277,7 @@ const Environments = () => {
         handleEnvironmentModalClose();
       })
       .catch((error) => {
-        handleError({ error_msg: 'Environment Create Error' })(
-          error?.data || error?.message || error,
-        );
+        handleError({ error_msg: 'Environment Create Error' })(normalizeError(error));
       });
   };
 
@@ -290,9 +296,7 @@ const Environments = () => {
         handleEnvironmentModalClose();
       })
       .catch((error) => {
-        handleError({ error_msg: 'Environment Update Error' })(
-          error?.data || error?.message || error,
-        );
+        handleError({ error_msg: 'Environment Update Error' })(normalizeError(error));
       });
   };
 
@@ -318,7 +322,7 @@ const Environments = () => {
     })
       .unwrap()
       .then(handleSuccess(`Environment deleted`))
-      .catch((error) => handleError(`Environment Delete Error: ${error?.data}`));
+      .catch((error) => handleError(`Environment Delete Error: ${normalizeError(error)}`));
   };
 
   const deleteEnvironmentModalContent = (environment) => (
