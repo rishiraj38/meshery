@@ -182,6 +182,13 @@ make helm-docs      # Generate Helm chart docs
 
 - Format with `gofmt`/`goimports`; lint with `make golangci` (config: `.golangci.yml`).
 - Use MeshKit error utilities (`github.com/meshery/meshkit/errors`); run `make error` for codes.
+  `make error` skips `mesheryctl` - a new `mesheryctl` code is taken from
+  `mesheryctl/helpers/component_info.json` (`next_error_code`) and that value bumped in the
+  same commit. `.github/workflows/error-codes-updater.yaml` re-runs errorutil and fails the
+  PR if its analysis reports anything.
+- Only `utils.Log.Error(err)` renders a MeshKit error's code, cause and remediation; cobra's
+  default print shows just the message. In `mesheryctl` commands, log the structured error
+  for the user *and* return it for the exit path.
 - Tests in `*_test.go`; manage deps with `go mod tidy`.
 
 ### JavaScript/React
