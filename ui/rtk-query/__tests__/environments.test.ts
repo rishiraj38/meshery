@@ -153,6 +153,24 @@ describe('useCreateEnvironmentMutation wrapper', () => {
     expect(triggers.create.mock.calls[0][0].body.organizationId).toBe('org-2');
   });
 
+  it('regression test for #20854: ensures environment creation issues a request with a populated organizationId', () => {
+    const [trigger] = useCreateEnvironmentMutation();
+    trigger({
+      environmentPayload: {
+        name: 'test-env',
+        description: 'test description',
+        organization_id: 'test-org-id',
+      },
+    });
+    expect(triggers.create).toHaveBeenCalledWith({
+      body: {
+        name: 'test-env',
+        description: 'test description',
+        organizationId: 'test-org-id',
+      },
+    });
+  });
+
   it('accepts OrganizationID (PascalCase) as a final fallback', () => {
     const [trigger] = useCreateEnvironmentMutation();
     trigger({

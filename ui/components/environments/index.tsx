@@ -264,9 +264,13 @@ const Environments = () => {
       },
     })
       .unwrap()
-      .then(handleSuccess(`Environment "${name}" created `))
-      .catch((error) => handleError(`Environment Create Error: ${error?.data}`));
-    handleEnvironmentModalClose();
+      .then(() => {
+        handleSuccess(`Environment "${name}" created `);
+        handleEnvironmentModalClose();
+      })
+      .catch((error) => {
+        handleError({ error_msg: 'Environment Create Error' })(error?.data || error);
+      });
   };
 
   const handleEditEnvironment = ({ name, description }) => {
@@ -279,9 +283,13 @@ const Environments = () => {
       },
     })
       .unwrap()
-      .then(handleSuccess(`Environment "${name}" updated`))
-      .catch((error) => handleError(`Environment Update Error: ${error?.data}`));
-    handleEnvironmentModalClose();
+      .then(() => {
+        handleSuccess(`Environment "${name}" updated`);
+        handleEnvironmentModalClose();
+      })
+      .catch((error) => {
+        handleError({ error_msg: 'Environment Update Error' })(error?.data || error);
+      });
   };
 
   const handleDeleteEnvironmentConfirm = async (e, environment) => {
