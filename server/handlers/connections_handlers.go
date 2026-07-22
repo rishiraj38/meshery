@@ -529,6 +529,19 @@ func (h *Handler) NotifySmOfConnectionStatusChange(ctx context.Context, userID c
 			kubernetes.AssignInitialCtx,
 		)
 
+		// A connection being deleted must not leave a tracker entry behind,
+		// whichever way its machine failed. InitializeMachineWithContext caches
+		// the instance *before* surfacing a Start error, so both the error return
+		// below and the no-context return after it would otherwise strand the
+		// entry - the first for a fresh failure, the second for every later cache
+		// hit. Nothing can drive that machine afterwards, and the delete paths
+		// that normally Remove it (the goroutine below, DeleteContext) both do so
+		// only after a SendEvent that cannot succeed without a Context.
+		usable := err == nil && helpers.HasMachineContext(inst)
+		if !usable && connection.Status == connections.DELETED {
+			smInstanceTracker.Remove(connectionID)
+		}
+
 		if err != nil {
 			eventBuilder = eventBuilder.WithSeverity(events.Error).WithDescription(fmt.Sprintf("Failed to update connection status for %s", connectionID)).WithMetadata(map[string]interface{}{
 				"error": err,
@@ -536,16 +549,11 @@ func (h *Handler) NotifySmOfConnectionStatusChange(ctx context.Context, userID c
 			return *eventBuilder.Build(), err
 		}
 		// A machine whose Context was never assigned cannot service the event:
-		// SendEvent fails on ErrAssertMachineCtx and returns *before* the Remove
-		// below, so a DELETED update would leak the tracker entry for a
-		// connection that is going away, and publish an error the user can do
-		// nothing about. Drop the entry directly instead. Same shape as the
-		// DeleteContext guard in contexts_handler.go; see helpers.HasMachineContext.
-		if !helpers.HasMachineContext(inst) {
+		// SendEvent would only fail on ErrAssertMachineCtx and publish an error
+		// the user can do nothing about. Same shape as the DeleteContext guard in
+		// contexts_handler.go; see helpers.HasMachineContext.
+		if !usable {
 			h.log.Debug(fmt.Sprintf("machine instance for connection %s has no context assigned, skipping the %q event", connectionID, connection.Status))
-			if connection.Status == connections.DELETED {
-				smInstanceTracker.Remove(connectionID)
-			}
 			return *eventBuilder.Build(), nil
 		}
 
