@@ -66,7 +66,7 @@ const normalizeError = (error: unknown): string => {
   if (typeof err?.data === 'object') {
     try {
       return JSON.stringify(err.data);
-    } catch (e) {
+    } catch {
       return String(err.data);
     }
   }
@@ -276,12 +276,12 @@ const Environments = () => {
       environmentPayload: {
         name: name,
         description: description,
-        organization_id: organizationId,
+        organizationId: organizationId,
       },
     })
       .unwrap()
       .then(() => {
-        handleSuccess(`Environment "${name}" created `);
+        handleSuccess(`Environment "${name}" created`);
         handleEnvironmentModalClose();
       })
       .catch((error) => {
@@ -295,7 +295,7 @@ const Environments = () => {
       environmentPayload: {
         name: name,
         description: description,
-        organization_id: initialData.organizationId,
+        organizationId: initialData.organizationId,
       },
     })
       .unwrap()
