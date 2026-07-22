@@ -367,13 +367,21 @@ const Environments = () => {
     setSelectedEnvironments([]);
   };
 
-  const handleAssignConnection = () => {
+  const handleAssignConnection = async () => {
     const { addedConnectionsIds, removedConnectionsIds } =
       getAddedAndRemovedConnection(assignedConnections);
 
-    addedConnectionsIds.map((id) => addConnectionToEnvironment(connectionAssignEnv.id, id));
-
-    removedConnectionsIds.map((id) => removeConnectionFromEnvironment(connectionAssignEnv.id, id));
+    // Await every assignment/removal before closing so a rejected mutation
+    // surfaces its error toast while the modal is still open, rather than the
+    // modal vanishing as if the change had succeeded. allSettled keeps a single
+    // failure from aborting the rest; each rejection is reported by the
+    // mutators' own .catch above.
+    await Promise.allSettled([
+      ...addedConnectionsIds.map((id) => addConnectionToEnvironment(connectionAssignEnv.id, id)),
+      ...removedConnectionsIds.map((id) =>
+        removeConnectionFromEnvironment(connectionAssignEnv.id, id),
+      ),
+    ]);
     setEnvironmentConnectionsData([]);
     setConnectionsData([]);
     handleonAssignConnectionModalClose();

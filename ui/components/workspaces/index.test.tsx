@@ -16,10 +16,30 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
  * carrying the server's MeshKit metadata, and never a SUCCESS one.
  */
 
-const notify = vi.fn();
-const createWorkspace = vi.fn();
-const updateWorkspace = vi.fn();
-const deleteWorkspace = vi.fn();
+// vi.mock factories are hoisted above these declarations, so the fixtures they
+// close over must be hoisted too (vi.hoisted) or they are still in the temporal
+// dead zone when a factory runs. Mocked hook results must also be referentially
+// stable: the component keys effects and memos on these objects, so a fresh
+// object per render is a render loop.
+const {
+  notify,
+  createWorkspace,
+  updateWorkspace,
+  deleteWorkspace,
+  WORKSPACES_QUERY_RESULT,
+  EMPTY_QUERY_RESULT,
+  NOOP_MUTATION,
+  UI_STATE,
+} = vi.hoisted(() => ({
+  notify: vi.fn(),
+  createWorkspace: vi.fn(),
+  updateWorkspace: vi.fn(),
+  deleteWorkspace: vi.fn(),
+  WORKSPACES_QUERY_RESULT: { data: { workspaces: [], totalCount: 0 } },
+  EMPTY_QUERY_RESULT: { data: undefined, isLoading: false },
+  NOOP_MUTATION: [vi.fn()],
+  UI_STATE: { ui: { organization: { id: 'org-1' } } },
+}));
 
 vi.mock('../../utils/hooks/useNotification', () => ({
   useNotification: () => ({ notify }),
@@ -30,12 +50,6 @@ vi.mock('../../utils/hooks/useNotification', () => ({
     notifyApiError: vi.fn(),
   }),
 }));
-
-// Mocked hook results must be referentially stable: the component keys effects
-// and memos on these objects, so a fresh object per render is a render loop.
-const WORKSPACES_QUERY_RESULT = { data: { workspaces: [], total_count: 0 } };
-const EMPTY_QUERY_RESULT = { data: undefined, isLoading: false };
-const NOOP_MUTATION = [vi.fn()];
 
 vi.mock('../../rtk-query/workspace', () => ({
   useCreateWorkspaceMutation: () => [createWorkspace],
@@ -52,8 +66,6 @@ vi.mock('@/rtk-query/user', () => ({
   useGetUsersForOrgQuery: () => EMPTY_QUERY_RESULT,
   useRemoveUserFromTeamMutation: () => NOOP_MUTATION,
 }));
-
-const UI_STATE = { ui: { organization: { id: 'org-1' } } };
 
 vi.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector(UI_STATE),
@@ -204,5 +216,33 @@ describe('Workspaces create flow notifications', () => {
     expect(types).toContain('success');
     expect(types).not.toContain('error');
     expect(notify.mock.calls[0][0].message).toBe('Workspace "team-space" created');
+  });
+
+  // The create modal (its Save button) must survive a failed create so the
+  // user keeps their typed input, and disappear only once the create resolves.
+  // A deferred promise lets us observe the modal between submit and settlement.
+  it('keeps the create modal open on failure and closes it only on success', async () => {
+    let rejectCreate: (reason?: unknown) => void;
+    createWorkspace.mockReturnValue({
+      unwrap: () =>
+        new Promise((_resolve, reject) => {
+          rejectCreate = reject;
+        }),
+    });
+
+    await openCreateModalAndSubmit();
+    // Still pending: modal open.
+    expect(screen.getByTestId('submit-workspace')).toBeInTheDocument();
+
+    rejectCreate({ status: 403, data: { error: 'nope' }, meshkit: { message: 'nope' } });
+    await waitFor(() => expect(notify).toHaveBeenCalled());
+    // Rejected: modal must remain open.
+    expect(screen.getByTestId('submit-workspace')).toBeInTheDocument();
+    expect(notifiedEventTypes()).not.toContain('success');
+
+    // A subsequent create that resolves must close the modal.
+    createWorkspace.mockReturnValue({ unwrap: () => Promise.resolve({ id: 'ws-1' }) });
+    await userEvent.setup().click(screen.getByTestId('submit-workspace'));
+    await waitFor(() => expect(screen.queryByTestId('submit-workspace')).not.toBeInTheDocument());
   });
 });

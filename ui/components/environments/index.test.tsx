@@ -22,31 +22,44 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
  * reject, and the MeshKit metadata the server sends carried into the toast.
  */
 
-const notify = vi.fn();
-const createEnvironment = vi.fn();
-const updateEnvironment = vi.fn();
-const deleteEnvironment = vi.fn();
+// vi.mock factories are hoisted above these declarations, so the fixtures they
+// close over must be hoisted too (vi.hoisted) or they are still in the temporal
+// dead zone when a factory runs. Query results MUST also be referentially
+// stable across renders: the component appends query results into state inside
+// effects keyed on the query object identity, so a freshly-built object per
+// render is an infinite render loop that exhausts the heap, not a test failure.
+const {
+  notify,
+  createEnvironment,
+  updateEnvironment,
+  deleteEnvironment,
+  ENVIRONMENTS_QUERY_RESULT,
+  CONNECTIONS_QUERY_RESULT,
+  NOOP_MUTATION,
+  UI_STATE,
+} = vi.hoisted(() => ({
+  notify: vi.fn(),
+  createEnvironment: vi.fn(),
+  updateEnvironment: vi.fn(),
+  deleteEnvironment: vi.fn(),
+  ENVIRONMENTS_QUERY_RESULT: {
+    data: { environments: [], totalCount: 0 },
+    isLoading: false,
+    isError: false,
+    error: undefined,
+  },
+  CONNECTIONS_QUERY_RESULT: {
+    data: { connections: [], totalCount: 0 },
+    isError: false,
+    error: undefined,
+  },
+  NOOP_MUTATION: [vi.fn()],
+  UI_STATE: { ui: { organization: { id: 'org-1' } } },
+}));
 
 vi.mock('../../utils/hooks/useNotification', () => ({
   useNotification: () => ({ notify }),
 }));
-
-// Every mocked hook result MUST be referentially stable across renders. The
-// component appends query results into state inside effects keyed on the query
-// object identity, so a freshly-built object per render is an infinite render
-// loop that exhausts the heap rather than a test failure.
-const ENVIRONMENTS_QUERY_RESULT = {
-  data: { environments: [], totalCount: 0 },
-  isLoading: false,
-  isError: false,
-  error: undefined,
-};
-const CONNECTIONS_QUERY_RESULT = {
-  data: { connections: [], total_count: 0 },
-  isError: false,
-  error: undefined,
-};
-const NOOP_MUTATION = [vi.fn()];
 
 vi.mock('../../rtk-query/environments', () => ({
   useCreateEnvironmentMutation: () => [createEnvironment],
@@ -57,8 +70,6 @@ vi.mock('../../rtk-query/environments', () => ({
   useAddConnectionToEnvironmentMutation: () => NOOP_MUTATION,
   useRemoveConnectionFromEnvironmentMutation: () => NOOP_MUTATION,
 }));
-
-const UI_STATE = { ui: { organization: { id: 'org-1' } } };
 
 vi.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector(UI_STATE),

@@ -1160,7 +1160,13 @@ func ErrDeleteEnvironment(err error) error {
 // held by an environment. action is the operation being attempted, e.g.
 // "assign connection to", so the message reads as a sentence.
 func ErrEnvironmentConnection(err error, action string) error {
-	return errors.New(ErrEnvironmentConnectionCode, errors.Alert, []string{fmt.Sprintf("Unable to %s environment", action)}, []string{err.Error()}, []string{"Your account does not have permission to modify this environment's connections.", "The environment or the connection has been deleted, or they belong to different organizations.", "The provider could not be reached or rejected the request."}, []string{"Confirm both the environment and the connection still exist in the same organization and that your role grants write access to the environment."})
+	// The listing actions are reads; assign/remove are writes. Tell a denied
+	// read that it needs read access, not write access.
+	permission, access := "modify this environment's connections", "write access to the environment"
+	if strings.HasPrefix(action, "list") {
+		permission, access = "view this environment's connections", "read access to the environment"
+	}
+	return errors.New(ErrEnvironmentConnectionCode, errors.Alert, []string{fmt.Sprintf("Unable to %s environment", action)}, []string{err.Error()}, []string{fmt.Sprintf("Your account does not have permission to %s.", permission), "The environment or the connection has been deleted, or they belong to different organizations.", "The provider could not be reached or rejected the request."}, []string{fmt.Sprintf("Confirm both the environment and the connection still exist in the same organization and that your role grants %s.", access)})
 }
 
 func ErrGetWorkspaces(err error) error {
@@ -1188,7 +1194,13 @@ func ErrDeleteWorkspace(err error) error {
 // ("assign design to", "list teams of") so one code can describe the whole
 // family without losing precision in the message.
 func ErrWorkspaceResource(err error, action string) error {
-	return errors.New(ErrWorkspaceResourceCode, errors.Alert, []string{fmt.Sprintf("Unable to %s workspace", action)}, []string{err.Error()}, []string{"Your account does not have permission to modify this workspace's contents.", "The workspace or the resource being associated has been deleted, or they belong to different organizations.", "The provider could not be reached or rejected the request."}, []string{"Confirm both the workspace and the resource still exist in the same organization and that your role grants write access to the workspace."})
+	// The listing actions are reads; assign/remove are writes. Tell a denied
+	// read that it needs read access, not write access.
+	permission, access := "modify this workspace's contents", "write access to the workspace"
+	if strings.HasPrefix(action, "list") {
+		permission, access = "view this workspace's contents", "read access to the workspace"
+	}
+	return errors.New(ErrWorkspaceResourceCode, errors.Alert, []string{fmt.Sprintf("Unable to %s workspace", action)}, []string{err.Error()}, []string{fmt.Sprintf("Your account does not have permission to %s.", permission), "The workspace or the resource being associated has been deleted, or they belong to different organizations.", "The provider could not be reached or rejected the request."}, []string{fmt.Sprintf("Confirm both the workspace and the resource still exist in the same organization and that your role grants %s.", access)})
 }
 
 func ErrGetOrganizations(err error) error {

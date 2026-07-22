@@ -203,9 +203,14 @@ const Workspaces = ({ onSelectWorkspace }) => {
       },
     })
       .unwrap()
-      .then(() => handleSuccess(`Workspace "${name}" created`))
+      // Close the modal only after a successful create - closing it
+      // unconditionally here discarded the user's typed input on failure, the
+      // same silent-failure class this change exists to remove.
+      .then(() => {
+        handleSuccess(`Workspace "${name}" created`);
+        handleWorkspaceModalClose();
+      })
       .catch((error) => handleError(`Unable to create workspace "${name}"`, error));
-    handleWorkspaceModalClose();
   };
 
   useEffect(() => {
@@ -226,9 +231,11 @@ const Workspaces = ({ onSelectWorkspace }) => {
       },
     })
       .unwrap()
-      .then(() => handleSuccess(`Workspace "${name}" updated`))
+      .then(() => {
+        handleSuccess(`Workspace "${name}" updated`);
+        handleWorkspaceModalClose();
+      })
       .catch((error) => handleError(`Unable to update workspace "${name}"`, error));
-    handleWorkspaceModalClose();
   };
 
   const handleDeleteWorkspace = (id, name) => {
