@@ -17,6 +17,7 @@ import EnvironmentCard from './environment-card';
 import EnvironmentIcon from '../../assets/icons/Environment';
 import { EVENT_TYPES } from '../../lib/event-types';
 import { useNotification } from '../../utils/hooks/useNotification';
+import { formatApiError } from '../../utils/helpers/meshkitError';
 import { RJSFModalWrapper } from '../shared/Modal/Modal';
 import _PromptComponent from '../general/PromptComponent';
 import { EmptyState } from '../lifecycle/general';
@@ -55,22 +56,6 @@ import { updateProgress } from '@/store/slices/mesheryUi';
 const ACTION_TYPES = {
   CREATE: 'create',
   EDIT: 'edit',
-};
-
-const normalizeError = (error: unknown): string => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const err = error as any;
-  if (err?.data?.message) return err.data.message;
-  if (err?.data?.error) return err.data.error;
-  if (typeof err?.data === 'string') return err.data;
-  if (typeof err?.data === 'object') {
-    try {
-      return JSON.stringify(err.data);
-    } catch {
-      return String(err.data);
-    }
-  }
-  return err?.message || String(error);
 };
 
 const Environments = () => {
@@ -173,15 +158,15 @@ const Environments = () => {
 
   useEffect(() => {
     if (isEnvironmentsError) {
-      handleError(`Environments Fetching Error: ${environmentsError?.data}`);
+      handleError({ error_msg: 'Unable to fetch environments' })(environmentsError);
     }
     if (isEnvironmentConnectionsError) {
-      handleError(
-        `Connections of a Environment fetching Error: ${environmentConnectionsError?.data}`,
+      handleError({ error_msg: "Unable to fetch an environment's connections" })(
+        environmentConnectionsError,
       );
     }
     if (isConnectionsError) {
-      handleError(`Connections fetching Error: ${connectionsError?.data}`);
+      handleError({ error_msg: 'Unable to fetch connections' })(connectionsError);
     }
   }, [
     isEnvironmentsError,
@@ -192,13 +177,20 @@ const Environments = () => {
     connectionsError,
   ]);
 
+  // Curried so a call site can name the failing operation once and hand the
+  // raw error to the returned callback: `handleError({ error_msg })(error)`.
+  // `formatApiError` consumes the MeshKit envelope the server now sends (code
+  // and suggested remediation) and renders it as the markdown that `notify`
+  // displays through BasicMarkdown; `error_msg` is the fallback title used only
+  // when the response carries no envelope. The raw error must be passed
+  // through - do not pre-flatten it to a string, or the envelope is lost.
   function handleError(action) {
     return (error) => {
       updateProgress({ showProgress: false });
+      const { message } = formatApiError(error, action?.error_msg);
       notify({
-        message: `${action.error_msg}: ${error}`,
+        message,
         event_type: EVENT_TYPES.ERROR,
-        details: error.toString(),
       });
     };
   }
@@ -233,13 +225,17 @@ const Environments = () => {
   const [addConnectionToEnvironmentMutator] = useAddConnectionToEnvironmentMutation();
   const [removeConnectionFromEnvMutator] = useRemoveConnectionFromEnvironmentMutation();
 
-  const addConnectionToEnvironment = async (environmentId, connectionId) => {
-    addConnectionToEnvironmentMutator({ environmentId, connectionId });
-  };
+  // Both mutators previously fired and discarded the returned promise, so a
+  // rejected assignment left the transfer list looking like it had succeeded.
+  const addConnectionToEnvironment = (environmentId, connectionId) =>
+    addConnectionToEnvironmentMutator({ environmentId, connectionId })
+      .unwrap()
+      .catch(handleError({ error_msg: 'Unable to assign connection to environment' }));
 
-  const removeConnectionFromEnvironment = (environmentId, connectionId) => {
-    removeConnectionFromEnvMutator({ environmentId, connectionId });
-  };
+  const removeConnectionFromEnvironment = (environmentId, connectionId) =>
+    removeConnectionFromEnvMutator({ environmentId, connectionId })
+      .unwrap()
+      .catch(handleError({ error_msg: 'Unable to remove connection from environment' }));
 
   const handleEnvironmentModalOpen = (e, actionType, envObject) => {
     e.stopPropagation();
@@ -284,9 +280,7 @@ const Environments = () => {
         handleSuccess(`Environment "${name}" created`);
         handleEnvironmentModalClose();
       })
-      .catch((error) => {
-        handleError({ error_msg: 'Environment Create Error' })(normalizeError(error));
-      });
+      .catch(handleError({ error_msg: `Unable to create environment "${name}"` }));
   };
 
   const handleEditEnvironment = ({ name, description }) => {
@@ -303,9 +297,7 @@ const Environments = () => {
         handleSuccess(`Environment "${name}" updated`);
         handleEnvironmentModalClose();
       })
-      .catch((error) => {
-        handleError({ error_msg: 'Environment Update Error' })(normalizeError(error));
-      });
+      .catch(handleError({ error_msg: `Unable to update environment "${name}"` }));
   };
 
   const handleDeleteEnvironmentConfirm = async (e, environment) => {
@@ -330,9 +322,7 @@ const Environments = () => {
     })
       .unwrap()
       .then(() => handleSuccess(`Environment deleted`))
-      .catch((error) => {
-        handleError({ error_msg: 'Environment Delete Error' })(normalizeError(error));
-      });
+      .catch(handleError({ error_msg: 'Unable to delete environment' }));
   };
 
   const deleteEnvironmentModalContent = (environment) => (
