@@ -120,11 +120,16 @@ func (h *Handler) DeleteContext(w http.ResponseWriter, req *http.Request, _ *mod
 		"kubernetes",
 		kubernetes.AssignInitialCtx,
 	)
-	// InitializeMachineWithContext returns a nil instance when the machine
-	// could not be built (e.g. the cluster's API server was unreachable, so
-	// the client set/context failed to initialize); skip driving it rather
-	// than nil-dereferencing in the goroutine below.
-	if inst != nil {
+	// A machine that never initialized has no FSM state to unwind and no
+	// cluster-side resources to clean up: DeleteAction's work (undeploying
+	// operators, flushing MeshSync data) all runs off a MachineCtx that was
+	// never assigned, so SendEvent would only fail with ErrAssertMachineCtx.
+	// Crucially it would also fail *before* reaching the Remove below, leaking
+	// the tracker entry for a connection the user just deleted - so drop the
+	// entry directly instead. See mhelpers.IsMachineReady.
+	if !mhelpers.IsMachineReady(inst) {
+		smInstanceTracker.Remove(connectionUUID)
+	} else {
 		go func(inst *machines.StateMachine) {
 			event, err := inst.SendEvent(req.Context(), machines.Delete, nil)
 			if err != nil {

@@ -354,15 +354,10 @@ func KubernetesMiddleware(ctx context.Context, h *Handler, provider models.Provi
 			h.log.Error(err)
 		}
 
-		// InitializeMachineWithContext returns a nil instance when the machine
-		// could not be built (e.g. the cluster's API server was unreachable, so the
-		// client set / context failed to initialize). A tracked instance whose
-		// Context was never assigned is the same broken state surfacing on a
-		// cache hit (InitializeMachineWithContext caches the instance before
-		// checking the Start error - meshery#20820). Skip driving it rather
-		// than nil-dereferencing on ResetState/SendEvent; the connection stays
-		// stuck until the process restarts or the tracker entry is removed.
-		if inst == nil || inst.Context == nil {
+		// Skip a machine that failed to initialize rather than nil-dereferencing
+		// on ResetState/SendEvent. The connection stays stuck until the tracker
+		// entry is removed; see mhelpers.IsMachineReady for why.
+		if !mhelpers.IsMachineReady(inst) {
 			continue
 		}
 		inst.ResetState()
@@ -424,16 +419,10 @@ func K8sFSMMiddleware(ctx context.Context, h *Handler, provider models.Provider,
 			h.log.Error(err)
 		}
 
-		// InitializeMachineWithContext returns a nil instance when the machine
-		// could not be built (e.g. the cluster's API server was unreachable, so the
-		// client set / context failed to initialize). A tracked instance whose
-		// Context was never assigned is the same broken state surfacing on a
-		// cache hit (InitializeMachineWithContext caches the instance before
-		// checking the Start error - meshery#20820). Skip driving it rather
-		// than nil-dereferencing on ResetState/SendEvent/Cast below; the
-		// connection stays stuck until the process restarts or the tracker
-		// entry is removed.
-		if inst == nil || inst.Context == nil {
+		// Skip a machine that failed to initialize rather than nil-dereferencing
+		// on ResetState/SendEvent, or type-asserting its nil Context on the Cast
+		// below. See mhelpers.IsMachineReady for why.
+		if !mhelpers.IsMachineReady(inst) {
 			continue
 		}
 		inst.ResetState()

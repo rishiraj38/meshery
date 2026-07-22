@@ -23,14 +23,14 @@ func trackerWith(id core.Uuid, inst *machines.StateMachine) *machines.Connection
 	}
 }
 
-// machineCtxForConnection must treat a nil Context on a tracked machine - a
-// non-kubernetes connection, or a kubernetes one whose cluster was
-// unreachable when the machine was created - as an expected "not ready"
-// state (nil,false) and, crucially, must NOT type-assert the nil Context,
-// which previously logged meshkit-11180 on every controller-status poll. An
-// untracked connection is likewise not-ready, while a fully-initialized
-// kubernetes machine (a *kubernetes.MachineCtx carrying a controllers
-// helper) resolves as ready.
+// machineCtxForConnection must treat an unassigned Context on a tracked machine
+// - a non-kubernetes connection, or a kubernetes one whose cluster was
+// unreachable when the machine was created - as an expected "not ready" state
+// (nil,false) and, crucially, must NOT type-assert that nil Context, which
+// previously logged meshkit-11180 on every controller-status poll. Missing,
+// nil, typed-nil, wrongly-typed and half-built contexts are all not-ready;
+// only a fully-initialized kubernetes machine (a *kubernetes.MachineCtx
+// carrying a controllers helper) resolves as ready.
 func TestMachineCtxForConnection(t *testing.T) {
 	connID := uuid.Must(uuid.NewV4())
 	mctx := &kubernetes.MachineCtx{MesheryCtrlsHelper: &models.MesheryControllersHelper{}}
@@ -52,6 +52,37 @@ func TestMachineCtxForConnection(t *testing.T) {
 			name:     "untracked connection is not-ready",
 			tracker:  trackerWith(uuid.Must(uuid.NewV4()), &machines.StateMachine{Context: nil}),
 			lookupID: uuid.Must(uuid.NewV4()),
+			wantOK:   false,
+		},
+		{
+			name:     "nil tracked instance is not-ready",
+			tracker:  trackerWith(connID, nil),
+			lookupID: connID,
+			wantOK:   false,
+		},
+		{
+			// A boxed typed-nil *MachineCtx is non-nil as an interface, so a bare
+			// `Context == nil` check would let it through and the cast would hand
+			// back a nil pointer with a nil error - dereferenced one line later.
+			name:     "typed-nil Context is not-ready",
+			tracker:  trackerWith(connID, &machines.StateMachine{ID: connID, Context: (*kubernetes.MachineCtx)(nil)}),
+			lookupID: connID,
+			wantOK:   false,
+		},
+		{
+			// A non-kubernetes Context is a genuine type error, distinct from
+			// "not ready": it takes the cast's err != nil branch and is logged.
+			name:     "wrong Context type is not-ready",
+			tracker:  trackerWith(connID, &machines.StateMachine{ID: connID, Context: &struct{ notAMachineCtx bool }{}}),
+			lookupID: connID,
+			wantOK:   false,
+		},
+		{
+			// A kubernetes machine that initialized but has no controllers helper
+			// cannot answer a status query either.
+			name:     "missing controllers helper is not-ready",
+			tracker:  trackerWith(connID, &machines.StateMachine{ID: connID, Context: &kubernetes.MachineCtx{}}),
+			lookupID: connID,
 			wantOK:   false,
 		},
 		{
