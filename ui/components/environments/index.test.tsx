@@ -224,4 +224,20 @@ describe('Environments create flow notifications', () => {
     expect(types).not.toContain(EVENT_ERROR);
     expect(notify.mock.calls[0][0].message).toBe('Environment "prod" created');
   });
+
+  // Pins the #20854 root cause: the submit handler once read `organization`
+  // off the form (always undefined) and sent an empty org, so the request
+  // either failed or created nothing. The payload must carry a populated
+  // `organizationId` in the canonical camelCase wire spelling.
+  it('sends a populated organizationId in the create payload', async () => {
+    createEnvironment.mockReturnValue({ unwrap: () => Promise.resolve({ id: 'env-1' }) });
+
+    await openCreateModalAndSubmit();
+
+    await waitFor(() => expect(createEnvironment).toHaveBeenCalled());
+
+    expect(createEnvironment).toHaveBeenCalledWith({
+      environmentPayload: expect.objectContaining({ organizationId: 'org-1' }),
+    });
+  });
 });
