@@ -269,7 +269,9 @@ const Environments = () => {
         handleEnvironmentModalClose();
       })
       .catch((error) => {
-        handleError({ error_msg: 'Environment Create Error' })(error?.data || error);
+        handleError({ error_msg: 'Environment Create Error' })(
+          error?.data || error?.message || error,
+        );
       });
   };
 
@@ -288,7 +290,9 @@ const Environments = () => {
         handleEnvironmentModalClose();
       })
       .catch((error) => {
-        handleError({ error_msg: 'Environment Update Error' })(error?.data || error);
+        handleError({ error_msg: 'Environment Update Error' })(
+          error?.data || error?.message || error,
+        );
       });
   };
 
