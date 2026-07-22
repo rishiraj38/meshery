@@ -7,11 +7,11 @@ import (
 	"github.com/meshery/meshery/server/machines/kubernetes"
 )
 
-// IsMachineReady gates every site that drives a state machine returned by
+// HasMachineContext gates every site that drives a state machine returned by
 // InitializeMachineWithContext. It has to reject both shapes of a failed
 // initialization: the nil instance returned on the first attempt, and the
 // cached, non-nil-but-Context-less instance every later attempt gets back.
-func TestIsMachineReady(t *testing.T) {
+func TestHasMachineContext(t *testing.T) {
 	tests := []struct {
 		name string
 		inst *machines.StateMachine
@@ -54,8 +54,8 @@ func TestIsMachineReady(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsMachineReady(tt.inst); got != tt.want {
-				t.Fatalf("IsMachineReady() = %v, want %v", got, tt.want)
+			if got := HasMachineContext(tt.inst); got != tt.want {
+				t.Fatalf("HasMachineContext() = %v, want %v", got, tt.want)
 			}
 		})
 	}

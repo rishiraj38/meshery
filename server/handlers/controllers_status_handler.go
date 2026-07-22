@@ -120,7 +120,7 @@ func (h *Handler) machineCtxForConnection(connectionID string) (*kubernetes.Mach
 	// unknown status; only a genuinely wrong Context type below is a real error
 	// worth logging. The Debug line keeps a breadcrumb for an operator debugging a
 	// connection stuck at UNKNOWN, without reintroducing Error-severity spam.
-	if !mhelpers.IsMachineReady(inst) {
+	if !mhelpers.HasMachineContext(inst) {
 		h.log.Debug(fmt.Sprintf("machine instance for connection %s has no context assigned, treating as not-ready", connectionID))
 		return nil, false
 	}

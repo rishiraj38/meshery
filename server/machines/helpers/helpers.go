@@ -66,33 +66,41 @@ func getMachine(initialState machines.StateType, mtype, id string, userID core.U
 	return nil, machines.ErrInvalidType(fmt.Errorf("invlaid type requested"))
 }
 
-// IsMachineReady reports whether a state machine instance returned by
-// InitializeMachineWithContext is safe to drive, i.e. it exists and its Context
-// was actually assigned by Start.
+// HasMachineContext reports whether a state machine instance exists and carries
+// an assigned Context. Callers that must resolve that Context - anything doing
+// utils.Cast[*kubernetes.MachineCtx](inst.Context), or driving an action that
+// does - should gate on this.
 //
-// Two distinct shapes have to be treated as "not ready":
+// It rejects two distinct shapes of a failed initialization:
 //
-//   - a nil instance, returned when the machine could not be built at all (e.g.
-//     the cluster's API server was unreachable, so the client set could not be
-//     generated and AssignInitialCtx returned an error);
+//   - a nil instance, which InitializeMachineWithContext returns when the
+//     machine could not be built at all (e.g. the cluster's API server was
+//     unreachable, so the client set could not be generated and
+//     AssignInitialCtx returned an error);
 //   - a non-nil instance whose Context is nil. InitializeMachineWithContext
 //     caches the instance via smInstanceTracker.Add *before* checking the Start
 //     error, so every later call for that connection takes the cache-hit path
 //     and gets back the same half-built instance, this time paired with a nil
-//     error. The tracker is only ever cleared by an explicit user action
-//     (deleting the connection, cancelling registration), so this state persists
-//     for the life of the process.
+//     error (meshery#20820). The tracker is only ever cleared by an explicit
+//     user action (deleting the connection, cancelling registration), so this
+//     state persists for the life of the process.
 //
 // Driving either shape nil-dereferences, or type-asserts a nil interface and
 // logs meshkit-11180 ("nil interface cannot be type casted") - which, on the
 // ~5s controller-status poll, is a log line every five seconds per broken
 // connection.
 //
+// NOT a general "is this machine usable" test: a machine started with a nil
+// InitFunc - as the connection-registration path does for non-kubernetes kinds
+// - never gets a Context assigned, yet Start succeeds and the machine is
+// perfectly drivable. Gating that path on this predicate would skip every such
+// registration. This is for callers that genuinely require a Context.
+//
 // The Context test uses utils.IsInterfaceNil rather than a bare `== nil` so a
 // boxed typed-nil pointer is caught too, matching the check utils.Cast performs
 // internally; a bare nil-interface comparison would silently stop working if an
 // InitFunc ever returned a partially-built context instead of a literal nil.
-func IsMachineReady(inst *machines.StateMachine) bool {
+func HasMachineContext(inst *machines.StateMachine) bool {
 	return inst != nil && !utils.IsInterfaceNil(inst.Context)
 }
 

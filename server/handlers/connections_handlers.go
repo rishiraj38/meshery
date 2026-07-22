@@ -535,6 +535,20 @@ func (h *Handler) NotifySmOfConnectionStatusChange(ctx context.Context, userID c
 			})
 			return *eventBuilder.Build(), err
 		}
+		// A machine whose Context was never assigned cannot service the event:
+		// SendEvent fails on ErrAssertMachineCtx and returns *before* the Remove
+		// below, so a DELETED update would leak the tracker entry for a
+		// connection that is going away, and publish an error the user can do
+		// nothing about. Drop the entry directly instead. Same shape as the
+		// DeleteContext guard in contexts_handler.go; see helpers.HasMachineContext.
+		if !helpers.HasMachineContext(inst) {
+			h.log.Debug(fmt.Sprintf("machine instance for connection %s has no context assigned, skipping the %q event", connectionID, connection.Status))
+			if connection.Status == connections.DELETED {
+				smInstanceTracker.Remove(connectionID)
+			}
+			return *eventBuilder.Build(), nil
+		}
+
 		// detach from the http request lifecycle so that the goroutine isn't cancelled when
 		// the handler returns, while preserving context values (e.g. TokenCtxKey) that downstream calls depend on.
 		detachedCtx := context.WithoutCancel(ctx)

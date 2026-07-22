@@ -126,8 +126,8 @@ func (h *Handler) DeleteContext(w http.ResponseWriter, req *http.Request, _ *mod
 	// never assigned, so SendEvent would only fail with ErrAssertMachineCtx.
 	// Crucially it would also fail *before* reaching the Remove below, leaking
 	// the tracker entry for a connection the user just deleted - so drop the
-	// entry directly instead. See mhelpers.IsMachineReady.
-	if !mhelpers.IsMachineReady(inst) {
+	// entry directly instead. See mhelpers.HasMachineContext.
+	if !mhelpers.HasMachineContext(inst) {
 		smInstanceTracker.Remove(connectionUUID)
 	} else {
 		go func(inst *machines.StateMachine) {
