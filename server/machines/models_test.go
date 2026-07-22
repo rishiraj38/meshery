@@ -493,3 +493,92 @@ func TestSendEvent_NoOpHaltOnUserEventPropagates(t *testing.T) {
 		t.Fatalf("expected no status write on a NoOp-halt failure, got %d UpdateConnectionById call(s)", provider.updateCalls)
 	}
 }
+
+// failingExitAction fails in ExecuteOnExit with a nil event — matching every
+// real ExecuteOnExit in the tree, all of which currently return a nil event (and
+// today, a nil error). Entry/Execute succeed so the test isolates the exit path.
+type failingExitAction struct {
+	exitErr error
+}
+
+func (a *failingExitAction) ExecuteOnEntry(context.Context, interface{}, interface{}) (EventType, *events.Event, error) {
+	return NoOp, nil, nil
+}
+
+func (a *failingExitAction) Execute(context.Context, interface{}, interface{}) (EventType, *events.Event, error) {
+	return NoOp, nil, nil
+}
+
+func (a *failingExitAction) ExecuteOnExit(context.Context, interface{}, interface{}) (EventType, *events.Event, error) {
+	return NoOp, nil, a.exitErr
+}
+
+// TestSendEvent_ExitActionFailureHaltsWithoutTransition covers the sibling of
+// the #20818 bypass: an exit action failing aborts the transition before the
+// machine advances, so like a NoOp halt it must route through the de-dup rather
+// than returning inline. Two guarantees are asserted:
+//
+//  1. No status is written — the machine never advanced, and persisting the
+//     un-advanced CurrentState would corrupt the connection's status.
+//  2. A user-initiated event still surfaces a NON-NIL Error event with its
+//     error. The old inline return handed back the action's event verbatim,
+//     which every ExecuteOnExit in the tree builds as nil — and callers such as
+//     K8sFSMMiddleware dereference (*event) whenever the error is non-nil, so
+//     that path was a latent nil-pointer panic.
+func TestSendEvent_ExitActionFailureHaltsWithoutTransition(t *testing.T) {
+	provider := &fakeProvider{status: connections.CONNECTED}
+	exitErr := errors.New("exit action failed")
+
+	sm := newTestMachine(t, provider, &stubAction{execNext: NoOp})
+	// The exit action that runs is the one on the CURRENT state, so attach the
+	// failing action to InitialState and drive a transition out of it.
+	sm.States[InitialState] = State{
+		Events: Events{Discovery: DISCOVERED, Register: REGISTERED},
+		Action: &failingExitAction{exitErr: exitErr},
+	}
+	sm.States[REGISTERED] = State{
+		Events: Events{Connect: CONNECTED},
+		Action: &stubAction{execNext: NoOp},
+	}
+	ctx := newTestContext(t)
+
+	// User-initiated: the failure must propagate, with a usable event.
+	event, err := sm.SendEvent(ctx, Register, nil)
+	if err == nil {
+		t.Fatal("expected an exit-action failure on a user-initiated event to propagate, got nil error")
+	}
+	if !errors.Is(err, exitErr) {
+		t.Fatalf("expected the original exit-action error to propagate, got %v", err)
+	}
+	if event == nil {
+		t.Fatal("expected a non-nil Error event alongside the error (callers dereference it), got nil")
+	}
+	if event.Severity != events.Error {
+		t.Fatalf("expected an Error-severity event, got %q", event.Severity)
+	}
+	if provider.updateCalls != 0 {
+		t.Fatalf("expected no status write when the machine never advanced, got %d UpdateConnectionById call(s)", provider.updateCalls)
+	}
+	if sm.CurrentState != InitialState {
+		t.Fatalf("expected the machine to halt at %q, got %q", InitialState, sm.CurrentState)
+	}
+
+	// Background discovery: the same failure repeated must be suppressed rather
+	// than re-broadcast on every request.
+	for i := 0; i < 3; i++ {
+		sm.ResetState()
+		event, err := sm.SendEvent(ctx, Discovery, nil)
+		if err != nil {
+			t.Fatalf("run %d: expected a repeated background exit-action failure to be suppressed, got error %v", i, err)
+		}
+		if event != nil {
+			t.Fatalf("run %d: expected no event on a suppressed background failure, got %#v", i, event)
+		}
+	}
+	if provider.updateCalls != 0 {
+		t.Fatalf("expected no status write across background re-drives, got %d UpdateConnectionById call(s)", provider.updateCalls)
+	}
+	if provider.status != connections.CONNECTED {
+		t.Fatalf("expected persisted status to remain CONNECTED, got %q", provider.status)
+	}
+}
