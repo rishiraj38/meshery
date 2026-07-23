@@ -372,6 +372,7 @@ func TestInitModelInjectName(t *testing.T) {
 		// a representative untouched field must survive the round-trip
 		assert.Contains(t, got, "schemaVersion")
 		assert.Contains(t, got, "metadata")
+		assert.Contains(t, string(out), "<svg")
 	})
 
 	t.Run("yaml", func(t *testing.T) {

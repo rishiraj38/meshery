@@ -1,6 +1,7 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -205,11 +206,14 @@ func initModelInjectName(content []byte, outputFormat string, modelName string) 
 		}
 		model["name"] = modelName
 		model["displayName"] = displayName
-		out, err := json.MarshalIndent(model, "", "  ")
-		if err != nil {
+		var buf bytes.Buffer
+		enc := json.NewEncoder(&buf)
+		enc.SetEscapeHTML(false)
+		enc.SetIndent("", "  ")
+		if err := enc.Encode(model); err != nil {
 			return nil, err
 		}
-		return append(out, '\n'), nil
+		return buf.Bytes(), nil
 	case "yaml":
 		if err := yaml.Unmarshal(content, &model); err != nil {
 			return nil, err
