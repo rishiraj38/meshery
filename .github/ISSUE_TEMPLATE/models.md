@@ -28,11 +28,11 @@ assignees: ''
   - 📚 [Credentials](https://docs.meshery.io/concepts/logical/credentials)
 - 👨‍💻[Models Repository](https://github.com/meshery/meshery/tree/master/models)
 
- ### Contributing to Meshery Models
- - [Contributing to Models](https://docs.meshery.io/project/contributing/models/models)
-   - [Contributing to Components](https://docs.meshery.io/project/contributing/models/components)
-   - [Contributing to Connections](https://docs.meshery.io/project/contributing/models/connections)
-   - [Contributing to Relationships](https://docs.meshery.io/project/contributing/models/relationships)
+### Contributing to Meshery Models
+- [Contributing to Models](https://docs.meshery.io/project/contributing/models/models)
+  - [Contributing to Components](https://docs.meshery.io/project/contributing/models/components)
+  - [Contributing to Connections](https://docs.meshery.io/project/contributing/models/connections)
+  - [Contributing to Relationships](https://docs.meshery.io/project/contributing/models/relationships)
 - 📺 [Self-paced Contributor Trainings](https://meshery.io/talks-and-trainings#trainings)
 
  <!-- ### Instructions for Policies
