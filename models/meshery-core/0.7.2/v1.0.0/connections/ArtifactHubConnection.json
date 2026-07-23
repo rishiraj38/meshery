@@ -83,6 +83,14 @@
         "title": "API Key Secret",
         "description": "Secret paired with the API key identifier. Required only when an API key ID is supplied."
       }
+    },
+    "dependencies": {
+      "apiKeyId": [
+        "apiKeySecret"
+      ],
+      "apiKeySecret": [
+        "apiKeyId"
+      ]
     }
   },
   "styles": {
