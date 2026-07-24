@@ -9,11 +9,9 @@ import {
   SettingsIcon,
   LockIcon,
   AssignmentTurnedInIcon,
-  useHasPermission,
 } from '@sistent/sistent';
 import { alpha, styled } from '@/theme';
 import { EVENT_TYPES } from 'lib/event-types';
-import { Keys } from '@meshery/schemas/permissions';
 import {
   buildCredentialSecret,
   CONNECTIONS_PATH,
@@ -21,7 +19,6 @@ import {
   DEFAULT_CONNECTION_DOCS_URL,
   filterCredentialsForKind,
   resolveConnectionName,
-  type ConnectionWizardKindConfig,
 } from '../ConnectionWizard.helpers';
 import { formatWizardError } from './errors';
 import {
@@ -30,17 +27,8 @@ import {
   CredentialAssociationStep,
   GenericConnectionDetailsStep,
 } from '../ConnectionWizardStepContent';
+import { useKindPermission } from './useKindPermission';
 import type { WizardContext, WizardStep } from './types';
-
-export const useKindPermission = () => {
-  const canAddCluster = useHasPermission(Keys.LifecycleManagementAddCluster);
-  const canConnectMetrics = useHasPermission(Keys.MesherySystemConnectMetrics);
-
-  return (config?: ConnectionWizardKindConfig | null) => {
-    if (!config) return false;
-    return config.flow === 'kubernetes' ? canAddCluster : canConnectMetrics;
-  };
-};
 
 const existingCredentialsFor = (ctx: WizardContext) =>
   filterCredentialsForKind(ctx.services.credentials, ctx.data.kindConfig?.kind);

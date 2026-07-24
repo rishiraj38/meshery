@@ -47,7 +47,15 @@ export type HeaderInfo = {
   icon: React.ReactNode;
 };
 
-const getNavItem = (theme: Theme, canViewViews: boolean): NavConfigItem[] => {
+/**
+ * Single source of truth for the drawer's nav items and their permission gates.
+ * Both the drawer (which filters disabled items out) and the content wrapper
+ * (which resolves the selected item to its body) read from this hook, so the
+ * navigation and the content it renders can never diverge on the permission key
+ * they authorize against.
+ */
+const useNavConfig = (theme: Theme): NavConfigItem[] => {
+  const canViewViews = useHasPermission(Keys.KanvasViewViews);
   return [
     {
       id: 'Recents (Global)',
@@ -97,7 +105,7 @@ const WorkspaceContentWrapper: FC<WorkspaceContentWrapperProps> = ({
 }) => {
   const workspaceSwitcherContext = useContext(WorkspaceModalContext);
   const theme = useTheme();
-  const canViewViews = useHasPermission(Keys.CatalogManagementViewViews);
+  const navConfig = useNavConfig(theme);
 
   useEffect(() => {
     if (id === 'All Workspaces') {
@@ -108,8 +116,9 @@ const WorkspaceContentWrapper: FC<WorkspaceContentWrapperProps> = ({
     }
   }, [id, workspacesData]);
 
-  const navConfig = getNavItem(theme, canViewViews);
-  const mainItem = navConfig.find((item) => item.id === id);
+  // Match the drawer's own filter: an item the user cannot see must not be
+  // renderable by id either, so a stale/deep-linked selection cannot bypass the gate.
+  const mainItem = navConfig.find((item) => item.id === id && item.enabled !== false);
 
   if (mainItem && mainItem.content) {
     return <>{mainItem.content}</>;
@@ -139,8 +148,7 @@ export const Navigation: FC<NavigationProps> = ({ setHeaderInfo }) => {
   const workspaceSwitcherContext = useContext(WorkspaceModalContext);
   const { selectedWorkspace } = workspaceSwitcherContext;
   const [selectedId, setSelectedId] = useState<string>(selectedWorkspace?.id || 'Recents (Global)');
-  const canViewViews = useHasPermission(Keys.KanvasViewViews);
-  const navConfig = getNavItem(theme, canViewViews).filter((item) => item.enabled !== false);
+  const navConfig = useNavConfig(theme).filter((item) => item.enabled !== false);
   const { selectedOrganization } = useGetSelectedOrganization();
   const { data: workspacesData, isLoading } = useGetWorkspacesQuery(
     {
