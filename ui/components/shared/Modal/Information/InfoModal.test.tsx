@@ -57,10 +57,6 @@ vi.mock('@/store/slices/mesheryUi', () => ({
   updateProgress: vi.fn(),
 }));
 
-vi.mock('@/utils/can', () => ({
-  default: () => true,
-}));
-
 vi.mock('@/utils/objects', () => ({
   filterEmptyFields: (obj: any) => obj || {},
 }));
