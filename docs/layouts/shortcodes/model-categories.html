@@ -1,0 +1,21 @@
+{{- /*
+  Renders a bulleted list of model category names, each with a parenthetical
+  count of the models in that category (e.g. "Provisioning (69)"). Counts are
+  derived from the `integrations-category` param on each model page, so they
+  stay accurate as models are added, removed, or recategorized. Categories are
+  ordered by count (descending) so the largest are surfaced first.
+*/ -}}
+{{- $models := where site.RegularPages ".File.Dir" "like" `^extensions/models/` -}}
+{{- $groups := $models.GroupByParam "integrations-category" -}}
+{{- $modelsPage := site.GetPage "/extensions/models" -}}
+{{- $modelsURL := cond (ne $modelsPage nil) $modelsPage.RelPermalink "/extensions/models/" -}}
+{{- $categories := slice -}}
+{{- range $groups -}}
+  {{- if .Key -}}
+    {{- $categories = $categories | append (dict "name" .Key "count" (len .Pages)) -}}
+  {{- end -}}
+{{- end -}}
+{{- $categories = sort $categories "count" "desc" -}}
+{{- range $categories }}
+<li><a href="{{ $modelsURL }}">{{ .name }}</a> ({{ .count }})</li>
+{{- end }}
