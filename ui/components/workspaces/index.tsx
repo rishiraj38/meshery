@@ -36,6 +36,7 @@ import {
   useUpdateWorkspaceMutation,
 } from '../../rtk-query/workspace';
 import { useNotification, useNotificationHandlers } from '../../utils/hooks/useNotification';
+import { formatApiError } from '../../utils/helpers/meshkitError';
 import { RJSFModalWrapper } from '../shared/Modal/Modal';
 import _PromptComponent from '../general/PromptComponent';
 import { EVENT_TYPES } from '../../lib/event-types';
@@ -211,9 +212,14 @@ const Workspaces = ({ onSelectWorkspace }) => {
       },
     })
       .unwrap()
-      .then(() => handleSuccess(`Workspace "${name}" created `))
-      .catch((error) => handleError(`Workspace Create Error: ${error?.data}`));
-    handleWorkspaceModalClose();
+      // Close the modal only after a successful create - closing it
+      // unconditionally here discarded the user's typed input on failure, the
+      // same silent-failure class this change exists to remove.
+      .then(() => {
+        handleSuccess(`Workspace "${name}" created`);
+        handleWorkspaceModalClose();
+      })
+      .catch((error) => handleError(`Unable to create workspace "${name}"`, error));
   };
 
   useEffect(() => {
@@ -234,9 +240,11 @@ const Workspaces = ({ onSelectWorkspace }) => {
       },
     })
       .unwrap()
-      .then(() => handleSuccess(`Workspace "${name}" updated`))
-      .catch((error) => handleError(`Workspace Update Error: ${error?.data}`));
-    handleWorkspaceModalClose();
+      .then(() => {
+        handleSuccess(`Workspace "${name}" updated`);
+        handleWorkspaceModalClose();
+      })
+      .catch((error) => handleError(`Unable to update workspace "${name}"`, error));
   };
 
   const handleDeleteWorkspace = (id, name) => {
@@ -245,7 +253,7 @@ const Workspaces = ({ onSelectWorkspace }) => {
     })
       .unwrap()
       .then(() => handleSuccess(`Workspace "${name}" deleted`))
-      .catch((error) => handleError(`Workspace Delete Error: ${error?.data}`));
+      .catch((error) => handleError(`Unable to delete workspace "${name}"`, error));
   };
 
   const fetchSchema = (workspaceActionType) => {
@@ -267,12 +275,25 @@ const Workspaces = ({ onSelectWorkspace }) => {
     });
   };
 
-  const handleError = (action) => (error) => {
+  /**
+   * Surface a failed workspace operation.
+   *
+   * This was a curried `handleError(action) => (error) => ...` that every call
+   * site invoked as `handleError('some message')`, producing a function that
+   * was immediately discarded - so no workspace failure ever reached the user.
+   * It also read `action.error_msg` off a plain string, which is always
+   * undefined. A plain two-argument function makes that misuse impossible.
+   *
+   * `formatApiError` consumes the MeshKit envelope the server now sends
+   * (code and suggested remediation) and renders it as the markdown that
+   * `notify` displays through BasicMarkdown.
+   */
+  const handleError = (action, error) => {
     updateProgress({ showProgress: false });
+    const { message } = formatApiError(error, action);
     notify({
-      message: `${action.error_msg}: ${error}`,
+      message,
       event_type: EVENT_TYPES.ERROR,
-      details: error.toString(),
     });
   };
 
