@@ -36,6 +36,9 @@ import { WorkspaceModalContext } from '@/utils/context/WorkspaceModalContextProv
 import type { Theme } from '@/theme';
 import { NavItem, WorkspacesSection, NavConfigItem } from './WorkspaceFormModalSections';
 
+/** Nav item selected on open, and the fallback when a selection loses its gate. */
+const DEFAULT_NAV_ID = 'Recents (Global)';
+
 const Layout = styled(Box)({
   display: 'flex',
   position: 'relative',
@@ -147,8 +150,22 @@ export const Navigation: FC<NavigationProps> = ({ setHeaderInfo }) => {
   const isLocal = isLocalProvider(capabilitiesData);
   const workspaceSwitcherContext = useContext(WorkspaceModalContext);
   const { selectedWorkspace } = workspaceSwitcherContext;
-  const [selectedId, setSelectedId] = useState<string>(selectedWorkspace?.id || 'Recents (Global)');
-  const navConfig = useNavConfig(theme).filter((item) => item.enabled !== false);
+  const [selectedId, setSelectedId] = useState<string>(selectedWorkspace?.id || DEFAULT_NAV_ID);
+  const allNavItems = useNavConfig(theme);
+  const navConfig = allNavItems.filter((item) => item.enabled !== false);
+
+  // A selection can outlive its permission (revoked mid-session). The drawer
+  // drops the item and the content wrapper falls back, but `selectedId` would
+  // otherwise keep the header naming a view that no longer renders. Reconcile
+  // to the default instead. Guarded on a boolean so this cannot loop, and only
+  // nav ids are considered - a selected workspace id is never in `allNavItems`.
+  const selectedNavItemRevoked =
+    allNavItems.find((item) => item.id === selectedId)?.enabled === false;
+  useEffect(() => {
+    if (selectedNavItemRevoked) {
+      setSelectedId(DEFAULT_NAV_ID);
+    }
+  }, [selectedNavItemRevoked]);
   const { selectedOrganization } = useGetSelectedOrganization();
   const { data: workspacesData, isLoading } = useGetWorkspacesQuery(
     {
