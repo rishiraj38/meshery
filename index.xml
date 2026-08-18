@@ -35608,7 +35608,7 @@ off; see the &lt;a href="/project/contributing/"&gt;Contributing Overview&lt;/a&
 &lt;h3 id="prerequisites"&gt;
 	Prerequisites
 &lt;/h3&gt;
-&lt;p&gt;Before you begin, ensure you have the following:&lt;/p&gt;</description></item><item><title>Deploying Sample Applications</title><link>/guides/infrastructure-management/sample-apps/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/guides/infrastructure-management/sample-apps/</guid><description>&lt;p&gt;Meshery includes a few sample applications to help you explore cloud native infrastructure. Each is a collection of microservices for experimental purposes of learning about running workloads in Kubernetes clusters both on and off of cloud native infrastructure. When deploying a sample app onto your cloud native infrastructure, your sample application needs will need to be externaally exposed from the cluster, if you would like to access it externally. There are a myriad of ways to do this, specific to the infrastructure you are using.&lt;/p&gt;</description></item><item><title>Designs</title><link>/concepts/logical/designs/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/concepts/logical/designs/</guid><description>&lt;p&gt;Like a Google Doc, Designs are your primary tool for collaborative authorship of your infrastructure and services. A Design describes all the resources and their properties that you want for a single deployment based on Meshery’s declarative syntax (see &lt;a href="https://github.com/meshery/schemas"&gt;Meshery Schemas repo&lt;/a&gt;). By default, Designs are stored in your user account, but can be manually exported, programmatically snapshotted, or automatically synchronized to any OCI-compatible registry (e.g. Docker Hub, AWS ECR, and so on), or Git-based repositories (coming in v0.8). You can share designs and collaborate in real-time on their creation. Designs can be imported, exported, versioned, forked, merged, snapshotted, published, shared, embedded, templatized, and more.&lt;/p&gt;</description></item><item><title>Devfile</title><link>/extensions/models/devfile/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/devfile/</guid><description/></item><item><title>Devstream</title><link>/extensions/models/devstream/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/devstream/</guid><description/></item><item><title>Dex</title><link>/extensions/models/dex/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/dex/</guid><description/></item><item><title>DigitalOcean</title><link>/installation/kubernetes/digitalocean/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/installation/kubernetes/digitalocean/</guid><description>&lt;h1&gt;Quick Start with DigitalOcean &lt;img src="images/digitalocean.svg" style="width:35px;height:35px;" /&gt;&lt;/h1&gt;
+&lt;p&gt;Before you begin, ensure you have the following:&lt;/p&gt;</description></item><item><title>Designs</title><link>/concepts/logical/designs/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/concepts/logical/designs/</guid><description>&lt;p&gt;Like a Google Doc, Designs are your primary tool for collaborative authorship of your infrastructure and services. A Design describes all the resources and their properties that you want for a single deployment based on Meshery’s declarative syntax (see &lt;a href="https://github.com/meshery/schemas"&gt;Meshery Schemas repo&lt;/a&gt;). By default, Designs are stored in your user account, but can be manually exported, programmatically snapshotted, or automatically synchronized to any OCI-compatible registry (e.g. Docker Hub, AWS ECR, and so on), or Git-based repositories (coming in v0.8). You can share designs and collaborate in real-time on their creation. Designs can be imported, exported, versioned, forked, merged, snapshotted, published, shared, embedded, templatized, and more.&lt;/p&gt;</description></item><item><title>Devfile</title><link>/extensions/models/devfile/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/devfile/</guid><description/></item><item><title>Devstream</title><link>/extensions/models/devstream/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/devstream/</guid><description/></item><item><title>Dex</title><link>/extensions/models/dex/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/dex/</guid><description/></item><item><title>DigitalOcean</title><link>/installation/kubernetes/digitalocean/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/installation/kubernetes/digitalocean/</guid><description>&lt;h1&gt;Quick Start with DigitalOcean &lt;img src="images/digitalocean.svg" style="width:35px;height:35px;" /&gt;&lt;/h1&gt;
 &lt;p&gt;Deploy and manage your DigitalOcean infrastructure with Meshery. You can run Meshery on DigitalOcean in two ways: &lt;a href="/installation/kubernetes/digitalocean/#option-1-docker-on-a-droplet-out-of-cluster"&gt;out-of-cluster&lt;/a&gt; using Docker on a Droplet, or &lt;a href="/installation/kubernetes/digitalocean/#option-2-digitalocean-kubernetes-in-cluster"&gt;in-cluster&lt;/a&gt; on a DigitalOcean Kubernetes (DOKS) cluster. &lt;strong&gt;&lt;em&gt;Note: It is advisable to install Meshery in your DOKS cluster.&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
 &lt;div class="prereqs"&gt;&lt;h4&gt;Prerequisites&lt;/h4&gt;
 &lt;ol&gt;
@@ -35845,7 +35845,14 @@ See your deployment before you merge. Connect Meshery to your GitHub repo and se
 &lt;h1 id="in-cluster-installation"&gt;
 	In-cluster Installation
 &lt;/h1&gt;
-&lt;p&gt;Follow the steps below to install Meshery in your GKE cluster.&lt;/p&gt;</description></item><item><title>Google Cloud Platform</title><link>/extensions/models/gcp/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/gcp/</guid><description/></item><item><title>Google Cloud Platform</title><link>/extensions/models/k8s-config-connector/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/k8s-config-connector/</guid><description/></item><item><title>Grafana Agent</title><link>/extensions/models/grafana-agent/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/grafana-agent/</guid><description/></item><item><title>Grafana Agent Operator</title><link>/extensions/models/grafana-agent-operator/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/grafana-agent-operator/</guid><description/></item><item><title>Grafana Operator</title><link>/extensions/models/grafana-operator/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/grafana-operator/</guid><description/></item><item><title>Grafana UI Server</title><link>/extensions/models/grafana-ui-server/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/grafana-ui-server/</guid><description/></item><item><title>GraphQL API Reference</title><link>/reference/references/graphql-apis/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/reference/references/graphql-apis/</guid><description>&lt;!---
+&lt;p&gt;Follow the steps below to install Meshery in your GKE cluster.&lt;/p&gt;</description></item><item><title>Go Lint Rules</title><link>/project/contributing/contributing-lint/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/project/contributing/contributing-lint/</guid><description>&lt;p&gt;Beyond the stock linters, Meshery enforces a small number of repo-specific Go
+rules. Each one exists because a convention was being relied on to hold a
+security or contract boundary, and a convention is not a control: it holds until
+the first contributor who has not read the doc adds a call site.&lt;/p&gt;
+&lt;p&gt;All of them run in the &lt;code&gt;golangci-lint-server&lt;/code&gt; job of
+&lt;a href="https://github.com/meshery/meshery/blob/master/.github/workflows/go-testing-ci.yml"&gt;&lt;code&gt;.github/workflows/go-testing-ci.yml&lt;/code&gt;&lt;/a&gt;,
+which gates the unit-test and build jobs downstream, and all of them run locally
+from:&lt;/p&gt;</description></item><item><title>Google Cloud Platform</title><link>/extensions/models/gcp/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/gcp/</guid><description/></item><item><title>Google Cloud Platform</title><link>/extensions/models/k8s-config-connector/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/k8s-config-connector/</guid><description/></item><item><title>Grafana Agent</title><link>/extensions/models/grafana-agent/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/grafana-agent/</guid><description/></item><item><title>Grafana Agent Operator</title><link>/extensions/models/grafana-agent-operator/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/grafana-agent-operator/</guid><description/></item><item><title>Grafana Operator</title><link>/extensions/models/grafana-operator/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/grafana-operator/</guid><description/></item><item><title>Grafana UI Server</title><link>/extensions/models/grafana-ui-server/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/grafana-ui-server/</guid><description/></item><item><title>GraphQL API Reference</title><link>/reference/references/graphql-apis/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/reference/references/graphql-apis/</guid><description>&lt;!---
  This page is a static snapshot of the GraphQL schema reference. The previous
  Jekyll-era Rakefile that auto-generated it (docs/Rakefile, docs/Gemfile) was
  removed when the docs migrated from Jekyll to Hugo. For the most current API
@@ -35902,7 +35909,9 @@ in &lt;code&gt;.github/.golangci.yml&lt;/code&gt; for the Kubernetes healthz pro
 &lt;code&gt;load_test_handler.go&lt;/code&gt;) that don&amp;rsquo;t call &lt;code&gt;http.Error&lt;/code&gt; at all (they emit
 error events through the active SSE writer instead); and binary/tar/YAML
 downloads and HTTP redirects, which use &lt;code&gt;w.Write&lt;/code&gt; or &lt;code&gt;http.Redirect&lt;/code&gt;
-rather than &lt;code&gt;http.Error&lt;/code&gt; and so are not governed by the lint rule.&lt;/p&gt;</description></item><item><title>Hybridnet</title><link>/extensions/models/hybridnet/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/hybridnet/</guid><description/></item><item><title>Identifying Meshery Components</title><link>/guides/configuration-management/identifying-components/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/guides/configuration-management/identifying-components/</guid><description>&lt;p&gt;Ever wondered what the different icons and shapes in Meshery represent? Whether you&amp;rsquo;re looking at a dashboard, a settings page, or a design, you&amp;rsquo;ll encounter a rich library of visual elements. This guide is here to help you understand what they mean.&lt;/p&gt;
+rather than &lt;code&gt;http.Error&lt;/code&gt; and so are not governed by the lint rule.
+This rule and the other repo-specific Go lint gates are listed in
+&lt;a href="/project/contributing/contributing-lint/"&gt;Go Lint Rules&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>Hybridnet</title><link>/extensions/models/hybridnet/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/models/hybridnet/</guid><description/></item><item><title>Identifying Meshery Components</title><link>/guides/configuration-management/identifying-components/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/guides/configuration-management/identifying-components/</guid><description>&lt;p&gt;Ever wondered what the different icons and shapes in Meshery represent? Whether you&amp;rsquo;re looking at a dashboard, a settings page, or a design, you&amp;rsquo;ll encounter a rich library of visual elements. This guide is here to help you understand what they mean.&lt;/p&gt;
 &lt;p&gt;The &lt;a href="/concepts/logical/components/"&gt;components&lt;/a&gt; in Meshery fall into two fundamental categories, distinguished by whether they can be orchestrated (managed) by Meshery during deployment:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;
@@ -36038,19 +36047,19 @@ A &lt;strong&gt;&lt;a href="/concepts/logical/designs/"&gt;design&lt;/a&gt;&lt;/
 &lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;a href="/guides/infrastructure-management/sample-apps/#emojivoto"&gt;Emojivoto&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Emojivoto&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;A microservice application that allows users to vote for their favorite emoji, and tracks votes received on a leaderboard.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;a href="/guides/infrastructure-management/sample-apps/#bookinfo"&gt;Bookinfo&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Bookinfo&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;The sample BookInfo application displays information about a book, similar to a single catalog entry of an online book store.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;a href="/guides/infrastructure-management/sample-apps/#httpbin"&gt;Httpbin&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Httpbin&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;Httpbin is a simple HTTP request and response service.&lt;/li&gt;
 &lt;/ul&gt;
@@ -36079,17 +36088,17 @@ A &lt;strong&gt;&lt;a href="/concepts/logical/designs/"&gt;design&lt;/a&gt;&lt;/
 &lt;/h3&gt;
 &lt;p&gt;Meshery supports the deployment of a variety of sample applications on Meshery Adapter for Consul. Use Meshery to deploy any of these sample applications.&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="/guides/infrastructure-management/sample-apps/#httpbin"&gt;httpbin&lt;/a&gt;
+&lt;li&gt;httpbin
 &lt;ul&gt;
 &lt;li&gt;Httpbin is a simple HTTP request and response service.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="/guides/infrastructure-management/sample-apps/#bookinfo"&gt;Bookinfo&lt;/a&gt;
+&lt;li&gt;Bookinfo
 &lt;ul&gt;
 &lt;li&gt;The sample BookInfo application displays information about a book, similar to a single catalog entry of an online book store.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="/guides/infrastructure-management/sample-apps/#imagehub"&gt;Image Hub&lt;/a&gt;
+&lt;li&gt;Image Hub
 &lt;ul&gt;
 &lt;li&gt;Image Hub is a sample application written to run on Consul for exploring WebAssembly modules used as Envoy filters.&lt;/li&gt;
 &lt;/ul&gt;
@@ -36123,22 +36132,22 @@ A &lt;strong&gt;&lt;a href="/concepts/logical/designs/"&gt;design&lt;/a&gt;&lt;/
 &lt;/h3&gt;
 &lt;p&gt;The Meshery Adapter for Istio includes a handful of sample applications. Use Meshery to deploy any of these sample applications:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="/guides/infrastructure-management/sample-apps/#bookinfo"&gt;Bookinfo&lt;/a&gt;
+&lt;li&gt;Bookinfo
 &lt;ul&gt;
 &lt;li&gt;The sample BookInfo application displays information about a book, similar to a single catalog entry of an online book store.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="/guides/infrastructure-management/sample-apps/#httpbin"&gt;Httpbin&lt;/a&gt;
+&lt;li&gt;Httpbin
 &lt;ul&gt;
 &lt;li&gt;Httpbin is a simple HTTP request and response service.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="/guides/infrastructure-management/sample-apps/#online-boutique"&gt;Online Boutique&lt;/a&gt;
+&lt;li&gt;Online Boutique
 &lt;ul&gt;
 &lt;li&gt;Online Boutique Application is a web-based, e-commerce demo application from the Google Cloud Platform.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="/guides/infrastructure-management/sample-apps/#imagehub"&gt;Image Hub&lt;/a&gt;
+&lt;li&gt;Image Hub
 &lt;ul&gt;
 &lt;li&gt;Image Hub is a sample application written to run on Consul for exploring WebAssembly modules used as Envoy filters.&lt;/li&gt;
 &lt;/ul&gt;
@@ -36152,7 +36161,7 @@ A &lt;strong&gt;&lt;a href="/concepts/logical/designs/"&gt;design&lt;/a&gt;&lt;/
 &lt;/h2&gt;
 &lt;p&gt;The following sample applications are available in this adapter.&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="/guides/infrastructure-management/sample-apps/#bookinfo"&gt;Bookinfo&lt;/a&gt;
+&lt;li&gt;Bookinfo
 &lt;ul&gt;
 &lt;li&gt;The sample BookInfo application displays information about a book, similar to a single catalog entry of an online book store.&lt;/li&gt;
 &lt;/ul&gt;
@@ -36171,19 +36180,19 @@ A &lt;strong&gt;&lt;a href="/concepts/logical/designs/"&gt;design&lt;/a&gt;&lt;/
 &lt;p&gt;The Meshery Adapter for Linkerd includes the ability to deploy a variety of sample applications. Use Meshery to deploy any of these sample applications:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;a href="/guides/infrastructure-management/sample-apps/"&gt;Emojivoto&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Emojivoto&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;A microservice application that allows users to vote for their favorite emoji, and tracks votes received on a leaderboard.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;a href="/guides/infrastructure-management/sample-apps/"&gt;Bookinfo&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Bookinfo&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;The sample BookInfo application displays information about a book, similar to a single catalog entry of an online book store.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;a href="/guides/infrastructure-management/sample-apps/"&gt;Linkerd Books&lt;/a&gt;&lt;/p&gt;</description></item><item><title>Meshery Adapter for Network Service Mesh</title><link>/extensions/adapters/nsm/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/adapters/nsm/</guid><description>&lt;h2 id="sample-applications"&gt;
+&lt;p&gt;Linkerd Books&lt;/p&gt;</description></item><item><title>Meshery Adapter for Network Service Mesh</title><link>/extensions/adapters/nsm/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/adapters/nsm/</guid><description>&lt;h2 id="sample-applications"&gt;
 	Sample Applications
 &lt;/h2&gt;
 &lt;p&gt;The Meshery Adapter for Network Service Mesh includes a handful of sample applications. These applications represent different network services orchestrated by Network Service Mesh. Use Meshery to deploy any of these sample applications:&lt;/p&gt;
@@ -36211,13 +36220,13 @@ A &lt;strong&gt;&lt;a href="/concepts/logical/designs/"&gt;design&lt;/a&gt;&lt;/
 &lt;p&gt;The Meshery Adapter for NGINX Service Mesh includes a handful of sample applications. Use Meshery to deploy any of these sample applications.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;a href="/guides/infrastructure-management/sample-apps/"&gt;Emojivoto&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Emojivoto&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;A microservice application that allows users to vote for their favorite emoji, and tracks votes received on a leaderboard.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;a href="/guides/infrastructure-management/sample-apps/"&gt;Bookinfo&lt;/a&gt;&lt;/p&gt;</description></item><item><title>Meshery Adapter for Tanzu Service Mesh</title><link>/extensions/adapters/tanzu-sm/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/adapters/tanzu-sm/</guid><description>&lt;h3 id="suggested-reading"&gt;
+&lt;p&gt;Bookinfo&lt;/p&gt;</description></item><item><title>Meshery Adapter for Tanzu Service Mesh</title><link>/extensions/adapters/tanzu-sm/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>/extensions/adapters/tanzu-sm/</guid><description>&lt;h3 id="suggested-reading"&gt;
 	Suggested Reading
 &lt;/h3&gt;
 &lt;ul&gt;
@@ -36228,12 +36237,12 @@ A &lt;strong&gt;&lt;a href="/concepts/logical/designs/"&gt;design&lt;/a&gt;&lt;/
 &lt;/h3&gt;
 &lt;p&gt;The Meshery Adapter for Traefik Mesh includes some sample applications operations. Meshery can be used to deploy any of these sample applications.&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href="/guides/infrastructure-management/sample-apps/"&gt;Bookinfo&lt;/a&gt;
+&lt;li&gt;Bookinfo
 &lt;ul&gt;
 &lt;li&gt;The sample BookInfo application displays information about a book, similar to a single catalog entry of an online book store.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;a href="/guides/infrastructure-management/sample-apps/"&gt;Httpbin&lt;/a&gt;
+&lt;li&gt;Httpbin
 &lt;ul&gt;
 &lt;li&gt;Httpbin is a simple HTTP request and response service.&lt;/li&gt;
 &lt;/ul&gt;
